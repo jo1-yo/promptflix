@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Promptflix</title>
+<meta name="description" content="Swipe through AI-made videos. See one you love? Hire the creator for your brand.">
+<meta property="og:title" content="Promptflix">
+<meta property="og:description" content="Swipe through AI-made videos. Hire the creator for your brand.">
+<meta name="theme-color" content="#0d0e11">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f3b34c'/%3E%3Cpath d='M12 9l12 7-12 7z' fill='%231d1406'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-screen app. Watch = full-height vertical snap feed in a phone-width column; Me = one scrolling page.
+   Two tabs: bottom bar on phones, top bar on desktop. Deliberately dark-only: it's a screening room. */
+:root{
+  --ink:#0d0e11; --panel:#16181d; --raise:#1f2229; --line:#2a2e37;
+  --fg:#edebe5; --muted:#9a9ca5; --dim:#6c6f79;
+  --amber:#f3b34c; --amber-ink:#1d1406;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Bricolage Grotesque",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:12px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2;font-family:var(--f-display);font-weight:800}
+
+#app{height:100%;display:flex;flex-direction:column}
+.top{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo .mark{width:22px;height:22px;border-radius:6px;background:var(--amber);display:grid;place-items:center}
+.logo .mark::after{content:"";border-left:8px solid var(--amber-ink);border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px}
+.topnav{display:none;gap:4px}
+.navbtn{background:none;border:0;padding:8px 14px;border-radius:999px;color:var(--muted);font-weight:500}
+.navbtn[aria-current="true"]{color:var(--fg);background:var(--raise)}
+main{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;overflow-y:auto}
+.tabbar{flex:none;display:flex;border-top:1px solid var(--line)}
+.tabbar .navbtn{flex:1;border-radius:0;padding:12px 0;font-size:14px}
+.tabbar .navbtn[aria-current="true"]{background:none;color:var(--amber)}
+@media(min-width:760px){.topnav{display:flex}.tabbar{display:none}}
+
+.btn{border:1px solid var(--line);background:var(--raise);border-radius:999px;padding:8px 16px;font-weight:500;font-size:14px}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:var(--amber-ink);font-weight:800}
+.btn.small{padding:5px 12px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Watch */
+#v-watch{overflow:hidden;background:#000}
+#feed{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none}
+#feed::-webkit-scrollbar{display:none}
+.clip{height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;justify-content:center}
+.frame{position:relative;height:100%;width:100%;max-width:500px;background:#000}
+.frame video{width:100%;height:100%;object-fit:contain;display:block}
+.shade{position:absolute;left:0;right:0;bottom:0;padding:70px 16px 18px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.85));display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.meta{min-width:0;display:grid;gap:3px}
+.byline{justify-self:start;background:none;border:0;padding:0;font-weight:800;font-size:16px;color:#fff}
+.ttl{color:#efede7}
+.slate{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:#bdbab2;text-transform:uppercase;margin-top:4px}
+.slate b{color:var(--amber);font-weight:500}
+.hire{flex:none}
+.sound{position:absolute;top:12px;right:12px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;background:rgba(0,0,0,.55);color:#ddd;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:4px 10px;pointer-events:none}
+.feed-empty{height:100%;display:grid;place-items:center;padding-inline:24px;text-align:center;background:radial-gradient(ellipse at 50% 30%,#1c1a16,#000 70%)}
+.feed-empty .box{max-width:340px;display:grid;gap:12px;justify-items:center}
+.feed-empty h2{font-size:26px}
+.feed-empty p{color:var(--muted);margin:0}
+
+/* Me */
+.page{max-width:720px;margin:0 auto;padding-block:20px 48px;padding-inline:16px;display:grid;gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:14px;min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-head h2{font-size:18px}
+.card-head h2 em{font-style:normal;font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-left:6px;font-weight:500}
+.form{display:grid;gap:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row2{grid-template-columns:1fr}}
+label.f{display:grid;gap:5px;font-size:13px;color:var(--muted);min-width:0}
+label.f small{color:var(--dim)}
+.i{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--fg);font-size:16px}
+textarea.i{min-height:80px;resize:vertical}
+.i:focus{outline:none;border-color:var(--amber)}
+.works{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.work{position:relative;aspect-ratio:9/14;max-width:100%;border-radius:9px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.work video{width:100%;height:100%;object-fit:cover;display:block}
+.work .cap{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;background:linear-gradient(transparent,rgba(0,0,0,.85));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.work .x{position:absolute;top:6px;right:6px;min-width:26px;height:26px;padding:0 7px;border-radius:999px;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:13px}
+.work .play{position:absolute;inset:0;background:none;border:0}
+.hint{font-size:13px;color:var(--dim);margin:0}
+.notice{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:14px 16px;color:var(--muted)}
+.notice b{color:var(--fg)}
+.brief{background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:12px;display:grid;gap:6px;font-size:14px}
+.brief p{margin:0;white-space:pre-wrap}
+.brief .kv{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px;overflow-wrap:anywhere}
+.brief .kv b{color:var(--amber);font-weight:500}
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}
+
+/* Sheet */
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.panel{background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:90%;overflow-y:auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px));display:grid;gap:16px;align-content:start}
+@media(min-width:760px){.sheet{align-items:center}.panel{border-radius:18px;border-bottom:1px solid var(--line);padding:24px}}
+.phead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.phead h2{font-size:22px}
+.phead .sub{color:var(--muted);font-size:13.5px;margin-top:3px}
+.close{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--raise);font-size:18px;line-height:1}
+.player{width:100%;max-height:60vh;background:#000;border-radius:10px;display:block}
+.bio{margin:0;white-space:pre-wrap;color:#dcdad4}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:30;background:var(--fg);color:var(--ink);padding:9px 16px;border-radius:999px;font-size:14px;font-weight:500;max-width:calc(100% - 32px);text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="logo"><span class="mark" aria-hidden="true"></span>Promptflix</div>
+    <nav class="topnav" aria-label="Main">
+      <button class="navbtn" data-tab="watch">Watch</button>
+      <button class="navbtn" data-tab="me">Me</button>
+    </nav>
+    <button class="btn small primary" id="hire-any">Hire a creator</button>
+  </header>
+  <main>
+    <section class="view" id="v-watch" aria-label="Watch"><div id="feed"></div></section>
+    <section class="view" id="v-me" hidden aria-label="Me"><div class="page" id="me"></div></section>
+  </main>
+  <nav class="tabbar" aria-label="Main">
+    <button class="navbtn" data-tab="watch">Watch</button>
+    <button class="navbtn" data-tab="me">Me</button>
+  </nav>
+</div>
+<div class="sheet" id="sheet" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+<div id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// Supabase project settings (Project Settings → API). Both values are meant to be public.
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+
+const TOOLS = ["Sora","Veo","Kling","Runway","Hailuo","Seedance","PixVerse","Martini","Other"];
+const MAX_BYTES = 50 * 1024 * 1024;
+const sb = SUPABASE_URL && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const S = { session:null, isAdmin:false, ready:false, profiles:{}, videos:[], requests:[], contacts:{}, tab:"watch", muted:true, formDirty:false };
+const $ = s => document.querySelector(s);
+
+function h(tag, attrs, ...kids){
+  const el = document.createElement(tag);
+  if (attrs) for (const [k,v] of Object.entries(attrs)){
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "value") el.value = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()){ if (c == null || c === false) continue; el.append(c instanceof Node ? c : String(c)); }
+  return el;
+}
+const uid = () => S.session && S.session.user.id;
+const fileUrl = path => sb.storage.from("videos").getPublicUrl(path).data.publicUrl;
+const tc = s => { s = Math.round(s||0); return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0"); };
+const nameOf = id => (S.profiles[id] && S.profiles[id].name) || "Creator";
+const mine = () => S.profiles[uid()] || {name:"", bio:"", rate:null};
+let toastT;
+function toast(m){ const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3000); }
+const errMsg = e => (e && e.message) || "Something went wrong. Try again.";
+
+/* data */
+async function load(){
+  if (!sb) { S.ready = true; render(); return; }
+  const [p, v] = await Promise.all([sb.from("profiles").select("*"), sb.from("videos").select("*").order("created_at", {ascending:false}).limit(300)]);
+  if (p.error || v.error) toast("Couldn't load videos. Check your connection and reload.");
+  S.profiles = Object.fromEntries((p.data||[]).map(r => [r.id, r]));
+  S.videos = v.data || [];
+  if (S.isAdmin){
+    const [r, c] = await Promise.all([sb.from("hire_requests").select("*").order("created_at", {ascending:false}).limit(200), sb.from("contacts").select("*")]);
+    S.requests = r.data || []; S.contacts = Object.fromEntries((c.data||[]).map(x => [x.id, x.email]));
+  }
+  S.ready = true; render();
+}
+async function onSession(session){
+  S.session = session; S.isAdmin = false;
+  if (session){
+    const a = await sb.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+    S.isAdmin = !!a.data;
+    sb.from("contacts").upsert({id: session.user.id, email: session.user.email}).then(() => {});
+  }
+  S.formDirty = false; await load();
+}
+
+/* tabs */
+function setTab(t){
+  S.tab = t;
+  for (const b of document.querySelectorAll("[data-tab]")) b.setAttribute("aria-current", String(b.dataset.tab === t));
+  $("#v-watch").hidden = t !== "watch"; $("#v-me").hidden = t !== "me";
+  if (t !== "watch") for (const v of document.querySelectorAll("#feed video")) v.pause();
+  render();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
+$("#hire-any").addEventListener("click", () => openHire(null));
+
+/* watch */
+let feedKey = null;
+const io = new IntersectionObserver(es => { for (const e of es){ const v = e.target.querySelector("video");
+  if (e.isIntersecting && e.intersectionRatio > .6 && S.tab === "watch" && $("#sheet").hidden){ v.muted = S.muted; v.play().catch(()=>{}); } else v.pause(); } },
+  {root: document.getElementById("feed"), threshold:[0,.6,1]});
+function renderFeed(){
+  const vids = S.videos;
+  const key = [S.ready, !!sb, uid(), ...vids.map(v => v.id + nameOf(v.owner))].join("|");
+  if (key === feedKey) return; feedKey = key;
+  const feed = $("#feed");
+  for (const c of feed.querySelectorAll(".clip")) io.unobserve(c);
+  if (!vids.length){
+    const [t, p, cta] = !sb ? ["Opening soon", "Promptflix is a feed of AI-made videos where brands hire the creators behind them.", h("button", {class:"btn primary", onclick:() => openHire(null)}, "Hire a creator")]
+      : !S.ready ? ["Loading…", "Fetching the latest AI videos.", null]
+      : ["No videos yet", "Made something with Sora, Veo, Kling or Runway? Post it. Brands hire from what they see here.", h("button", {class:"btn primary", onclick:() => setTab("me")}, "Post a video")];
+    feed.replaceChildren(h("div", {class:"feed-empty"}, h("div", {class:"box"}, h("h2", null, t), h("p", null, p), cta)));
+    return;
+  }
+  feed.replaceChildren(...vids.map(v => {
+    const vid = h("video", {src: fileUrl(v.path), loop:true, playsinline:true, preload:"metadata"});
+    vid.muted = S.muted;
+    vid.addEventListener("click", () => { S.muted = !S.muted;
+      for (const x of feed.querySelectorAll("video")) x.muted = S.muted;
+      for (const x of feed.querySelectorAll(".sound")) x.textContent = S.muted ? "TAP FOR SOUND" : "SOUND ON";
+      vid.play().catch(()=>{}); });
+    const clip = h("div", {class:"clip"}, h("div", {class:"frame"}, vid, h("span", {class:"sound"}, S.muted ? "TAP FOR SOUND" : "SOUND ON"),
+      h("div", {class:"shade"},
+        h("div", {class:"meta"},
+          h("button", {class:"byline", onclick:() => openCreator(v.owner)}, "@" + nameOf(v.owner)),
+          h("div", {class:"ttl"}, v.title),
+          h("div", {class:"slate"}, h("b", null, v.tool), "  ·  " + tc(v.duration))),
+        v.owner !== uid() ? h("button", {class:"btn primary hire", onclick:() => openHire(v.owner)}, "Hire") : null)));
+    io.observe(clip); return clip;
+  }));
+}
+
+/* sheets */
+function openSheet(...kids){ $("#panel").replaceChildren(...kids); $("#sheet").hidden = false; $("#panel").scrollTop = 0;
+  for (const v of document.querySelectorAll("#feed video")) v.pause(); }
+function closeSheet(){ $("#sheet").hidden = true; for (const v of document.querySelectorAll("#panel video")) v.pause(); }
+$("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+const phead = (t, sub) => h("div", {class:"phead"}, h("div", null, h("h2", null, t), sub ? h("div", {class:"sub"}, sub) : null),
+  h("button", {class:"close", onclick:closeSheet, "aria-label":"Close"}, "×"));
+const field = (label, ctl, note) => h("label", {class:"f"}, h("span", null, label, note ? h("small", null, "  " + note) : null), ctl);
+
+function openCreator(id){
+  const p = S.profiles[id] || {}; const vids = S.videos.filter(v => v.owner === id);
+  const player = h("video", {class:"player", controls:true, playsinline:true, hidden:true});
+  openSheet(
+    phead(nameOf(id), [p.rate ? "From $" + p.rate.toLocaleString("en-US") : "Rate on request", vids.length + (vids.length === 1 ? " video" : " videos")].join("  ·  ")),
+    p.bio ? h("p", {class:"bio"}, p.bio) : null,
+    id !== uid() ? h("button", {class:"btn primary", onclick:() => openHire(id)}, "Hire " + nameOf(id))
+                 : h("button", {class:"btn", onclick:() => { closeSheet(); setTab("me"); }}, "Edit my profile"),
+    player,
+    h("div", {class:"works"}, vids.map(v => h("div", {class:"work"},
+      h("video", {src: fileUrl(v.path) + "#t=0.5", muted:true, playsinline:true, preload:"metadata"}),
+      h("div", {class:"cap"}, v.title),
+      h("button", {class:"play", "aria-label":"Play " + v.title, onclick:() => { player.hidden = false; player.src = fileUrl(v.path); player.play().catch(()=>{}); }})))));
+}
+
+function openHire(creator){
+  const f = h("form", {class:"form"},
+    field("What do you need?", h("textarea", {class:"i", id:"b-what", required:true, maxlength:"1500", placeholder:"e.g. A 15-second vertical ad for our new cold brew, playful, for Instagram"})),
+    h("div", {class:"row2"},
+      field("Budget (USD)", h("input", {class:"i", id:"b-budget", type:"number", min:"0", step:"50", inputmode:"numeric", placeholder:"Leave blank if unsure"})),
+      field("Your email", h("input", {class:"i", id:"b-email", type:"email", required:true, maxlength:"120", value: S.session ? S.session.user.email : null, placeholder:"you@company.com"}))),
+    h("button", {class:"btn primary", type:"submit"}, "Send request"),
+    h("p", {class:"hint"}, "No sign-up needed. Only the Promptflix team sees this, and we'll email you within 24 hours to make the intro."));
+  f.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!sb) { toast("Requests open soon. Please check back in a day or two."); return; }
+    const btn = f.querySelector("[type=submit]"); btn.disabled = true; btn.textContent = "Sending…";
+    const { error } = await sb.from("hire_requests").insert({creator, what:$("#b-what").value.trim(), budget:Number($("#b-budget").value) || null, email:$("#b-email").value.trim()});
+    if (error){ toast(errMsg(error)); btn.disabled = false; btn.textContent = "Send request"; return; }
+    closeSheet(); toast("Request sent. We'll email you within 24 hours.");
+  });
+  openSheet(phead(creator ? "Hire " + nameOf(creator) : "Hire a creator", creator ? "Tell us what you need and we'll connect you." : "Tell us what you need and we'll find the right creator."), f);
+}
+
+function probe(file){
+  return new Promise(res => { const v = document.createElement("video"), url = URL.createObjectURL(file);
+    const done = d => { URL.revokeObjectURL(url); res(d); };
+    v.preload = "metadata"; v.muted = true; v.onloadedmetadata = () => done(v.duration || 0); v.onerror = () => done(0); v.src = url; });
+}
+function openUpload(){
+  if (!mine().name) { toast("Save your name first, so people know who made it."); return; }
+  let file = null;
+  const preview = h("video", {class:"player", controls:true, muted:true, playsinline:true, hidden:true});
+  const input = h("input", {class:"i", id:"u-file", type:"file", accept:"video/mp4,video/quicktime,video/webm", required:true});
+  input.addEventListener("change", () => { file = input.files[0] || null; if (!file) return;
+    if (file.size > MAX_BYTES){ toast("That file is " + (file.size/1048576).toFixed(1) + " MB. The limit is 50 MB."); input.value = ""; file = null; return; }
+    preview.hidden = false; preview.src = URL.createObjectURL(file);
+    if (!$("#u-title").value) $("#u-title").value = file.name.replace(/\.[^.]+$/, "").slice(0,60); });
+  const f = h("form", {class:"form"},
+    field("Video", input, "MP4, MOV or WebM, up to 50 MB"), preview,
+    h("div", {class:"row2"},
+      field("Title", h("input", {class:"i", id:"u-title", required:true, maxlength:"60"})),
+      field("Made with", h("select", {class:"i", id:"u-tool"}, TOOLS.map(t => h("option", {value:t}, t))))),
+    h("button", {class:"btn primary", type:"submit"}, "Post video"));
+  f.addEventListener("submit", async e => {
+    e.preventDefault(); if (!file) return;
+    const btn = f.querySelector("[type=submit]"); btn.disabled = true; btn.textContent = "Uploading…";
+    try {
+      const duration = await probe(file);
+      const ext = (file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const path = uid() + "/" + crypto.randomUUID() + "." + ext;
+      const up = await sb.storage.from("videos").upload(path, file, {contentType: file.type || "video/mp4"});
+      if (up.error) throw up.error;
+      const ins = await sb.from("videos").insert({title:$("#u-title").value.trim(), tool:$("#u-tool").value, duration:Math.round(duration*10)/10, path});
+      if (ins.error){ await sb.storage.from("videos").remove([path]); throw ins.error; }
+      closeSheet(); toast("Posted. It's live in Watch."); await load();
+    } catch(err){ toast(errMsg(err)); btn.disabled = false; btn.textContent = "Post video"; }
+  });
+  openSheet(phead("Post a video", "It shows up in Watch and on your profile."), f);
+}
+async function deleteVideo(v){
+  const { error } = await sb.from("videos").delete().eq("id", v.id);
+  if (error) { toast(errMsg(error)); return; }
+  await sb.storage.from("videos").remove([v.path]);
+  toast("Video deleted."); await load();
+}
+
+/* me */
+let formEl = null;
+function signInCard(){
+  const f = h("form", {class:"form"},
+    field("Email", h("input", {class:"i", id:"s-email", type:"email", required:true, placeholder:"you@example.com"})),
+    h("div", null, h("button", {class:"btn primary", type:"submit"}, "Email me a sign-in link")));
+  f.addEventListener("submit", async e => {
+    e.preventDefault(); const btn = f.querySelector("[type=submit]"); btn.disabled = true;
+    const { error } = await sb.auth.signInWithOtp({email: $("#s-email").value.trim(), options:{emailRedirectTo: location.origin + location.pathname}});
+    btn.disabled = false;
+    if (error) toast(errMsg(error)); else { f.replaceChildren(h("p", {class:"bio"}, "Check your inbox. Tap the link in the email to sign in on this device.")); }
+  });
+  return h("div", {class:"card"}, h("div", {class:"card-head"}, h("h2", null, "Post your AI videos")),
+    h("p", {class:"hint"}, "Sign in to build a profile and post videos. Brands hire from what they see. No password needed."), f);
+}
+function profileForm(){
+  const p = mine();
+  const f = h("form", {class:"form", oninput:() => S.formDirty = true},
+    h("div", {class:"row2"},
+      field("Name", h("input", {class:"i", id:"p-name", required:true, maxlength:"40", value:p.name, placeholder:"Your name or studio"})),
+      field("Starting rate (USD)", h("input", {class:"i", id:"p-rate", type:"number", min:"0", step:"50", inputmode:"numeric", value:p.rate, placeholder:"Optional"}))),
+    field("Bio", h("textarea", {class:"i", id:"p-bio", maxlength:"300", value:p.bio, placeholder:"What you make, which tools you use, how fast you deliver"})),
+    h("div", null, h("button", {class:"btn primary", type:"submit"}, "Save")));
+  f.addEventListener("submit", async e => {
+    e.preventDefault(); const btn = f.querySelector("[type=submit]"); btn.disabled = true;
+    const { error } = await sb.from("profiles").upsert({id: uid(), name:$("#p-name").value.trim(), bio:$("#p-bio").value.trim(), rate:Number($("#p-rate").value) || null, updated_at:new Date().toISOString()});
+    btn.disabled = false;
+    if (error) { toast(errMsg(error)); return; }
+    S.formDirty = false; toast("Profile saved."); await load();
+  });
+  return f;
+}
+function requestsCard(){
+  return h("div", {class:"card"},
+    h("div", {class:"card-head"}, h("h2", null, "Hire requests", h("em", null, S.requests.length)), h("span", {class:"hint"}, "Admins only")),
+    S.requests.length ? S.requests.map(b => h("div", {class:"brief"},
+      h("p", null, b.what),
+      h("div", {class:"kv"},
+        h("span", null, "for ", h("b", null, b.creator ? nameOf(b.creator) : "anyone")),
+        b.creator && S.contacts[b.creator] ? h("span", null, "creator ", S.contacts[b.creator]) : null,
+        h("span", null, "budget ", b.budget ? "$" + b.budget.toLocaleString("en-US") : "open"),
+        h("span", null, "buyer ", b.email),
+        h("span", null, new Date(b.created_at).toLocaleDateString("en-US", {month:"short", day:"numeric"})))))
+      : h("p", {class:"hint"}, "When someone taps Hire, their request shows up here. You make the intro by email."));
+}
+function renderMe(){
+  const root = $("#me");
+  if (!sb) { root.replaceChildren(h("div", {class:"notice"}, h("b", null, "Opening soon. "), "Creator sign-up opens in a day or two.")); return; }
+  if (!S.session) { formEl = null; root.replaceChildren(signInCard()); return; }
+  if (!(S.formDirty || (formEl && formEl.contains(document.activeElement)))) formEl = profileForm();
+  const vids = S.videos.filter(v => v.owner === uid());
+  const kids = [];
+  if (S.isAdmin) kids.push(requestsCard());
+  kids.push(h("div", {class:"card"},
+    h("div", {class:"card-head"}, h("h2", null, "Profile"), mine().name ? h("button", {class:"btn small", type:"button", onclick:() => openCreator(uid())}, "View public profile") : null),
+    formEl,
+    h("div", {class:"who"}, h("span", null, "Signed in as " + S.session.user.email), h("button", {class:"btn small", type:"button", onclick:() => sb.auth.signOut()}, "Sign out"))));
+  kids.push(h("div", {class:"card"},
+    h("div", {class:"card-head"}, h("h2", null, "My videos", h("em", null, vids.length)), h("button", {class:"btn small primary", onclick:openUpload}, "Upload")),
+    vids.length ? h("div", {class:"works"}, vids.map(v => h("div", {class:"work"},
+      h("video", {src: fileUrl(v.path) + "#t=0.5", muted:true, playsinline:true, preload:"metadata"}),
+      h("div", {class:"cap"}, v.title),
+      h("button", {class:"play", "aria-label":"Open my profile", onclick:() => openCreator(uid())}),
+      h("button", {class:"x", "aria-label":"Delete " + v.title, onclick:e => { const b = e.currentTarget;
+        if (b.dataset.armed) deleteVideo(v); else { b.dataset.armed = "1"; b.textContent = "Delete?"; setTimeout(() => { if (b.isConnected){ delete b.dataset.armed; b.textContent = "×"; } }, 3000); } }}, "×"))))
+      : h("p", {class:"hint"}, "Your AI videos are your portfolio. Brands hire from what they see here.")));
+  root.replaceChildren(...kids);
+}
+
+function render(){ renderFeed(); if (S.tab === "me") renderMe(); }
+
+setTab("watch");
+if (sb){
+  let first = true;
+  sb.auth.onAuthStateChange((_ev, session) => {
+    if (!first && (session && session.user.id) === uid()) { S.session = session; return; }
+    first = false; setTimeout(() => onSession(session), 0); // never await Supabase calls inside this callback
+  });
+} else load();
+</script>
+</body>
+</html>
