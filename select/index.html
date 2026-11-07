@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Promptflix Select</title>
+<meta name="description" content="Selected AI films and campaigns.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0a;--card:#151513;--text:#efece4;--mute:#8f8b80;--serif:"Instrument Serif",Georgia,serif;--sans:Inter,system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+header{padding:56px 0 36px}
+.logo{font-family:var(--serif);font-size:44px;line-height:1}
+header p{color:var(--mute);margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 22px;padding-bottom:80px}
+.item{text-align:left;cursor:pointer}
+.media{position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:4px;background:var(--card)}
+.media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.item:hover .media img{transform:scale(1.04)}
+.badge{position:absolute;left:12px;bottom:12px;width:40px;height:40px;border-radius:50%;background:rgba(239,236,228,.92);display:grid;place-items:center}
+.badge.play::after{content:"";border-left:12px solid #0b0b0a;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
+.badge.stills{width:auto;height:auto;border-radius:999px;padding:5px 11px;font-size:11px;color:#0b0b0a;letter-spacing:.04em}
+.t{margin-top:12px;font-size:15px}
+.k{color:var(--mute);font-size:13px}
+footer{color:var(--mute);font-size:12px;padding:0 0 48px}
+
+.ov{position:fixed;inset:0;z-index:10;background:#050505;display:none;flex-direction:column}
+.ov.open{display:flex}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;font-size:14px;color:var(--mute);gap:16px}
+.bar b{color:var(--text);font-weight:500}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 20px 20px}
+.stage video,.stage img{max-width:100%;max-height:100%;display:block;background:#000}
+.stage iframe{border:0;background:#000;width:min(100%,calc((100vh - 90px) * 16 / 9));aspect-ratio:16/9}
+.stage iframe.v{width:min(100%,calc((100vh - 90px) * 9 / 16));aspect-ratio:9/16}
+.nav{display:flex;gap:6px;align-items:center}
+.nav button{padding:6px 10px;border:1px solid #2a2925;border-radius:999px}
+
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.wrap{padding:0 16px}header{padding:36px 0 24px}.logo{font-size:36px}.grid{gap:20px 12px}.t{font-size:14px}.stage{padding:0 0 12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="logo">Promptflix Select</div><p>Selected AI films and campaigns.</p></header>
+  <main class="grid" id="grid"></main>
+  <footer>All work shown is by independent filmmakers in our network.</footer>
+</div>
+
+<div class="ov" id="ov">
+  <div class="bar"><span id="cap"></span><span class="nav" id="nav"></span><button id="close">Close ✕</button></div>
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+// Every piece plays on this page: mp4 files, YouTube/Vimeo players, or still galleries.
+const COBY = "https://cobymendoza.com/media/";
+const HY = "https://cdn.hypear.ai/portfolio/b79221mq9ldpp4xhbtsk6imt/";
+const WORKS = [
+  {t:"Polo 67", k:"Fragrance campaign", type:"mp4", src:COBY+"polo/polo-67-ai-commercial-coby-mendoza.mp4", poster:COBY+"polo/polo-67-ai-commercial-coby-mendoza.webp"},
+  {t:"ÉLAÏA", k:"Hijab campaign", type:"stills", imgs:["oihi1xhexazthvui/bild-601","r28n97rsk2icjfv4/bild-617","q7k669c9c5710xzy/bild-595","ilflz2dt2d0lf7ts/bild-619","s0tg4h8ud1ardqz8/bild-596","vv6ylwfsmt2ob6at/bild-608"]},
+  {t:"Chase Sapphire Reserve", k:"Commercial", type:"mp4", src:COBY+"screening/chase-sapphire-reserve-ai-cinematic-commercial-coby-mendoza.mp4", poster:COBY+"screening/chase-sapphire-reserve-ai-cinematic-commercial-coby-mendoza.webp"},
+  {t:"KIKO Milano", k:"Beauty short", type:"yt", id:"sBPrgqiWqmI", vertical:true, poster:"https://i.ytimg.com/vi/sBPrgqiWqmI/hq2.jpg"},
+  {t:"Bose", k:"Spec ad", type:"vimeo", id:"1220669349", poster:"https://i.vimeocdn.com/video/2193179207-d047fd9f0f2524e59d48e8b20dbceec658808179195fa7906dc3a00cc07234fc-d_1280?region=us"},
+  {t:"LETTRE", k:"Lipstick launch", type:"stills", imgs:["j47mf3e0yjn5yu42/bild-842","a24n03c6g9b0umof/bild-859","vlswf79kl21ewdi3/bild-867","cqbwvrhr9qm6h5nb/bild-857","fxtemky78rokeotk/bild-856","gj9l7c6xnbdzkonx/bild-862","b13c04xdpqk73ix5/bild-868"]},
+  {t:"Mercedes-Benz", k:"Automotive film", type:"mp4", src:COBY+"screening/mercedes-benz-ai-automotive-commercial-coby-mendoza.mp4", poster:COBY+"screening/mercedes-benz-ai-automotive-commercial-coby-mendoza.webp"},
+  {t:"Starbucks", k:"Shaken Awake", type:"vimeo", id:"1231063903", poster:"https://i.vimeocdn.com/video/2206136048-48f1acaa16d83a2ad443786c88ddd27cd1d5193fdd295655d91015df92be2369-d_1280?region=us"},
+  {t:"Light Wash", k:"Denim campaign", type:"stills", imgs:["s79yivfhamzvvwks/bild-695","cvi2xfpmw0vp0ozg/bild-702","yq20wbhuxlu9wj98/bild-694","dmueiilicmg04x8q/bild-693","yy803dxiec9mhybd/bild-697","p58g9g30i0xqdrlj/bild-700","mzdunkttrl7csd53/bild-699"]},
+  {t:"Apple AirPods Max", k:"Product film", type:"mp4", src:COBY+"screening/apple-airpods-max-ai-product-film-coby-mendoza.mp4", poster:COBY+"screening/apple-airpods-max-ai-product-film-coby-mendoza.webp"},
+  {t:"PlayStation", k:"Four Shapes", type:"yt", id:"h6mK9lM55Bo", poster:"https://i.ytimg.com/vi/h6mK9lM55Bo/maxresdefault.jpg"},
+  {t:"Zippo", k:"Product spot", type:"yt", id:"N3vWk6Skp1w", poster:"https://i.ytimg.com/vi/N3vWk6Skp1w/maxresdefault.jpg"},
+];
+WORKS.forEach(w => { if (w.imgs) { w.imgs = w.imgs.map(p => HY + p + ".jpeg"); w.poster = w.imgs[0]; } });
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+$("#grid").innerHTML = WORKS.map((w,i) => `
+  <button class="item" data-i="${i}">
+    <div class="media"><img src="${esc(w.poster)}" alt="${esc(w.t)}">
+      ${w.type === "stills" ? `<span class="badge stills">${w.imgs.length} stills</span>` : `<span class="badge play"></span>`}</div>
+    <div class="t">${esc(w.t)}</div><div class="k">${esc(w.k)}</div>
+  </button>`).join("");
+
+let cur = null, idx = 0;
+function show(){
+  const w = cur, st = $("#stage");
+  $("#cap").innerHTML = `<b>${esc(w.t)}</b> · ${esc(w.k)}`;
+  $("#nav").innerHTML = "";
+  if (w.type === "mp4") st.innerHTML = `<video src="${esc(w.src)}" poster="${esc(w.poster)}" controls autoplay playsinline></video>`;
+  if (w.type === "yt") st.innerHTML = `<iframe class="${w.vertical?"v":""}" src="https://www.youtube.com/embed/${w.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3" allow="autoplay; encrypted-media; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+  if (w.type === "vimeo") st.innerHTML = `<iframe src="https://player.vimeo.com/video/${w.id}?autoplay=1&title=0&byline=0&portrait=0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+  if (w.type === "stills"){
+    st.innerHTML = `<img src="${esc(w.imgs[idx])}" alt="${esc(w.t)}">`;
+    $("#nav").innerHTML = `<button data-step="-1">←</button><span>${idx+1} / ${w.imgs.length}</span><button data-step="1">→</button>`;
+  }
+}
+function openWork(i){ cur = WORKS[i]; idx = 0; show(); $("#ov").classList.add("open"); document.body.style.overflow = "hidden"; }
+function closeWork(){ $("#ov").classList.remove("open"); $("#stage").innerHTML = ""; document.body.style.overflow = ""; }
+function step(d){ if (cur?.type !== "stills") return; idx = (idx + d + cur.imgs.length) % cur.imgs.length; show(); }
+
+document.addEventListener("click", e => {
+  const it = e.target.closest(".item"); if (it) openWork(+it.dataset.i);
+  const s = e.target.closest("[data-step]"); if (s) step(+s.dataset.step);
+  if (e.target.closest("#close")) closeWork();
+  if (e.target.matches(".stage img")) step(1);
+});
+document.addEventListener("keydown", e => {
+  if (!$("#ov").classList.contains("open")) return;
+  if (e.key === "Escape") closeWork(); if (e.key === "ArrowRight") step(1); if (e.key === "ArrowLeft") step(-1);
+});
+</script>
+</body>
+</html>
