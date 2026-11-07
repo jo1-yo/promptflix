@@ -39,6 +39,10 @@ footer{color:var(--mute);font-size:12px;padding:0 0 48px}
 .stage iframe.v{width:min(100%,calc((100vh - 90px) * 9 / 16));aspect-ratio:9/16}
 .nav{display:flex;gap:6px;align-items:center}
 .nav button{padding:6px 10px;border:1px solid #2a2925;border-radius:999px}
+.stage{position:relative}
+.loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:10px;color:var(--mute);font-size:13px;pointer-events:none}
+.loading::before{content:"";width:18px;height:18px;border:2px solid #333;border-top-color:var(--text);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){.wrap{padding:0 16px}header{padding:36px 0 24px}.logo{font-size:36px}.grid{gap:20px 12px}.t{font-size:14px}.stage{padding:0 0 12px}}
@@ -59,7 +63,7 @@ footer{color:var(--mute);font-size:12px;padding:0 0 48px}
 <script>
 // Every piece plays on this page: mp4 files, YouTube/Vimeo players, or still galleries.
 const COBY = "https://cobymendoza.com/media/";
-const HY = "https://cdn.hypear.ai/portfolio/b79221mq9ldpp4xhbtsk6imt/";
+const HY = "https://cdn.hypear.ai/cdn-cgi/image/width=1600,quality=80,format=auto/portfolio/b79221mq9ldpp4xhbtsk6imt/";
 const WORKS = [
   {t:"Polo 67", k:"Fragrance campaign", type:"mp4", src:COBY+"polo/polo-67-ai-commercial-coby-mendoza.mp4", poster:COBY+"polo/polo-67-ai-commercial-coby-mendoza.webp"},
   {t:"ÉLAÏA", k:"Hijab campaign", type:"stills", imgs:["oihi1xhexazthvui/bild-601","r28n97rsk2icjfv4/bild-617","q7k669c9c5710xzy/bild-595","ilflz2dt2d0lf7ts/bild-619","s0tg4h8ud1ardqz8/bild-596","vv6ylwfsmt2ob6at/bild-608"]},
@@ -91,7 +95,12 @@ function show(){
   const w = cur, st = $("#stage");
   $("#cap").innerHTML = `<b>${esc(w.t)}</b> · ${esc(w.k)}`;
   $("#nav").innerHTML = "";
-  if (w.type === "mp4") st.innerHTML = `<video src="${esc(w.src)}" poster="${esc(w.poster)}" controls autoplay playsinline></video>`;
+  if (w.type === "mp4"){
+    // Some source servers send the whole file before playback can start, so show progress.
+    st.innerHTML = `<video src="${esc(w.src)}" poster="${esc(w.poster)}" controls autoplay playsinline preload="auto"></video><div class="loading">Loading film…</div>`;
+    const v = st.querySelector("video"), l = st.querySelector(".loading");
+    v.addEventListener("playing", () => l.remove(), {once:true});
+  }
   if (w.type === "yt") st.innerHTML = `<iframe class="${w.vertical?"v":""}" src="https://www.youtube.com/embed/${w.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3" allow="autoplay; encrypted-media; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
   if (w.type === "vimeo") st.innerHTML = `<iframe src="https://player.vimeo.com/video/${w.id}?autoplay=1&title=0&byline=0&portrait=0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
   if (w.type === "stills"){
