@@ -1,0 +1,62 @@
+# Claude reviews every pull request: inline comments on real problems, one short summary.
+# Needs ONE repo secret: ANTHROPIC_API_KEY (console.anthropic.com) or CLAUDE_CODE_OAUTH_TOKEN (`claude setup-token`).
+# Without a secret the job skips itself instead of failing.
+name: claude-review
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Skip if no Claude key is set
+        id: key
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' || secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          echo "ok=$HAS_KEY" >> "$GITHUB_OUTPUT"
+          [ "$HAS_KEY" = "true" ] || echo "::notice::No ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN secret; skipping Claude review."
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.ok == 'true'
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        if: steps.key.outputs.ok == 'true'
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}   # comments as github-actions; no Claude GitHub App install needed
+          track_progress: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            You are reviewing a pull request for Promptflix, a static marketplace site (plain HTML/CSS/JS, no build step) deployed to production the moment it merges to main.
+            First read AGENTS.md (rules and traps) and the parts of README.md the diff touches. Then read the diff with `gh pr diff`.
+
+            Report only problems that matter, most severe first:
+            1. Bugs: wrong behaviour, broken flows, crashes, state that can't be undone. Pay special attention to:
+               - a top-level const/let/function name that already exists in another script on the same page (all scripts share one global scope);
+               - shared files (ui.js, store.js, auth.js, pay.js…) reading APP at load time;
+               - escrow, payment and order-status changes outside store.js, or amounts/commission computed wrongly;
+               - a live integration without a demo path that works when config.js keys are empty.
+            2. Security: secrets in any file (config.js is public), trusting the browser for money or admin rights in new server code, XSS from innerHTML with user data.
+            3. Rule breaks from AGENTS.md: new build tools or npm deps, unpinned CDN scripts, hand edits to market/creators.js, invented prices/ratings for unclaimed creators, faked provider UI.
+            4. UI regressions you can see from the code: layout that breaks below 400px wide, removed accessibility attributes.
+            5. README.md not updated when setup, config keys or "What's not done" changed.
+
+            Put each problem as an inline comment on the exact line, saying what breaks and how to fix it.
+            Then post one short top-level comment with `gh pr comment`: a one-line verdict (looks good / needs changes) and a list of the inline issues. No praise, no restating the diff, no style nitpicks the author didn't ask for.
+            If you find nothing worth flagging, say so in one line.
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Grep,Glob"

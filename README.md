@@ -19,7 +19,8 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Escrow, revisions, contract breaks | ✅ Working (browser ledger) | Real money movement and creator payouts |
 | Real creators (87) | ✅ Live, unclaimed | Outreach. Invites are a status flag, no email is sent |
 | Privacy policy and terms | ✅ Live (draft) | Legal review |
-| Repo checks on every PR | ✅ GitHub Actions | AI PR review (see [Pull requests](#pull-requests)) |
+| Repo checks on every PR | ✅ GitHub Actions | — |
+| Claude PR review + `@claude` | 🟡 Workflows in place | Repo secret `ANTHROPIC_API_KEY` (see [Pull requests](#pull-requests)) |
 | Select showcase (`select/`) | ✅ Live | — |
 | Feed app (`index.html`) | ⛔ Offline | Its Supabase project is gone; schema needs to be run on a new one |
 
@@ -35,7 +36,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | [`select/`](select/) | Promptflix Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
 | [`index.html`](index.html) · [`schema.sql`](schema.sql) | The original feed app (swipe through AI videos, send a hire request) and its Supabase schema. |
 | [`scripts/check.mjs`](scripts/check.mjs) | Repo checks, run locally and in CI. |
-| [`.github/workflows/`](.github/workflows/) | CI. |
+| [`.github/workflows/`](.github/workflows/) | CI: `check` (required), `claude-review`, `claude` (`@claude` mentions). |
 
 ## Tech stack
 
@@ -83,7 +84,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Stripe.js | v3 | `pay.js`, live mode only |
 | PayPal JS SDK | PayPal-hosted, unversioned | `pay.js`, live mode only |
 
-**Hosting and CI:** GitHub Pages (`.nojekyll`, custom domain on the parent `jo1-yo.github.io` repo). GitHub Actions runs [`scripts/check.mjs`](scripts/check.mjs) on every pull request.
+**Hosting and CI:** GitHub Pages (`.nojekyll`, custom domain on the parent `jo1-yo.github.io` repo). GitHub Actions runs [`scripts/check.mjs`](scripts/check.mjs) on every pull request, plus Claude review ([`anthropics/claude-code-action@v1`](https://github.com/anthropics/claude-code-action)) once a key is set.
 
 ## How the market works
 
@@ -261,13 +262,26 @@ In rough priority order. Each item says where the work goes.
 
 ## Pull requests
 
-- Branch from `main`, open a PR, and wait for the **check** workflow. Merging to `main` deploys immediately.
-- `node scripts/check.mjs` runs the same checks locally:
-  - every page's scripts compile **together** (catches a duplicate top-level name across files, which silently breaks the page);
-  - the Deno function parses;
-  - no secret keys (Stripe, Google client secret, Supabase secret / service role, private keys);
-  - no `.DS_Store`, no absolute local paths.
-- The checks don't open a browser. For UI changes, run the site locally and click through the flow you touched, at desktop and phone width.
+`main` is protected: changes go through a pull request, the **check** workflow must pass, and one approval is needed. Merging deploys immediately. (The repo owner can still push directly in an emergency.)
+
+**Three things run on every PR**
+
+| Workflow | What it does | Needs |
+| --- | --- | --- |
+| [`check`](.github/workflows/check.yml) | `node scripts/check.mjs`: every page's scripts compile **together** (catches a duplicate top-level name across files, which silently breaks the page); the Deno function parses; no secret keys (Stripe, Google client secret, Supabase secret / service role, private keys); no `.DS_Store` or absolute local paths. **Required to merge.** | Nothing |
+| [`claude-review`](.github/workflows/claude-review.yml) | Claude reads `AGENTS.md` and the diff, leaves inline comments on real problems (bugs, escrow/payment logic, secrets, global-name clashes, missing demo paths, mobile breakage) and one summary comment. Re-runs on each push; skips drafts. Advisory, not required. | Repo secret |
+| [`claude`](.github/workflows/claude.yml) | Mention `@claude` in a PR or issue comment to ask a question or request a change. Claude works on the PR branch (never `main`) and runs the checks before committing. Only the owner and collaborators can trigger it. | Repo secret |
+
+**Turning on the Claude workflows:** add one repository secret in GitHub → Settings → Secrets and variables → Actions:
+- `ANTHROPIC_API_KEY`: an API key from console.anthropic.com (billed per use), **or**
+- `CLAUDE_CODE_OAUTH_TOKEN`: run `claude setup-token` locally to use a Claude subscription instead.
+
+Until a secret exists, both Claude jobs skip themselves with a notice, and PRs still merge on **check** alone.
+
+**Before opening a PR**
+- Run `node scripts/check.mjs`.
+- For UI changes, run the site locally and click through the flow you touched at desktop and phone width (the checks don't open a browser). Say in the PR what you tested.
+- To join, ask the repo owner to add you under Settings → Collaborators.
 
 ## Code map
 
