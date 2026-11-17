@@ -1,5 +1,5 @@
 // Promptflix Market — payments server (Supabase Edge Function, Deno).
-// Deploy: supabase functions deploy payments --no-verify-jwt   (see market/README.md → Going live)
+// Deploy: supabase functions deploy payments --no-verify-jwt   (see README.md → Going live)
 //
 // Actions (POST JSON):
 //   { action: "stripe_intent",  orderId, kind: "deposit"|"balance", amount, currency }  → { clientSecret, id }

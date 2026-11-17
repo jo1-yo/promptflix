@@ -1,0 +1,19 @@
+# Runs on every pull request and every push to main. No secrets needed.
+# Same checks as `node scripts/check.mjs` locally: scripts compile per page, no secrets, no .DS_Store, no absolute paths.
+name: check
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --no-warnings scripts/check.mjs
