@@ -84,18 +84,22 @@ The 87 creators are real people from the team's research list, across brand ads,
 
 Every integration is optional and independent. Fill [`market/config.js`](market/config.js) one piece at a time; anything left empty stays in demo mode.
 
-**Google sign-in (the real Google account chooser)**
+**Google sign-in**
 
-The "Choose an account" window is Google's own page. It appears only once the site has a Google OAuth client.
+Sign-in uses Google's own "Continue with Google" button. Clicking it opens Google's account chooser on accounts.google.com, which returns an ID token signed by Google.
 
-1. Google Cloud Console → APIs & Services → Credentials → **Create OAuth client ID** → Web application.
-2. Authorized JavaScript origins: `http://localhost:8131` and `https://imjane.top`.
-3. Paste the client ID into `googleClientId`. That's enough for the popup, with no server needed.
-4. For server-checked sessions, use Supabase instead (next section). Add the same client in Supabase → Authentication → Providers → Google, with redirect URI `https://<ref>.supabase.co/auth/v1/callback`.
+1. Google Cloud Console → **Google Auth Platform** → Clients → Create client → **Web application**.
+2. Authorized JavaScript origins: `http://localhost`, `http://localhost:8131` and `https://imjane.top`. No redirect URI is needed. Copy the client ID (the secret is only for Supabase, step 5).
+3. Paste the client ID into `googleClientId`. The button now works, but the token is only checked in the browser. That's fine for a prototype; it isn't proof of identity for orders or money.
+4. **Audience:** while the app is in Testing, only listed test users can sign in. Click **Publish app** to open it to everyone. It only asks for name, email and picture (non-sensitive scopes), so Google doesn't need to review it.
+5. **Branding:** set the home page `https://imjane.top/promptflix/market/`, privacy policy `https://imjane.top/promptflix/market/privacy/`, terms `https://imjane.top/promptflix/market/terms/`, and authorized domain `imjane.top` (verify it in Google Search Console). Brand verification then shows the Promptflix name and logo on Google's screen.
+6. **Server-checked sessions:** with `supabaseUrl` and `supabaseKey` also set, each Google token goes to Supabase (`signInWithIdToken`), which checks Google's signature, our client ID and a one-time nonce before opening a session. In Supabase → Authentication → Sign In / Providers → Google, enable it and paste the same client ID and its secret. Google's screen then names imjane.top, not supabase.co.
+
+Google sign-in is free and doesn't use Google Cloud credits or need billing.
 
 **Email and phone codes (Supabase Auth)**
 
-1. Create a Supabase project. Set `supabaseUrl` and `supabaseKey` (the publishable key).
+1. Create a Supabase project. Set `supabaseUrl` and `supabaseKey` (the publishable key). Free projects pause after a week without traffic; use a paid plan once real users depend on it.
 2. Email: in Authentication → Email Templates, put `{{ .Token }}` in the magic-link template so users get a 6-digit code. Add custom SMTP before launch, because the built-in sender is rate-limited.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
 4. Add `https://imjane.top/promptflix/market/` to Authentication → URL Configuration → Redirect URLs.
@@ -127,7 +131,8 @@ Card numbers never touch Promptflix: Stripe's Payment Element and PayPal's butto
 | --- | --- |
 | `market/config.js` | Keys and live/demo switches |
 | `market/store.js` | Data layer: identities, orders, escrow state machine, ledger, payments, invites |
-| `market/auth.js` | Google / email / phone sign-in, live (Supabase or Google Identity Services) or demo |
+| `market/auth.js` | Google / email / phone sign-in: Google's own button (ID token, verified by Supabase when set), Supabase codes, or demo |
+| `market/privacy/` · `terms/` | Privacy policy and terms (contact address from `supportEmail` in config.js) |
 | `market/pay.js` | Checkout sheet: Stripe Payment Element or PayPal Buttons, or demo |
 | `market/ui.js` | Shared UI: header, sheets, covers, video player, the chat and order card, watermarked preview |
 | `market/merchant.js` · `creator.js` · `admin.js` | The three sites |

@@ -41,7 +41,7 @@ const workSrc = async w => w[4] ? (w[4].startsWith("f_") ? URL.createObjectURL(a
 
 /* sheet */
 function openSheet(kids, wide){ const p = $("#panel"); p.className = "panel" + (wide ? " wide" : ""); p.replaceChildren(...[kids].flat()); $("#sheet").hidden = false; p.scrollTop = 0; }
-function closeSheet(){ $("#sheet").hidden = true; if (window.Voice) Voice.stop(); for (const v of document.querySelectorAll("#panel video")) v.pause(); }
+function closeSheet(){ $("#sheet").hidden = true; if (typeof Auth !== "undefined") Auth.referrer(null); if (window.Voice) Voice.stop(); for (const v of document.querySelectorAll("#panel video")) v.pause(); }
 const phead = (t, sub) => h("div", { class: "phead" }, h("div", null, h("h2", null, t), sub ? h("div", { class: "sub" }, sub) : null), h("button", { class: "close", type: "button", onclick: closeSheet, "aria-label": "Close" }, "×"));
 const field = (label, ctl, note) => h("label", { class: "f" }, h("span", null, label, note ? h("small", null, note) : null), ctl);
 
@@ -61,7 +61,8 @@ function mountHeader({ brand, sub, links, right, home }){
   if (!scrollBound){ scrollBound = true; const f = () => top.classList.toggle("solid", scrollY > 8 || r.path !== "/"); addEventListener("scroll", f, { passive: true }); addEventListener("hashchange", () => setTimeout(f, 0)); f(); }
   top.classList.toggle("solid", scrollY > 8 || r.path !== "/");
 }
-const footer = () => h("footer", { class: "wrap" }, h("span", null, "Promptflix Market · an escrowed marketplace for AI filmmakers"), h("span", { class: "row" }, h("a", { href: "../" , class: "link" }, "Promptflix"), h("a", { href: APP === "creator" ? "../" : "creator/", class: "link" }, APP === "creator" ? "For clients" : "For creators"), h("a", { href: APP === "admin" ? "./" : (APP === "creator" ? "../admin/" : "admin/"), class: "link" }, "Admin")));
+const footer = () => h("footer", { class: "wrap" }, h("span", null, "Promptflix Market · an escrowed marketplace for AI filmmakers"), h("span", { class: "row" }, h("a", { href: "../" , class: "link" }, "Promptflix"), h("a", { href: APP === "creator" ? "../" : "creator/", class: "link" }, APP === "creator" ? "For clients" : "For creators"), h("a", { href: APP === "admin" ? "./" : (APP === "creator" ? "../admin/" : "admin/"), class: "link" }, "Admin"), h("a", { href: legalBase() + "privacy/", class: "link" }, "Privacy"), h("a", { href: legalBase() + "terms/", class: "link" }, "Terms")));
+const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
 function tile(w, c, onclick){ return h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))); }

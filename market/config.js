@@ -3,11 +3,13 @@
 const CONFIG = {
   supabaseUrl: "",          // https://<ref>.supabase.co — Auth for Google, phone (SMS) and email codes
   supabaseKey: "",          // publishable (anon) key
-  googleClientId: "",       // …apps.googleusercontent.com — real Google account chooser without Supabase (Google Identity Services)
+  googleClientId: "",       // …apps.googleusercontent.com — Google's own button + account chooser (Google Identity Services).
+                            // With Supabase set too, the Google token is verified server-side; alone it's a browser-only prototype.
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
   adminEmails: ["team@promptflix.demo"],
+  supportEmail: "",         // shown on the privacy and terms pages; also the support email on Google's consent screen
 };
 const LIVE = {
   auth: !!(CONFIG.supabaseUrl && CONFIG.supabaseKey),
