@@ -9,7 +9,7 @@ const CONFIG = {
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
   adminEmails: ["team@promptflix.demo"],
-  supportEmail: "",         // shown on the privacy and terms pages; also the support email on Google's consent screen
+  supportEmail: "janezhang555l@gmail.com",         // shown on the privacy and terms pages; also the support email on Google's consent screen
 };
 const LIVE = {
   auth: !!(CONFIG.supabaseUrl && CONFIG.supabaseKey),
