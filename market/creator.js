@@ -5,7 +5,7 @@ const CATS = Object.keys(TAXONOMY);
 
 function header(){
   const u = me(); const live = u && u.live; const n = pendingCount(u && u.id);
-  const links = live ? [["#/chats", "Inbox", n], ["#/profile", "Profile"], ["#/payouts", "Payouts"]] : [["#/", "Home"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]];
+  const links = live ? [["#/chats", "Inbox", n], ["#/profile", "Profile"], ["#/payouts", "Wallet"]] : [["#/", "Home"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]];
   const right = u ? [live ? h("a", { class: "btn quiet small", href: "#/creator-preview" }, "View public profile") : null, h("a", { href: "#/profile", "aria-label": "Profile" }, avatar(u))]
     : [h("button", { class: "btn quiet small", onclick: () => openSignIn(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Sign in"), h("button", { class: "btn primary small", onclick: () => requireAuth(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Apply")];
   mountHeader({ brand: "Promptflix", sub: "For creators", links, right, home: live ? "#/chats" : "#/" });
@@ -119,7 +119,7 @@ function vApply(m){
 function dash(m, active, body){
   const u = me(); if (!u) return requireAuth(() => render()); if (!u.live) return go("#/apply");
   const n = pendingCount(u.id);
-  const rail = h("nav", { class: "rail" }, ...[["chats", "Inbox", n], ["profile", "Profile"], ["payouts", "Payouts"]].map(([k, l, c]) => h("a", { href: "#/" + k, "aria-current": String(k === active) }, l, c ? h("span", { class: "n" }, c) : null)));
+  const rail = h("nav", { class: "rail" }, ...[["chats", "Inbox", n], ["profile", "Profile"], ["payouts", "Wallet"]].map(([k, l, c]) => h("a", { href: "#/" + k, "aria-current": String(k === active) }, l, c ? h("span", { class: "n" }, c) : null)));
   const s = h("div"); body(s);
   m.append(h("div", { class: "wrap dash" }, rail, s));
 }
@@ -143,11 +143,68 @@ function vProfile(s){
       h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Add or remove films from the application flow: ", h("button", { class: "link", onclick: () => { W = { step: 2 }; c.live = false; DB.save(); go("#/apply"); } }, "edit work"), ". Your profile is hidden while you edit.")),
       f));
 }
+/* ---------- wallet ---------- */
+const PAYOUT_COUNTRIES = [["US", "United States"], ["CA", "Canada"], ["GB", "United Kingdom"], ["IE", "Ireland"], ["DE", "Germany"], ["FR", "France"], ["ES", "Spain"], ["IT", "Italy"], ["NL", "Netherlands"], ["SE", "Sweden"], ["PL", "Poland"], ["AU", "Australia"], ["NZ", "New Zealand"], ["JP", "Japan"], ["SG", "Singapore"], ["HK", "Hong Kong"], ["KR", "South Korea"], ["IN", "India"], ["AE", "UAE"], ["BR", "Brazil"], ["MX", "Mexico"]];
 function vPayouts(s){
-  const c = me(); const rows = DB.state.ledger.filter(t => t.to === c.id).slice().reverse();
-  const total = rows.reduce((a, t) => a + t.amount, 0);
-  s.append(h("div", { class: "page-title" }, h("h2", null, "Payouts"), h("span", { class: "stat" }, h("b", null, money(total)), h("span", null, "paid out"))),
-    rows.length ? h("div", { class: "tbl" }, h("table", null, h("thead", null, h("tr", null, h("th", null, "When"), h("th", null, "Order"), h("th", null, "Type"), h("th", { style: { textAlign: "right" } }, "Net"))), h("tbody", null, ...rows.map(t => h("tr", null, h("td", null, when(t.at)), h("td", null, h("a", { href: "#/chat/" + t.orderId }, (DB.order(t.orderId) || {}).title || t.orderId)), h("td", { class: "muted" }, t.type.replace("_", " ")), h("td", { class: "num ok" }, "+" + money(t.amount))))))) : h("div", { class: "empty" }, h("b", null, "Nothing paid out yet."), h("span", null, "Deposits release when a client passes your first cut.")));
+  const c = me(); const body = h("div", { class: "stack", style: { gap: "28px" } }, h("p", { class: "hint" }, "Loading your balance…"));
+  s.append(h("div", { class: "page-title" }, h("h2", null, "Wallet")), body);
+  Payouts.status(c).then(st => drawWallet(body, c, st)).catch(e => body.replaceChildren(h("div", { class: "notice warn" }, h("b", null, "Couldn't load your balance. "), e.message)));
+}
+function drawWallet(body, c, st){
+  const m = st.method, canWithdraw = st.ready && st.available >= FEES.minPayout;
+  const rows = DB.walletRows(c.id);
+  const methodCard = !m
+    ? h("div", { class: "card" }, h("span", { class: "eyebrow" }, "Payout method"),
+        h("p", { class: "muted" }, st.submitted ? "Stripe is still checking your details. This usually takes a few minutes." : "Add the bank account or debit card your money goes to. You enter it on Stripe's secure page; Promptflix never sees the numbers."),
+        h("div", null, h("button", { class: "btn primary", onclick: () => methodSheet(c) }, st.submitted ? "Continue on Stripe" : "Add payout method")))
+    : h("div", { class: "card" }, h("span", { class: "eyebrow" }, "Payout method"),
+        h("div", { class: "row between", style: { gap: "16px", flexWrap: "wrap" } },
+          h("div", { class: "pmethod" }, h("b", null, m.label + " ···· " + m.last4), h("span", null, (m.kind === "card" ? "Debit card" : "Bank account") + (m.instant ? " · instant payouts available" : " · standard payouts"))),
+          h("button", { class: "btn quiet small", onclick: () => st.mode === "live" ? Payouts.manage().catch(e => toast(e.message)) : methodSheet(c) }, st.mode === "live" ? "Manage on Stripe" : "Change")));
+  body.replaceChildren(
+    h("div", { class: "wallet" },
+      h("div", { class: "wcard main" }, h("span", { class: "eyebrow" }, "Available"), h("b", { class: "wnum" }, money(st.available)),
+        h("div", null, h("button", { class: "btn primary", disabled: !canWithdraw, onclick: () => withdrawSheet(c, st) }, "Withdraw")),
+        h("span", { class: "hint" }, !st.ready ? "Add a payout method to withdraw." : st.available < FEES.minPayout ? "Smallest withdrawal is " + money(FEES.minPayout) + "." : "Standard is free. Instant costs " + FEES.instant * 100 + "%.")),
+      h("div", { class: "wcard" }, h("span", { class: "eyebrow" }, "On hold"), h("b", { class: "wnum sm" }, money(st.pending)), h("span", { class: "hint" }, "Deposits held by Promptflix until the client passes your first cut.")),
+      h("div", { class: "wcard" }, h("span", { class: "eyebrow" }, "Earned"), h("b", { class: "wnum sm" }, money(st.earned)), h("span", { class: "hint" }, "After the " + FEES.commission * 100 + "% platform fee. " + money(st.withdrawn) + " withdrawn."))),
+    methodCard,
+    h("div", null, h("span", { class: "eyebrow" }, "Activity"),
+      rows.length ? h("div", { class: "tbl", style: { marginTop: "14px" } }, h("table", null, h("thead", null, h("tr", null, h("th", null, "When"), h("th", null, "What"), h("th", null, "Detail"), h("th", { style: { textAlign: "right" } }, "Amount"))), h("tbody", null, ...rows.map(t => t.type === "payout"
+          ? h("tr", null, h("td", null, when(t.at)), h("td", null, "Withdrawal"), h("td", { class: "muted" }, (t.speed === "instant" ? "Instant" : "Standard") + " · " + t.method + (t.fee ? " · fee " + money(t.fee) : "")), h("td", { class: "num" }, "−" + money(t.amount)))
+          : h("tr", null, h("td", null, when(t.at)), h("td", null, t.type === "deposit_release" ? "Deposit released" : "Balance released"), h("td", null, h("a", { href: "#/chat/" + t.orderId }, (DB.order(t.orderId) || {}).title || t.orderId)), h("td", { class: "num ok" }, "+" + money(t.amount)))))))
+        : h("div", { class: "empty", style: { marginTop: "14px" } }, h("b", null, "No money yet."), h("span", null, "Your deposit lands here when a client passes your first cut; the balance when they approve the final."))));
+}
+function methodSheet(c){
+  const country = h("select", { class: "i", name: "country" }, ...PAYOUT_COUNTRIES.map(([v, l]) => h("option", { value: v, selected: (c.payout && c.payout.country || "US") === v }, l)));
+  const kids = [phead("Payout method", "Where your earnings are sent."), field("Country of your bank account", country)];
+  if (Payouts.live()){
+    const btn = h("button", { class: "btn primary big", onclick: async () => { btn.disabled = true; btn.textContent = "Opening Stripe…"; try { await Payouts.setup(country.value); } catch (e) { btn.disabled = false; btn.textContent = "Continue to Stripe"; toast(e.message); } } }, "Continue to Stripe");
+    kids.push(btn, h("p", { class: "hint" }, "Stripe asks for your legal name, date of birth, address, and a bank account or debit card. It takes about five minutes."));
+  } else {
+    const pick = m => { DB.setPayoutMethod(c.id, { ...m, country: country.value, mode: "demo" }); closeSheet(); toast("Payout method added."); render(); };
+    kids.push(h("div", { class: "demo-pay" }, payIcon("card"), h("div", null, h("b", null, "Stripe isn't connected yet"), h("span", null, "Live, Stripe's own page opens here and collects your bank account or debit card. In demo mode pick a sample method; no real numbers are entered anywhere."))),
+      h("button", { class: "btn big", onclick: () => pick({ kind: "card", label: "Visa debit", last4: "4242", instant: country.value === "US" }) }, "Sample debit card ···· 4242"),
+      h("button", { class: "btn big", onclick: () => pick({ kind: "bank", label: "Bank account", last4: "6789", instant: false }) }, "Sample bank account ···· 6789"));
+  }
+  openSheet(kids);
+}
+function withdrawSheet(c, st){
+  let instant = false;
+  const amount = h("input", { class: "i", type: "number", name: "amount", min: String(FEES.minPayout), max: String(st.available), step: "0.01", value: String(st.available), required: true, inputmode: "decimal" });
+  const sum = h("div", { class: "kv" });
+  const btn = h("button", { class: "btn primary big", type: "submit" }, "Withdraw");
+  const draw = () => { const a = Math.min(st.available, Math.max(0, +amount.value || 0)), fee = instant ? cents(a * FEES.instant) : 0;
+    sum.replaceChildren(h("dt", null, "Fee"), h("dd", null, fee ? money(fee) : "Free"), h("dt", null, "You receive"), h("dd", null, h("b", { style: { fontWeight: 500 } }, money(cents(a - fee)))), h("dt", null, "Arrives"), h("dd", null, instant ? "Within minutes" : "1 to 2 business days"), h("dt", null, "To"), h("dd", null, st.method.label + " ···· " + st.method.last4)); };
+  const seg = h("div", { class: "seg", role: "tablist" }, ...[[false, "Standard · free"], [true, "Instant · " + FEES.instant * 100 + "%"]].map(([v, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(instant === v), disabled: v && !st.method.instant, title: v && !st.method.instant ? "Instant payouts need a debit card" : null, onclick: e => { instant = v; for (const b of seg.children) b.setAttribute("aria-selected", String(b === e.currentTarget)); draw(); } }, l)));
+  amount.oninput = draw; draw();
+  const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); btn.disabled = true; btn.textContent = "Sending…";
+      const err = await Payouts.withdraw(c, +amount.value, instant);
+      if (err){ btn.disabled = false; btn.textContent = "Withdraw"; return toast(err); }
+      closeSheet(); toast(instant ? "On its way. It should arrive within minutes." : "On its way. Expect it in 1 to 2 business days."); render(); } },
+    field("Amount (USD)", amount, money(st.available) + " available"), seg, sum, btn,
+    st.method.instant ? null : h("p", { class: "hint" }, "Instant payouts need a debit card as your payout method."));
+  openSheet([phead("Withdraw", "From your Promptflix balance to your own account."), f]);
 }
 function vPreview(m){
   const c = me(); if (!c) return requireAuth(() => render());

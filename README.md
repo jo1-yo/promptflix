@@ -15,7 +15,8 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Client, creator and admin sites | ✅ Working (demo data) | Shared backend. Each browser has its own copy of the data |
 | Sign-in: email / phone codes | 🟡 Demo (code shown on screen) | Supabase project, SMTP, SMS provider |
 | Sign-in: Google | 🟡 Code done, waiting on keys | Client ID in `config.js`, then publish the Google app |
-| Payments: Stripe card + PayPal | 🟡 Code done, demo mode | Supabase function deployed, test keys, server-side order amounts |
+| Payments in: card through Stripe (order amount + card fee) | 🟡 Code done, demo mode | Supabase function deployed, Stripe test keys, server-side order amounts |
+| Creator wallet: balance, payout method, withdrawals (Stripe Connect) | 🟡 Demo works; live code written, never run against Stripe | Stripe account with Connect enabled, function deployed, orders in the database |
 | Escrow, revisions, contract breaks | ✅ Working (browser ledger) | Real money movement and creator payouts |
 | Real creators (87) | ✅ Live, unclaimed | Outreach. Invites are a status flag, no email is sent |
 | Privacy policy and terms | ✅ Live (draft) | Legal review |
@@ -66,7 +67,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 - Server: one Supabase Edge Function (Deno, no dependencies) that creates Stripe PaymentIntents, creates and captures PayPal orders, verifies the Stripe webhook signature (HMAC SHA-256), and records payments in `market_payments`.
 - Card numbers never touch Promptflix.
 
-**Backend (planned):** Supabase. Postgres with row-level security, Auth, Storage, Edge Functions. Schema so far: [`market/server/market.sql`](market/server/market.sql) (orders, payments).
+**Backend (planned):** Supabase. Postgres with row-level security, Auth, Storage, Edge Functions. Schema so far: [`market/server/market.sql`](market/server/market.sql) (accounts, sign-in log, orders, payments).
 
 **Media**
 - Creator films are embedded from where the creator posted them: YouTube (`youtube-nocookie.com`), Vimeo, or MP4 files from X (`video.twimg.com`).
@@ -109,7 +110,7 @@ revising ──revision (up to the agreed count)──▶ revising ──approve
 Either side can end early at any stage: cancelled (counts toward the 10-per-30-days break limit).
 ```
 
-Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escrow.balance` is `none | released`. Promptflix keeps 10% (`COMMISSION`) of every release. Each payment is recorded with method (`card` / `paypal`), processor reference and `live` / `demo` mode.
+Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escrow.balance` is `none | released`. Promptflix keeps 1% (`FEES.commission`) of every release; the client pays the card fee on top (`FEES.card`); creators withdraw free, or instantly for 1% (`FEES.instant`). All money rules are the `FEES` object at the top of `store.js`. Each payment is recorded with method (`card` / `paypal`), processor reference and `live` / `demo` mode.
 
 **What a client does**
 
@@ -193,7 +194,35 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
 4. Add `https://imjane.top/promptflix/market/` to Authentication → URL Configuration → Redirect URLs.
 
-**Payments (Stripe card + PayPal)**
+**Accounts in the database**
+
+Run [`market/server/market.sql`](market/server/market.sql) once in the Supabase SQL editor. From then on:
+
+- Every sign-up gets a row in `market_profiles` (email, phone, name, avatar, sign-in methods, role, company, onboarding answers, verified flag). Every sign-in adds a row to `market_logins`.
+- After Supabase Auth succeeds the site calls the `market_enter` function (`Cloud` in [`market/auth.js`](market/auth.js)). The database sets the side on first sign-in (client or creator), refuses an account on the wrong site, and never grants admin.
+- Onboarding answers and profile edits are pushed to the signed-in account's row. People can only edit their own descriptive fields; role, verification, email and phone change only through the SQL functions.
+- Make yourself an admin by hand after your first sign-in: `update market_profiles set role = 'admin' where email = 'you@example.com';` and add the same address to `adminEmails` in config.js.
+- If the SQL hasn't been run, sign-in still works and a console warning says accounts aren't being stored.
+
+Orders, chats and creator approval are still browser-only (see below).
+
+**Payments and payouts (Stripe + Stripe Connect)**
+
+How the money moves:
+
+1. The client pays the deposit or balance **plus the card processing fee** (2.9% + $0.30, grossed up so the order amount arrives whole). It lands in the platform's Stripe balance, tagged with the order id. That balance is the escrow.
+2. A release (first cut passed, final approved) is a Stripe **Transfer** to the creator's connected account, minus the 1% commission.
+3. Each creator has a Stripe Connect **Express** account. Stripe's hosted page collects their identity and bank account or debit card. Their payout schedule is manual, so the money waits in their Stripe balance until they press Withdraw in the Wallet. Standard payouts are free to the creator; instant payouts cost them 1%.
+
+What Stripe charges the platform, to check against [stripe.com/connect/pricing](https://stripe.com/connect/pricing): $2 per creator per month in which they're paid out, plus 0.25% + $0.25 per payout. At a 1% commission this is covered on orders above roughly $400; below that the platform loses a little on each one. The numbers live in `FEES` (`store.js`) and the function's `COMMISSION_PCT`, `CARD_FEE_PCT`, `CARD_FEE_FIXED` env.
+
+PayPal checkout still exists but only appears when `paypalClientId` is set. Leave it empty: PayPal money can't be paid out through Stripe Connect.
+
+Stripe setup, done by whoever legally owns the account (in the US an individual needs an SSN or ITIN):
+
+- Create the account at stripe.com; test mode needs no verification. Turn on Connect and choose Express accounts.
+- In Connect settings, set the instant payout fee creators pay (1%) if you want it collected by Stripe.
+- Non-US creators are onboarded as cross-border "recipient" accounts. Which countries Stripe supports changes; Stripe returns an error for the rest, and those creators need another route.
 
 Card numbers never touch Promptflix: Stripe's Payment Element and PayPal's buttons collect them. The server part is one Supabase Edge Function, [`market/server/functions/payments`](market/server/functions/payments/index.ts).
 
@@ -201,18 +230,18 @@ Card numbers never touch Promptflix: Stripe's Payment Element and PayPal's butto
 2. Deploy the function:
    ```bash
    supabase functions deploy payments --no-verify-jwt
-   supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_WEBHOOK_SECRET=whsec_... \
-     PAYPAL_CLIENT_ID=... PAYPAL_SECRET=... PAYPAL_ENV=sandbox ALLOWED_ORIGIN=https://imjane.top
+   supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_WEBHOOK_SECRET=whsec_... ALLOWED_ORIGIN=https://imjane.top
    ```
-3. In config.js set `stripePk` (`pk_test_...`), `paypalClientId` and `paymentsUrl` (`https://<ref>.supabase.co/functions/v1/payments`).
+3. In config.js set `stripePk` (`pk_test_...`) and `paymentsUrl` (`https://<ref>.supabase.co/functions/v1/payments`). Supabase sign-in must be live too: payouts identify the creator by their session.
 4. In Stripe → Developers → Webhooks, point `payment_intent.succeeded` at the same URL.
-5. Test with Stripe card `4242 4242 4242 4242` and a PayPal sandbox buyer account.
+5. Test with Stripe card `4242 4242 4242 4242`. For payouts, onboard a test creator with Stripe's test identity values and the test debit card `4000 0566 5566 5556`.
 
 **Before real money**
 
 - The function trusts the amount from the browser only in test/sandbox mode. It refuses `sk_live_` keys and `PAYPAL_ENV=live` until orders are written to `market_orders` and `ORDERS_IN_DB=true`, so amounts come from the server.
-- Payouts to creators are ledger entries today. Real payouts need Stripe Connect (transfers with `transfer_group` = order id) or PayPal Payouts.
-- Orders, chats and profiles still live in the browser. Moving `store.js` onto Supabase tables is the next step; each method maps onto one table or RPC.
+- The Stripe Connect code (onboarding, balance, withdraw, release) has been written but **never run against Stripe**; expect fixes on first test. `connect_release` trusts the browser and is test-mode only. Real releases need order state changes to run on the server.
+- A client and a creator on two different devices can't share an order yet, because orders live in each browser. This blocks real payments more than anything else.
+- Accounts (sign-ups, sign-ins, onboarding answers) are stored in Supabase once it's configured. Orders, chats, deliveries and the ledger still live in the browser. Moving the rest of `store.js` onto Supabase tables is the next step; each method maps onto one table or RPC.
 
 ## What's not done
 
@@ -220,7 +249,7 @@ In rough priority order. Each item says where the work goes.
 
 **1. A real backend (blocks almost everything else)**
 - [ ] Create a Supabase project (the old one, `wbbzlaeqzfrffooqenvs`, no longer exists). Paid plan once real users depend on it; free projects pause after a week idle.
-- [ ] Move `store.js` from `localStorage` to Supabase tables with row-level security: users/profiles, creators, orders, messages, deliveries, payments, ledger, reviews, breaks, discovered. Keep the `DB` method names; swap their bodies for queries/RPCs. Today **each browser has its own data**, so a teammate can't see an order you created.
+- [ ] Move `store.js` from `localStorage` to Supabase tables with row-level security: creators, orders, messages, deliveries, payments, ledger, reviews, breaks, discovered. Keep the `DB` method names; swap their bodies for queries/RPCs. Today **each browser has its own data**, so a teammate can't see an order you created.
 - [ ] Move uploaded cuts from IndexedDB to Supabase Storage (or Mux / Cloudflare Stream) with signed, expiring URLs.
 - [ ] Realtime chat (Supabase Realtime) instead of re-rendering on local changes.
 - [ ] Admin rights from a server-side role, not `CONFIG.adminEmails` (anyone can read and edit that list in the browser).
@@ -234,7 +263,7 @@ In rough priority order. Each item says where the work goes.
 - [ ] Deploy `market/server/functions/payments`, set Stripe and PayPal **test** keys, add the Stripe webhook, run a full test order.
 - [ ] Compute amounts on the server from `market_orders` (`ORDERS_IN_DB=true`). Until then the function refuses live keys.
 - [ ] Real refunds through Stripe / PayPal (today a refund is a ledger entry).
-- [ ] Creator payouts: Stripe Connect (Express accounts, transfers with `transfer_group` = order ID) or PayPal Payouts, plus creator KYC and tax forms.
+- [ ] Creator payouts: first test run of the Stripe Connect flow in test mode; server-side releases; refunds through Stripe (today a refund is only a ledger entry); a route for creators in countries Stripe can't pay; tax forms.
 - [ ] Receipts and invoices; sales tax / VAT.
 - [ ] Type-check the Deno function in CI (`deno check`). It's currently only parsed.
 

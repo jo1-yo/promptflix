@@ -1,5 +1,128 @@
--- Promptflix Market — tables the payments function reads and writes. Run in the Supabase SQL editor.
--- The prototype keeps orders in the browser; set ORDERS_IN_DB=true only after the app writes orders here.
+-- Promptflix Market — database. Run the whole file once in the Supabase SQL editor (safe to run again).
+--
+-- Part 1 · Accounts. Every sign-up (Google, email code, phone code) gets a row in market_profiles; every sign-in a row in
+-- market_logins. The site calls market_enter() right after Supabase Auth succeeds (see market/auth.js → Cloud).
+-- Part 2 · Orders and payments, used by the payments function. The prototype still keeps orders in the browser.
+--
+-- Make yourself an admin after your first sign-in on the admin site (it will refuse you until you do):
+--   update market_profiles set role = 'admin' where email = 'you@example.com';
+
+-- ───────────────────────── Part 1 · Accounts ─────────────────────────
+create table if not exists market_profiles (
+  id uuid primary key references auth.users on delete cascade,
+  role text check (role in ('client','creator','admin')),   -- set by market_enter on first sign-in; admin only by hand
+  email text,
+  phone text,
+  name text,
+  avatar_url text,
+  providers text[] not null default '{}',                   -- google | email | phone, every method this account has used
+  org text,                                                 -- client: company
+  onboarded boolean not null default false,                 -- client: finished the intake; creator: application filled in
+  verified boolean not null default false,                  -- set by an admin (market_set_verified)
+  profile jsonb not null default '{}',                      -- client: intake answers; creator: handle, tools, categories, ask…
+  local_id text,                                            -- id of this account in the browser store / creators.js
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  last_login_at timestamptz
+);
+-- Creator payouts (Stripe Connect). Written only by the payments function; the bank and card details themselves live at Stripe.
+alter table market_profiles add column if not exists stripe_account text;          -- acct_…
+alter table market_profiles add column if not exists payout_country text;
+alter table market_profiles add column if not exists payouts_ready boolean not null default false;
+create index if not exists market_profiles_email on market_profiles (email);
+create index if not exists market_profiles_local on market_profiles (local_id);
+create index if not exists market_profiles_role on market_profiles (role);
+
+create table if not exists market_logins (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users on delete cascade,
+  app text not null check (app in ('merchant','creator','admin')),
+  provider text not null,
+  at timestamptz not null default now()
+);
+create index if not exists market_logins_user on market_logins (user_id, at desc);
+
+-- A row for every new auth user, filled from what the provider shared.
+create or replace function market_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.market_profiles (id, email, phone, name, avatar_url)
+  values (new.id, lower(new.email), new.phone,
+          coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name'),
+          coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture'))
+  on conflict (id) do nothing;
+  return new;
+end $$;
+drop trigger if exists market_new_user on auth.users;
+create trigger market_new_user after insert on auth.users for each row execute function market_new_user();
+
+create or replace function market_touch() returns trigger language plpgsql as $$
+begin new.updated_at := now(); return new; end $$;
+drop trigger if exists market_touch on market_profiles;
+create trigger market_touch before update on market_profiles for each row execute function market_touch();
+
+create or replace function market_is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.market_profiles where id = auth.uid() and role = 'admin')
+$$;
+
+-- Called by the site after every sign-in. First sign-in on the client site makes a client, on the creator site a creator.
+-- An account can't cross sides, and nobody becomes an admin through this function.
+create or replace function market_enter(p_app text, p_via text default 'email') returns market_profiles
+language plpgsql security definer set search_path = public as $$
+declare
+  p public.market_profiles;
+  want text;
+  via text := case when p_via in ('google','email','phone') then p_via else 'email' end;
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  if p_app not in ('merchant','creator','admin') then raise exception 'unknown app'; end if;
+  insert into public.market_profiles (id, email, phone, name, avatar_url)   -- accounts created before this file was run
+    select u.id, lower(u.email), u.phone,
+           coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name'),
+           coalesce(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture')
+    from auth.users u where u.id = auth.uid()
+    on conflict (id) do nothing;
+  select * into p from public.market_profiles where id = auth.uid() for update;
+  want := case p_app when 'merchant' then 'client' when 'creator' then 'creator' else 'admin' end;
+  if p.role is null and want <> 'admin' then p.role := want; end if;
+  if p.role is distinct from want then raise exception 'wrong_side:%', coalesce(p.role, 'none'); end if;
+  update public.market_profiles m
+     set role = p.role, last_login_at = now(),
+         email = coalesce((select lower(u.email) from auth.users u where u.id = m.id), m.email),
+         phone = coalesce((select u.phone from auth.users u where u.id = m.id), m.phone),
+         providers = case when via = any (m.providers) then m.providers else m.providers || via end
+   where m.id = p.id
+   returning m.* into p;
+  insert into public.market_logins (user_id, app, provider) values (p.id, p_app, via);
+  return p;
+end $$;
+
+create or replace function market_set_verified(p_user uuid, p_on boolean) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.market_is_admin() then raise exception 'admins only'; end if;
+  update public.market_profiles set verified = p_on where id = p_user;
+end $$;
+
+alter table market_profiles enable row level security;
+alter table market_logins enable row level security;
+drop policy if exists "own profile or admin" on market_profiles;
+create policy "own profile or admin" on market_profiles for select using (id = auth.uid() or market_is_admin());
+drop policy if exists "edit own profile" on market_profiles;
+create policy "edit own profile" on market_profiles for update using (id = auth.uid()) with check (id = auth.uid());
+drop policy if exists "own logins or admin" on market_logins;
+create policy "own logins or admin" on market_logins for select using (user_id = auth.uid() or market_is_admin());
+
+-- People edit only their own descriptive fields. Role, verification, email, phone and sign-in history change through the functions above.
+revoke all on market_profiles, market_logins from anon, authenticated;
+grant select on market_profiles, market_logins to authenticated;
+grant update (name, avatar_url, org, onboarded, profile, local_id) on market_profiles to authenticated;
+revoke all on function market_enter(text, text), market_set_verified(uuid, boolean), market_is_admin(), market_new_user(), market_touch() from public, anon;
+grant execute on function market_enter(text, text), market_set_verified(uuid, boolean), market_is_admin() to authenticated;
+
+-- ───────────────────── Part 2 · Orders and payments ─────────────────────
+-- Set ORDERS_IN_DB=true on the payments function only after the app writes orders here.
 create table if not exists market_orders (
   id text primary key,
   client_id uuid references auth.users,
@@ -25,5 +148,7 @@ create table if not exists market_payments (
 alter table market_orders enable row level security;
 alter table market_payments enable row level security;
 -- Clients read their own orders and payments; writes go through the service role (the payments function).
+drop policy if exists "own orders" on market_orders;
 create policy "own orders" on market_orders for select using (client_id = auth.uid());
+drop policy if exists "own payments" on market_payments;
 create policy "own payments" on market_payments for select using (exists (select 1 from market_orders o where o.id = order_id and o.client_id = auth.uid()));
