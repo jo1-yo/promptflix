@@ -14,7 +14,7 @@ function h(tag, attrs, ...kids){
   for (const c of kids.flat(Infinity)){ if (c == null || c === false) continue; el.append(c instanceof Node ? c : String(c)); }
   return el;
 }
-const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const money = n => "$" + (Math.round(n * 100) % 100 ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Math.round(n).toLocaleString("en-US"));   // cents only when there are any
 const when = iso => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 6e4); return m < 1 ? "just now" : m < 60 ? m + "m" : m < 1440 ? Math.round(m / 60) + "h" : Math.round(m / 1440) + "d"; };
 const initials = n => /^\+?\d[\d\s]+$/.test(n || "") ? "#" : (n || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();

@@ -1,11 +1,17 @@
-/* Promptflix Market — checkout. Two ways to pay: card through Stripe, or PayPal. Money goes to Promptflix escrow, never to the creator directly.
-   Live: Stripe Payment Element + PayPal Buttons; amounts are turned into a PaymentIntent / PayPal order by the server function
-   (CONFIG.paymentsUrl → supabase/functions/payments). Demo: same sheet, no processor, a simulated confirmation.
-   Either way `done({ method, ref, mode })` records the payment in the ledger. */
+/* Promptflix Market — money in and money out.
+   In (pay): the client pays the order amount plus the card processing fee (FEES.card). Live: Stripe Payment Element; the server
+   function (CONFIG.paymentsUrl → server/functions/payments) works out the amount and makes the PaymentIntent. The money sits in
+   the platform's Stripe balance until a release. PayPal only appears if paypalClientId is set, and PayPal money can't be paid
+   out through Stripe, so leave it off while creators are paid with Stripe Connect.
+   Out (Payouts): each creator has a Stripe Connect Express account. Stripe's own pages collect their bank account or debit card
+   and ID; releases are transfers into that account; "Withdraw" is a payout from it. Promptflix never sees card or bank numbers.
+   Demo (no keys): the same screens over the local ledger, nothing charged or sent. */
 const loaded = {};
 const loadScript = src => loaded[src] ||= new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => { delete loaded[src]; fail(new Error("Couldn't load " + src)); }; document.head.append(s); });
 async function payApi(body){
-  const r = await fetch(CONFIG.paymentsUrl, { method: "POST", headers: { "content-type": "application/json", ...(CONFIG.supabaseKey ? { apikey: CONFIG.supabaseKey, authorization: "Bearer " + CONFIG.supabaseKey } : {}) }, body: JSON.stringify(body) });
+  let token = CONFIG.supabaseKey; const sb = typeof Auth !== "undefined" && Auth.client();   // the signed-in session tells the server who is asking
+  if (sb){ const { data } = await sb.auth.getSession(); if (data.session) token = data.session.access_token; }
+  const r = await fetch(CONFIG.paymentsUrl, { method: "POST", headers: { "content-type": "application/json", ...(CONFIG.supabaseKey ? { apikey: CONFIG.supabaseKey, authorization: "Bearer " + token } : {}) }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Payment server error (" + r.status + ")"); return j;
 }
 const payIcon = which => { const s = h("span", { class: "pmicon", "aria-hidden": "true" }); s.innerHTML = which === "card"
@@ -14,15 +20,16 @@ const payIcon = which => { const s = h("span", { class: "pmicon", "aria-hidden":
 
 function pay(o, amt, label, done){
   let method = "card"; let stripeEls = null;
+  const fee = cardFee(amt), total = cents(amt + fee);
   const body = h("div", { class: "paybody" });
-  const finish = pm => { done(pm); closeSheet(); toast(label + " paid with " + (pm.method === "paypal" ? "PayPal" : "card") + ". Held in escrow."); render(); };
+  const finish = pm => { done({ ...pm, fee }); closeSheet(); toast(label + " paid with " + (pm.method === "paypal" ? "PayPal" : "card") + ". Held in escrow."); render(); };
   const busy = (btn, on, text) => { btn.disabled = on; if (text) btn.textContent = text; };
   const draw = async () => {
     body.replaceChildren();
     if (method === "card"){
       if (LIVE.stripe){
         const mount = h("div", { class: "stripe-el" }, h("p", { class: "hint" }, "Loading secure card form…"));
-        const btn = h("button", { class: "btn primary big", disabled: true }, "Pay " + money(amt));
+        const btn = h("button", { class: "btn primary big", disabled: true }, "Pay " + money(total));
         const err = h("p", { class: "hint warn" });
         body.append(mount, err, btn);
         try {
@@ -33,12 +40,12 @@ function pay(o, amt, label, done){
           mount.replaceChildren(); stripeEls.create("payment", { layout: "tabs" }).mount(mount); btn.disabled = false;
           btn.onclick = async () => { busy(btn, true, "Processing…"); err.textContent = "";
             const { error, paymentIntent } = await stripe.confirmPayment({ elements: stripeEls, redirect: "if_required" });
-            if (error) { err.textContent = error.message; return busy(btn, false, "Pay " + money(amt)); }
+            if (error) { err.textContent = error.message; return busy(btn, false, "Pay " + money(total)); }
             if (paymentIntent && ["succeeded", "processing"].includes(paymentIntent.status)) finish({ method: "card", ref: paymentIntent.id, mode: "live" });
-            else busy(btn, false, "Pay " + money(amt)); };
+            else busy(btn, false, "Pay " + money(total)); };
         } catch (e) { mount.replaceChildren(); err.textContent = e.message; }
       } else {
-        const btn = h("button", { class: "btn primary big", onclick: () => { busy(btn, true, "Processing…"); setTimeout(() => finish({ method: "card", ref: "pi_demo_" + Math.random().toString(36).slice(2, 10), mode: "demo" }), 900); } }, "Pay " + money(amt) + " by card");
+        const btn = h("button", { class: "btn primary big", onclick: () => { busy(btn, true, "Processing…"); setTimeout(() => finish({ method: "card", ref: "pi_demo_" + Math.random().toString(36).slice(2, 10), mode: "demo" }), 900); } }, "Pay " + money(total) + " by card");
         body.append(h("div", { class: "demo-pay" }, payIcon("card"), h("div", null, h("b", null, "Stripe isn't connected yet"), h("span", null, "Live, a Stripe card form appears here (Visa, Mastercard, Amex, Apple Pay, Google Pay). Nothing is charged in demo mode."))), btn);
       }
     } else {
@@ -60,10 +67,40 @@ function pay(o, amt, label, done){
       }
     }
   };
-  const seg = h("div", { class: "seg pm", role: "tablist" }, ...[["card", "Card"], ["paypal", "PayPal"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(method === k), onclick: e => { method = k; for (const b of seg.children) b.setAttribute("aria-selected", String(b === e.currentTarget)); draw(); } }, payIcon(k), l)));
+  const seg = !CONFIG.paypalClientId ? null : h("div", { class: "seg pm", role: "tablist" }, ...[["card", "Card"], ["paypal", "PayPal"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(method === k), onclick: e => { method = k; for (const b of seg.children) b.setAttribute("aria-selected", String(b === e.currentTarget)); draw(); } }, payIcon(k), l)));
   openSheet([phead(label + " · " + money(amt), o.title),
-    h("div", { class: "kv" }, h("dt", null, "Paid to"), h("dd", null, "Promptflix escrow, not the creator"), h("dt", null, "Released"), h("dd", null, label === "Deposit" ? "to " + DB.nameOf(o.creatorId) + " when you pass the first cut; refunded if it fails" : "to " + DB.nameOf(o.creatorId) + " now, with the clean master")),
-    seg, body,
-    h("p", { class: "hint" }, "Cards are processed by Stripe and PayPal by PayPal. Promptflix never sees your card number.")]);
+    h("div", { class: "kv" }, h("dt", null, label), h("dd", null, money(amt)), h("dt", null, "Card processing"), h("dd", null, money(fee)), h("dt", null, "Total today"), h("dd", null, h("b", { style: { fontWeight: 500 } }, money(total))),
+      h("dt", null, "Paid to"), h("dd", null, "Promptflix escrow, not the creator"), h("dt", null, "Released"), h("dd", null, label === "Deposit" ? "to " + DB.nameOf(o.creatorId) + " when you pass the first cut; refunded if it fails" : "to " + DB.nameOf(o.creatorId) + " now, with the clean master")),
+    ...(seg ? [seg] : []), body,
+    h("p", { class: "hint" }, "Card processing is the payment processor's fee, passed on at cost. Cards are handled by Stripe; Promptflix never sees your card number.")]);
   draw();
 }
+
+/* ---------- money out ---------- */
+const Payouts = {
+  live(){ return LIVE.stripe; },
+  /* { available, pending, earned, withdrawn, method: { kind, label, last4, instant } | null, ready, mode } */
+  async status(c){
+    const w = DB.wallet(c.id);
+    if (!this.live()) return { ...w, method: c.payout || null, ready: !!c.payout, mode: "demo" };
+    const s = await payApi({ action: "connect_status" });   // balances and payout method come from Stripe, not from this browser
+    return { available: s.available || 0, pending: cents((s.pending || 0) + w.pending), earned: w.earned, withdrawn: w.withdrawn,
+      method: s.method ? { ...s.method, instant: s.method.kind === "card" } : null, ready: !!s.ready, submitted: !!s.submitted, mode: "live" };
+  },
+  async setup(country){ const { url } = await payApi({ action: "connect_onboard", country, returnUrl: location.href }); location.href = url; },   // Stripe's hosted onboarding
+  async manage(){ const { url } = await payApi({ action: "connect_dashboard" }); window.open(url, "_blank", "noopener"); },
+  /* returns an error message, or null when the withdrawal went through */
+  async withdraw(c, amount, instant){
+    if (!this.live()) return DB.withdraw(c.id, amount, instant);
+    try {
+      const r = await payApi({ action: "connect_payout", amount, instant });
+      const fee = instant ? cents(amount * FEES.instant) : 0;
+      DB.ledger({ type: "payout", amount: cents(amount), fee, net: cents(amount - fee), from: c.id, to: "bank", speed: instant ? "instant" : "standard", method: "Stripe", status: r.status, ref: r.id, mode: "live" });
+      DB.save(); return null;
+    } catch (e) { return e.message; }
+  },
+  onRelease(o, amt, type){
+    if (!this.live()) return;
+    payApi({ action: "connect_release", orderId: o.id, kind: type === "balance_release" ? "balance" : "deposit", amount: amt, creatorId: o.creatorId }).catch(e => toast("The release didn't reach Stripe: " + e.message));
+  },
+};

@@ -3,7 +3,16 @@
    Every method here maps 1:1 onto a table/RPC in the eventual Supabase schema; keep the shapes stable. */
 
 const KEY = "pfm.v3";   // v3: real crawled creators replace the fictional roster
-const COMMISSION = 0.10;          // platform take on each release to the creator
+/* Money rules. Change the numbers here only; terms/ and the README quote them, and the payments function mirrors them. */
+const FEES = {
+  commission: 0.01,        // Promptflix's take on each release to the creator
+  card: [0.029, 0.30],     // the processor's card fee, added on top of what the client pays so the order price arrives whole
+  instant: 0.01,           // creator's fee for an instant payout to a debit card; standard withdrawals are free
+  minPayout: 5,
+};
+const COMMISSION = FEES.commission;
+const cents = n => Math.round(n * 100) / 100;
+const cardFee = amt => cents((amt + FEES.card[1]) / (1 - FEES.card[0]) - amt);   // grossed up: after the processor takes its cut, exactly `amt` is left
 const BREAK_LIMIT = 10;           // contract breaks allowed per rolling 30 days, per account
 const BREAK_WINDOW = 30 * 864e5;
 
@@ -59,7 +68,7 @@ const DB = {
     (this.state.logins ||= []).push({ at: now(), uid: u.id, app: APP, provider: id.provider || "email", mode: id.mode || "demo" });
     this.state.sessions[APP] = u.id; this.save(); return u;
   },
-  signOut(){ this.state.sessions[APP] = null; this.save(); },
+  signOut(){ this.state.sessions[APP] = null; this.save(); if (typeof Cloud !== "undefined") Cloud.signOut(); },
   roster(){ return this.state.creators.filter(c => c.live); },
   nameOf(id){ const u = this.user(id); return u ? (u.name || u.org || u.email || "Someone") : "Someone"; },
   creator(id){ return this.state.creators.find(c => c.id === id); },
@@ -151,7 +160,7 @@ const DB = {
   ledger(entry){ this.state.ledger.push({ id: rid("tx"), at: now(), ...entry }); },
 
   /* pm = { method: "card"|"paypal", ref, mode: "demo"|"live" } from Pay — the processor already confirmed it */
-  payment(o, kind, amount, pm){ (this.state.payments ||= []).push({ id: rid("pay"), at: now(), orderId: o.id, uid: o.clientId, kind, amount, method: pm.method, ref: pm.ref, mode: pm.mode || "demo", status: "succeeded" }); },
+  payment(o, kind, amount, pm){ (this.state.payments ||= []).push({ id: rid("pay"), at: now(), orderId: o.id, uid: o.clientId, kind, amount, fee: pm.fee || 0, method: pm.method, ref: pm.ref, mode: pm.mode || "demo", status: "succeeded" }); },
   payDeposit(orderId, pm = { method: "card", ref: "demo", mode: "demo" }){
     const o = this.order(orderId); if (o.status !== "agreed") return;
     o.status = "in_production"; o.escrow.deposit = "held";
@@ -206,9 +215,31 @@ const DB = {
     this.touch(o); this.save();
   },
   release(o, amt, type){
-    const fee = Math.round(amt * COMMISSION);
-    this.ledger({ orderId: o.id, type, amount: amt - fee, from: "escrow", to: o.creatorId });
+    const fee = cents(amt * COMMISSION);
+    this.ledger({ orderId: o.id, type, amount: cents(amt - fee), from: "escrow", to: o.creatorId });
     this.ledger({ orderId: o.id, type: "commission", amount: fee, from: "escrow", to: "promptflix" });
+    if (typeof Payouts !== "undefined") Payouts.onRelease(o, amt, type);   // live: moves the money to the creator's Stripe balance
+  },
+
+  /* wallet: what a creator has earned, what's still held for them, what they've taken out */
+  wallet(uid){
+    const L = this.state.ledger, sum = a => cents(a.reduce((n, t) => n + t.amount, 0));
+    const earned = sum(L.filter(t => t.to === uid && t.type.endsWith("_release")));
+    const withdrawn = sum(L.filter(t => t.from === uid && t.type === "payout"));
+    const pending = this.state.orders.filter(o => o.creatorId === uid && o.escrow.deposit === "held").reduce((n, o) => n + this.deposit(o), 0);
+    return { available: cents(earned - withdrawn), pending, earned, withdrawn };
+  },
+  walletRows(uid){ return this.state.ledger.filter(t => (t.to === uid && t.type.endsWith("_release")) || (t.from === uid && t.type === "payout")).slice().reverse(); },
+  setPayoutMethod(uid, m){ const c = this.creator(uid); c.payout = m ? { ...m, at: now() } : null; this.save(); },
+  withdraw(uid, amount, instant){
+    const c = this.creator(uid), w = this.wallet(uid); amount = cents(amount);
+    if (!c.payout) return "Add a payout method first.";
+    if (!(amount >= FEES.minPayout)) return "The smallest withdrawal is $" + FEES.minPayout + ".";
+    if (amount > w.available) return "That's more than your available balance.";
+    if (instant && !c.payout.instant) return "Instant payouts need a debit card.";
+    const fee = instant ? cents(amount * FEES.instant) : 0;
+    this.ledger({ type: "payout", amount, fee, net: cents(amount - fee), from: uid, to: "bank", speed: instant ? "instant" : "standard", method: c.payout.label + " ···· " + c.payout.last4, status: "paid", mode: "demo" });
+    this.save(); return null;
   },
 
   /* breaks */

@@ -17,9 +17,51 @@ const loadGsi = (src, ready) => new Promise((ok, fail) => {
   s.addEventListener("error", () => fail(new Error("Couldn't reach Google")));
 });
 
+/* Cloud — the account record in Supabase (table market_profiles, see server/market.sql). The browser store stays the working
+   copy for the prototype; this keeps the signed-in account's row current so sign-ups, sign-ins and onboarding answers are in the
+   database. Orders and chats are not synced yet. Does nothing in demo mode. */
+const CREATOR_FIELDS = ["handle", "where", "bg", "tools", "cats", "styles", "fit", "ask", "days", "tz", "region", "works", "source"];
+const Cloud = {
+  sent: {}, timer: null,
+  /* market_enter sets the side on first sign-in (never admin), refuses the wrong side, logs the sign-in, returns the row. */
+  async enter(identity){
+    const { data, error } = await Auth.client().rpc("market_enter", { p_app: APP, p_via: identity.provider || "email" });
+    if (!error) return data;
+    if (error.code === "PGRST202" || error.code === "42883"){ console.warn("Promptflix: run market/server/market.sql in Supabase to store accounts."); return null; }   // schema not installed yet: sign-in still works
+    throw error;
+  },
+  /* Link the local user to its row and fill in anything the database already knows (a second device, a returning user). */
+  attach(row){
+    const u = DB.me(); if (!row || !u) return;
+    u.cloudId = row.id; const p = row.profile || {};
+    if (row.name && !u.name) u.name = row.name;
+    if (row.avatar_url && !u.avatar) u.avatar = row.avatar_url;
+    if (row.verified && !u.verified){ u.verified = true; u.verifiedBy = "admin"; }
+    if (u.cats){ for (const k of CREATOR_FIELDS) if (p[k] != null && (u[k] == null || u[k] === "" || (Array.isArray(u[k]) && !u[k].length))) u[k] = p[k]; }
+    else { if (row.org && !u.org) u.org = row.org; u.profile = { ...p, ...(u.profile || {}) }; if (row.onboarded) u.onboarded = true; }
+    DB.save();
+  },
+  row(u){
+    const base = { name: u.name || null, avatar_url: u.avatar || null, local_id: u.id };
+    if (u.cats) return { ...base, onboarded: !!(u.handle && u.cats.length), profile: Object.fromEntries(CREATOR_FIELDS.filter(k => u[k] != null).map(k => [k, u[k]])) };
+    return { ...base, org: u.org || null, onboarded: !!u.onboarded, profile: u.profile || {} };
+  },
+  queue(){ if (!LIVE.auth) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.push(), 800); },
+  async push(){
+    const u = DB.me(), sb = Auth.client(); if (!u || !u.cloudId || !sb) return;
+    const row = this.row(u), json = JSON.stringify(row); if (this.sent[u.cloudId] === json) return;
+    const { data } = await sb.auth.getSession(); if (!data.session || data.session.user.id !== u.cloudId) return;
+    const { error } = await sb.from("market_profiles").update(row).eq("id", u.cloudId);
+    if (error) console.warn("Promptflix: account not saved to the database.", error.message); else this.sent[u.cloudId] = json;
+  },
+  signOut(){ const sb = LIVE.auth && Auth.client(); if (sb) sb.auth.signOut(); },
+};
+document.addEventListener("pfm:change", () => Cloud.queue());
+
 const Auth = {
   sb: null, pending: null,
-  client(){ if (!this.sb && LIVE.auth && window.supabase) this.sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey); return this.sb; },
+  // One Supabase session per site (client / creator / admin), like the local sessions, so one browser can hold both sides of a deal.
+  client(){ if (!this.sb && LIVE.auth && window.supabase) this.sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, { auth: { storageKey: "pfm.sb." + APP } }); return this.sb; },
   mode(){ return LIVE.auth ? "live" : "demo"; },
 
   /* Google comes back by redirect; finish the sign-in for the site that started it. */
@@ -29,12 +71,18 @@ const Auth = {
     sessionStorage.removeItem("pfm.oauth"); const u = s.user, md = u.user_metadata || {};
     this.finish({ email: u.email, phone: u.phone || null, provider: "google", name: md.full_name || md.name, avatar: md.avatar_url, mode: "live" });
   },
-  finish(identity){
+  async finish(identity){
+    const wrongSide = APP === "admin" ? "That account isn't on the admin list." : APP === "merchant" ? "That's a creator account. Sign in on the creator site." : "That's a client account. Sign in on the main site.";
+    let account = null;
+    if (LIVE.auth && identity.mode === "live"){   // the database decides which side this account is on and records the sign-in
+      try { account = await Cloud.enter(identity); }
+      catch (e) { await this.client().auth.signOut(); return toast(/wrong_side/.test(e.message || "") ? wrongSide : "Couldn't open your account. " + (e.message || "")); }
+    }
     const p = this.pending || {}; this.pending = null;
-    if (p.onIdentity) return p.onIdentity(identity);
+    if (p.onIdentity){ p.onIdentity(identity); return Cloud.attach(account); }
     const u = DB.signIn(identity);
-    if (!u) return toast(APP === "admin" ? "That account isn't on the admin list." : APP === "merchant" ? "That's a creator account. Sign in on the creator site." : "That's a client account. Sign in on the main site.");
-    closeSheet(); render(); if (p.then) p.then(u);
+    if (!u) return toast(wrongSide);
+    Cloud.attach(account); closeSheet(); render(); if (p.then) p.then(u);
   },
 
   /* opts: { onIdentity, methods: ["google","email","phone"], hint } */
