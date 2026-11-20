@@ -338,7 +338,30 @@
   "social": "https://www.linkedin.com/in/sueyoshi06/",
   "focus": "Oddbeatz, wordless character comedy",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "Oddbeatz Teaser",
+    "author": "Oddbeatz",
+    "provider": "youtube",
+    "id": "jWw8960gHgI",
+    "thumb": "https://i.ytimg.com/vi/jWw8960gHgI/hqdefault.jpg"
+   },
+   {
+    "title": "Pip & Suu | UFO Crow #oddbeatz #shortanimation #animation",
+    "author": "Oddbeatz",
+    "provider": "youtube",
+    "id": "ebyo8rPKwqY",
+    "thumb": "https://i.ytimg.com/vi/ebyo8rPKwqY/hqdefault.jpg"
+   },
+   {
+    "title": "Pip & Suu | Angel Bat #oddbeatz #shortanimation #animation",
+    "author": "Oddbeatz",
+    "provider": "youtube",
+    "id": "apCR-qoVUbM",
+    "thumb": "https://i.ytimg.com/vi/apCR-qoVUbM/hqdefault.jpg"
+   }
+  ],
+  "website": "https://oddbeatz.com/"
  },
  {
   "name": "Lu Marrero",

@@ -525,3 +525,8 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--panel)}
 .admin .integ{background:var(--panel);border-radius:14px;padding:18px 20px}
 .dash .rail .rgroup{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:18px 10px 6px}
 @media(max-width:800px){.dash .rail .rgroup{display:none}.admin .page-title h2{font-size:28px}.admin .kpis,.admin .kpis:has(.kpi:nth-child(6)){grid-template-columns:1fr 1fr}.admin .kpi b{font-size:26px}}
+
+/* creators listed without a film: monogram card + profile note */
+.art.mono{display:grid;place-items:center}
+.art.mono i{font-family:var(--serif);font-style:normal;font-size:clamp(56px,9vw,96px);line-height:1;color:rgba(255,255,255,.34);letter-spacing:.02em;transform:translateY(-12%)}
+.nofilm{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);font-size:15px}

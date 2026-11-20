@@ -34,7 +34,8 @@ function fresh(){
 const DB = {
   state: null,
   load(){ try { this.state = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch { this.state = fresh(); } if (!this.state.users) this.state = fresh();
-    for (const seed of CREATORS){ const c = this.state.creators.find(x => x.id === seed.id); if (c) for (const k of ["tz", "region", "email", "live"]) if (c[k] == null) c[k] = seed[k]; } // migrate fields added after a record was saved
+    for (const seed of CREATORS){ const c = this.state.creators.find(x => x.id === seed.id); if (c) for (const k of ["tz", "region", "email", "live"]) if (c[k] == null) c[k] = seed[k];
+      if (!c){ this.state.creators.push({ ...clone(seed), quotes: [] }); this.state.discovered = (this.state.discovered || []).filter(d => d.url !== seed.social); } }   // creators added to the list after this browser first saved (e.g. the ones with no film yet) // migrate fields added after a record was saved
     if (!this.state.sessions) this.state.sessions = { merchant: null, creator: null, admin: null };
     for (const k of ["payments", "logins"]) this.state[k] ||= [];
     return this.state; },
@@ -70,6 +71,7 @@ const DB = {
   },
   signOut(){ this.state.sessions[APP] = null; this.save(); if (typeof Cloud !== "undefined") Cloud.signOut(); },
   roster(){ return this.state.creators.filter(c => c.live); },
+  filmed(){ return this.roster().filter(c => c.works.length); },   // for strips and galleries that need a film to show
   nameOf(id){ const u = this.user(id); return u ? (u.name || u.org || u.email || "Someone") : "Someone"; },
   creator(id){ return this.state.creators.find(c => c.id === id); },
   saveClientProfile(uid, profile, done){ const u = this.user(uid); u.profile = {...(u.profile||{}), ...profile}; if (done) u.onboarded = true; this.save(); },

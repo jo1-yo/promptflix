@@ -171,8 +171,9 @@
   "name": "Matthieu Grambert",
   "social": "https://www.instagram.com/matthieugb/",
   "focus": "photoreal surreal narrative",
-  "based": null,
-  "works": []
+  "based": "Paris, France",
+  "works": [],
+  "website": "https://matthieugrambert.com"
  },
  {
   "name": "Rotem Goeta",
@@ -233,7 +234,29 @@
   "social": "https://www.instagram.com/yutao_yth/",
   "focus": "music, colour, generative",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "YUTAO - We talk No more (Music Video)",
+    "author": "YUTAO",
+    "provider": "youtube",
+    "id": "bOFDpmcqW4Y",
+    "thumb": "https://i.ytimg.com/vi/bOFDpmcqW4Y/hqdefault.jpg"
+   },
+   {
+    "title": "YUTAO - OVERLOADED (Music Video)",
+    "author": "YUTAO",
+    "provider": "youtube",
+    "id": "gEyX9PCCL1o",
+    "thumb": "https://i.ytimg.com/vi/gEyX9PCCL1o/hqdefault.jpg"
+   },
+   {
+    "title": "YUTAO - drifting through the city light (Visualizer)",
+    "author": "YUTAO",
+    "provider": "youtube",
+    "id": "x2amrUlDcvk",
+    "thumb": "https://i.ytimg.com/vi/x2amrUlDcvk/hqdefault.jpg"
+   }
+  ]
  },
  {
   "name": "Doopiidoo",
@@ -313,8 +336,24 @@
   "name": "Jeehyun Kim",
   "social": "https://www.instagram.com/an_realphoto/",
   "focus": "concept visuals, brand, exhibition film",
-  "based": null,
-  "works": []
+  "based": "Seoul, South Korea",
+  "works": [
+   {
+    "title": "TWS (투어스) 3rd Mini Album 'TRY WITH US'",
+    "author": "HYBE LABELS",
+    "provider": "youtube",
+    "id": "D2iwg1ChiBM",
+    "thumb": "https://i.ytimg.com/vi/D2iwg1ChiBM/hqdefault.jpg"
+   },
+   {
+    "title": "[미래를 입다 with 포토샵] 파도를 담은 패션 아트워크",
+    "author": "어도비코리아",
+    "provider": "youtube",
+    "id": "2PZbZTFsqhc",
+    "thumb": "https://i.ytimg.com/vi/2PZbZTFsqhc/hqdefault.jpg"
+   }
+  ],
+  "website": "https://jeehyun.com"
  },
  {
   "name": "Chloé Desaulles",

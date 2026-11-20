@@ -138,14 +138,60 @@
   "social": "https://www.instagram.com/archerstudioooooo/",
   "focus": "colour, humour, brand worlds",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "Botched Proposals - Ep 1 - A Microdrama Surreality Series",
+    "author": "Kristyna Archer",
+    "provider": "vimeo",
+    "id": "1164112484",
+    "thumb": "https://i.vimeocdn.com/video/2121728747-53d317ff81c59dec4aa0e4e3df038d2ff797a8c5cbab034bca143c6661c4ffc5-d_295x166?region=us"
+   },
+   {
+    "title": "Better Climate \"Last Resorts\"",
+    "author": "Kristyna Archer",
+    "provider": "vimeo",
+    "id": "1198309905",
+    "thumb": "https://i.vimeocdn.com/video/2167205682-b2e6e3c43bb5c410dabbd60ab4aa54a039f40aa4cafbb631947044b8f6f731cd-d_295x166?region=us"
+   },
+   {
+    "title": "Coworker \"The Fall of an AI Empire\"",
+    "author": "Kristyna Archer",
+    "provider": "vimeo",
+    "id": "1200178593",
+    "thumb": "https://i.vimeocdn.com/video/2167206044-26ccf184a8829b401ec9fc146bdc28a0d4402f617a54ffe230018c9ccb6d83d6-d_295x166?region=us"
+   }
+  ],
+  "website": "https://archer.vision"
  },
  {
   "name": "Daniel Algarin",
   "social": "https://www.instagram.com/danielalgarin/",
   "focus": "sport, tech, brand storytelling",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "UFC GYM | GET ALONG",
+    "author": "Daniel Algarin",
+    "provider": "vimeo",
+    "id": "1175230138",
+    "thumb": "https://i.vimeocdn.com/video/2136005936-5e970bea9400afd2bd0a0731292da0ea33c87b960af4b17af6b3bb01a69f7714-d_295x166?region=us"
+   },
+   {
+    "title": "NIKE_SINGULARITY",
+    "author": "Daniel Algarin",
+    "provider": "vimeo",
+    "id": "1126491371",
+    "thumb": "https://i.vimeocdn.com/video/2068960805-f607b88ac4513cf36fba051790c5dcc12146a88b6d652a2f372c8bee5c817a9f-d_295x166?region=us"
+   },
+   {
+    "title": "\"EMOTIONS\" 1X",
+    "author": "Daniel Algarin",
+    "provider": "vimeo",
+    "id": "1157697476",
+    "thumb": "https://i.vimeocdn.com/video/2111565785-e3ca82d5bd4079ccd145cc5ad49871335d44f60bcf6b25d301f88292fa3d4452-d_295x166?region=us"
+   }
+  ],
+  "website": "https://www.thoughtcrime.media"
  },
  {
   "name": "Jordan Daniel Chesney",
@@ -177,8 +223,31 @@
   "name": "Max Larsson",
   "social": "https://www.instagram.com/maxlarsson/",
   "focus": "photographic, cars, product",
-  "based": null,
-  "works": []
+  "based": "Sweden",
+  "works": [
+   {
+    "title": "DRIFT",
+    "author": "MΛX LΛRSSON",
+    "provider": "vimeo",
+    "id": "1178226451",
+    "thumb": "https://i.vimeocdn.com/video/2139769096-d0df904a77c691055400ec59047751e5e0e9e0209c3f3c8f2ba76e7759e2e772-d_295x166?region=us"
+   },
+   {
+    "title": "AI REEL - VISIONART.AI // MAX LARSSON",
+    "author": "MΛX LΛRSSON",
+    "provider": "vimeo",
+    "id": "1001940578",
+    "thumb": "https://i.vimeocdn.com/video/1918217738-a232a8d94a31227eee25d146cf805c39f3a8b6333b3136867abaac5aa2795347-d_295x166?region=us"
+   },
+   {
+    "title": "JEEP PROMO",
+    "author": "MΛX LΛRSSON",
+    "provider": "vimeo",
+    "id": "650360139",
+    "thumb": "https://i.vimeocdn.com/video/1311188097-17f8e9c4c8b6b55c694ff20b838463cb0357a09ae53286a2a_295x166?region=us"
+   }
+  ],
+  "website": "https://www.maxlarsson.com"
  },
  {
   "name": "László Gaál",
@@ -230,15 +299,17 @@
   "name": "Coby Mendoza",
   "social": "https://www.instagram.com/cobymendoza/",
   "focus": "product, cars, animated ads",
-  "based": null,
-  "works": []
+  "based": "New York, USA",
+  "works": [],
+  "website": "https://cobymendoza.com"
  },
  {
   "name": "Max Tyler",
   "social": "https://www.instagram.com/maxtyler.studio/",
   "focus": "ad concepts, shorts, AI experiments",
-  "based": null,
-  "works": []
+  "based": "Amsterdam, Netherlands",
+  "works": [],
+  "website": "https://maxtyler.studio"
  },
  {
   "name": "Mike J Mitch",
@@ -292,15 +363,39 @@
   "name": "Benjamin Benichou",
   "social": "https://www.instagram.com/benjaminbenichoustudio/",
   "focus": "design, visual systems, brand film",
-  "based": null,
-  "works": []
+  "based": "Los Angeles, USA",
+  "works": [],
+  "website": "https://www.benjaminbenichou.com"
  },
  {
   "name": "Private Island",
   "social": "https://www.instagram.com/privateislandtv/",
   "focus": "live action + CG + AI ads",
-  "based": null,
-  "works": []
+  "based": "London, United Kingdom",
+  "works": [
+   {
+    "title": "ORIGINAL SOURCE - NATURE HITS DIFFERENT D.C",
+    "author": "Private Island",
+    "provider": "vimeo",
+    "id": "1060867145",
+    "thumb": "https://i.vimeocdn.com/video/1987498400-49c8638a30ef9eb7bb3e75fd66cf8121cc1208e265b8c3d76f4ba51f5f12f4d5-d_295x166?region=us"
+   },
+   {
+    "title": "MEME, MYSELF AND A.I.",
+    "author": "Private Island",
+    "provider": "vimeo",
+    "id": "1024811015",
+    "thumb": "https://i.vimeocdn.com/video/1944241386-eebf25d9e53e1327ba42597115a4cb835deb06ff884ceef8841eaee4c3392392-d_295x166?region=us"
+   },
+   {
+    "title": "Another Day in Paradise",
+    "author": "Private Island",
+    "provider": "vimeo",
+    "id": "1069679583",
+    "thumb": "https://i.vimeocdn.com/video/1998057152-cd784b82c016bf04759501a0e92b4b26d21ec39cff39302616cbdfcf6416c742-d_295x166?region=us"
+   }
+  ],
+  "website": "https://privateisland.tv"
  },
  {
   "name": "Silverside AI",
