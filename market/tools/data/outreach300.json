@@ -6,7 +6,30 @@
   "site": "https://ouzanimohamedlamine.com/",
   "focus": "2D SaaS/AI explainers, UI demos, kinetic type",
   "cover": "https://cdn.myportfolio.com/856149ea-a7bb-4960-8ada-09cfce80fb01/868a861e-a65a-44a9-9fe5-6d2f4c4b1237_rwc_0x0x1658x934x1658.png?h=d8b5da00549348f25d96ad6cf5be0621",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "RiskForce | SaaS Product Video",
+    "author": "Ouzani Mohamed Lamine",
+    "provider": "vimeo",
+    "id": "1171254221",
+    "thumb": "https://i.vimeocdn.com/video/2130695860-fad7581d8537b6157be53da909bd071acf0c5bc9a83d7b8a473a2c30f00d68f0-d_295x166?region=us"
+   },
+   {
+    "title": "Flote 1.0 | Motion Graphics Product Video",
+    "author": "Ouzani Mohamed Lamine",
+    "provider": "vimeo",
+    "id": "1171253830",
+    "thumb": "https://i.vimeocdn.com/video/2130695193-24962c75e5ef1ed11f53997acc0d60e4d563e5cb68ab5f864b6033b5015a924b-d_295x166?region=us"
+   },
+   {
+    "title": "The File Republic 1.0 | SaaS Demo Explainer Video",
+    "author": "Ouzani Mohamed Lamine",
+    "provider": "vimeo",
+    "id": "1171253065",
+    "thumb": "https://i.vimeocdn.com/video/2130694595-0c1a7d9c0210cf0f6204df062bf5616fc449f5c4356f3442a411d4882594987b-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -15,6 +38,7 @@
   "site": "https://www.behance.net/kristina_zel",
   "focus": "Many SaaS demo/explainer/promo case studies on Behance",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -23,7 +47,8 @@
   "loc": "Europe (works with EU & US remote)",
   "site": "https://danielezanini.com/",
   "focus": "Product/feature videos, UI motion, data viz",
-  "cover": null,
+  "cover": "https://danielezanini.com/wp-content/uploads/2026/02/sfondo2min.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -33,7 +58,23 @@
   "site": "https://www.motionvp.eu/",
   "focus": "SaaS product videos (Ply), Airalo explainers, ads, AI video",
   "cover": "https://www.motionvp.eu/assets/og-page-lab-home-6ebe575d.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "SaaS Promo Videos | Motion Design for Ply",
+    "author": "Vadim Popov",
+    "provider": "youtube",
+    "id": "-F34KTZZRLM",
+    "thumb": "https://i.ytimg.com/vi/-F34KTZZRLM/hqdefault.jpg"
+   },
+   {
+    "title": "SaaS Promo  Videos | Motion Design for Ply",
+    "author": "Vadim Popov",
+    "provider": "youtube",
+    "id": "gserioW5tEU",
+    "thumb": "https://i.ytimg.com/vi/gserioW5tEU/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -42,6 +83,7 @@
   "site": "https://hameedabdullahi.lovable.app/",
   "focus": "20+ SaaS explainers & product demos",
   "cover": "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e95437a1-90fa-413a-8970-07826f688c66/id-preview-08976936--4c25f767-8721-4ca2-abfd-3d590dc9c029.lovable.app-1783352508858.png",
+  "clips": [],
   "works": []
  },
  {
@@ -51,6 +93,7 @@
   "site": "https://dompraki.framer.website/",
   "focus": "Product explainers, UI motion, launch campaigns",
   "cover": "https://framerusercontent.com/images/3M2bfFzhV69UglJjOtj96jBHfDc.png",
+  "clips": [],
   "works": []
  },
  {
@@ -60,6 +103,7 @@
   "site": "https://bhaskarvisuals.framer.website/",
   "focus": "Launch videos (Sendr, Linear concept, ClickUp concept), 15+ YouTube embeds",
   "cover": "https://framerusercontent.com/assets/AVIQtcVAvJOcydqLWgiRjhC90k.png",
+  "clips": [],
   "works": [
    {
     "title": "Sendr V4.1 Is Live 🚀 | Your Campaigns Can Now Start Themselves",
@@ -91,6 +135,7 @@
   "site": "https://www.tomjullien.com/",
   "focus": "SaaS launch films; client launch 900K+ views",
   "cover": "https://framerusercontent.com/images/jHHBASSbuct9WCsxiGsE0oH8gs.png",
+  "clips": [],
   "works": []
  },
  {
@@ -100,6 +145,7 @@
   "site": "https://www.milosheski.com/",
   "focus": "Software launch films in 16:9 + 9:16, 30+ clips on site",
   "cover": "https://www.milosheski.com/og-lineup.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -109,6 +155,7 @@
   "site": "https://www.photonicartistry.com/",
   "focus": "Hardware/tech launch films, exploded-view explainers, spec ads",
   "cover": "https://framerusercontent.com/assets/IqHjHT4W1UBtxB0FeW4ljJHOlSY.png",
+  "clips": [],
   "works": []
  },
  {
@@ -118,7 +165,23 @@
   "site": "https://www.abchoudhury.com/",
   "focus": "Gadget CGI: DJI, Insta360, Apple Watch, drones, speakers; Vimeo + YouTube channel",
   "cover": "https://static.wixstatic.com/media/217209_8c7509ab793d44ee989f3c8186fc059b%7Emv2.png/v1/fit/w_2500,h_1330,al_c/217209_8c7509ab793d44ee989f3c8186fc059b%7Emv2.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Jewellery Animation || Ring Animation || Blender 3D",
+    "author": "A B Choudhury",
+    "provider": "youtube",
+    "id": "ckVvAQcMtpI",
+    "thumb": "https://i.ytimg.com/vi/ckVvAQcMtpI/hqdefault.jpg"
+   },
+   {
+    "title": "XBox Console & Controller Animation || Blender 3D",
+    "author": "A B Choudhury",
+    "provider": "youtube",
+    "id": "IJi2G9UE-7U",
+    "thumb": "https://i.ytimg.com/vi/IJi2G9UE-7U/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Hardware",
@@ -127,6 +190,7 @@
   "site": "https://www.andrewjordancreative.com/",
   "focus": "Consumer-tech CAD-to-render launch animation",
   "cover": "http://static1.squarespace.com/static/69f033d2487686073a2f4a22/t/6af7b2bd6c6f03054ceab731/1794618045139/iPhone14+Bundle+1_2022_2400x1200_MB_INTL.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -136,6 +200,7 @@
   "site": "https://krejci3d.com/",
   "focus": "Photoreal launch animations incl. Sony headphones",
   "cover": "https://krejci3d.com/images/og/Epic12_Thumbnail.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -145,6 +210,7 @@
   "site": "https://razwanlatif.com/for/saas/",
   "focus": "SaaS explainers & UI motion from real product screens",
   "cover": "https://razwanlatif.com/og/saas-2026.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Motion Design Showreel 2026 | 3D Product, SaaS Explainer & Ad Animation - Razwan Latif",
@@ -162,6 +228,7 @@
   "site": "https://anugrahmotions.framer.website/",
   "focus": "6+ YouTube embeds of SaaS explainers",
   "cover": "https://framerusercontent.com/images/MjOTRS33iqP6rCmxke9b9IFnsc.png",
+  "clips": [],
   "works": [
    {
     "title": "LifeSight Explainer",
@@ -193,6 +260,7 @@
   "site": "https://bulatvisual.com/",
   "focus": "SaaS explainers, product demos, UI animation; Vimeo channel",
   "cover": "https://bulatvisual.com/assets/page-images/home.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -202,6 +270,7 @@
   "site": "https://nikorey.xyz/",
   "focus": "App promos + 3D product viz; YouTube channel",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "SHOWREEL 2025 - 2026 | 2D & 3D MOTION DESIGN",
@@ -233,6 +302,7 @@
   "site": "https://busbyvideography.com/portfolio",
   "focus": "Gigabyte laptop/motherboard commercials & tutorials; 20+ YouTube embeds",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "3 Creators Help Fans Build Their Dream PCs | GIGABYTE AORUS + Newegg",
@@ -264,7 +334,30 @@
   "site": "https://odanemyles.com/",
   "focus": "Cinematic product films, tech reviews, unboxings; own YouTube/TikTok",
   "cover": "https://odanemyles.com/assets/odane-social.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "iPhone 18 Pro Max Accessories #shorts #iphone #apple #iphone18",
+    "author": "Odane Myles ",
+    "provider": "youtube",
+    "id": "2HEsV-56f_g",
+    "thumb": "https://i.ytimg.com/vi/2HEsV-56f_g/hqdefault.jpg"
+   },
+   {
+    "title": "Apple Watch Series 12 UNBOXING & Setup  #shorts #apple #iphone",
+    "author": "Odane Myles ",
+    "provider": "youtube",
+    "id": "Q57Di4AEyJ8",
+    "thumb": "https://i.ytimg.com/vi/Q57Di4AEyJ8/hqdefault.jpg"
+   },
+   {
+    "title": "Best All in one Charger - JOYROOM #shorts #best",
+    "author": "Odane Myles ",
+    "provider": "youtube",
+    "id": "vK1jKs7MHMw",
+    "thumb": "https://i.ytimg.com/vi/vK1jKs7MHMw/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -273,7 +366,16 @@
   "site": "https://kellykurtz.design/",
   "focus": "SaaS launch & motion direction; YouTube channel",
   "cover": "https://framerusercontent.com/assets/AzL8DamlUlO5ckzEIUadvb3tfiQ.gif",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Procreate Texture Hacks That Look Professionally Done",
+    "author": "Kelly Kurtz Design",
+    "provider": "youtube",
+    "id": "HrdoV3ZwiBk",
+    "thumb": "https://i.ytimg.com/vi/HrdoV3ZwiBk/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Hardware",
@@ -282,6 +384,7 @@
   "site": "https://houstonjpg.com/",
   "focus": "Tech unboxing, feature voiceovers",
   "cover": "https://houstonjpg.com/424083e14c7f4b7ad5d4aabbab4370c1.png",
+  "clips": [],
   "works": []
  },
  {
@@ -290,8 +393,31 @@
   "loc": "UK",
   "site": "https://www.adamarghiros.com/",
   "focus": "Explainer/product videos for energy, science & tech",
-  "cover": null,
-  "works": []
+  "cover": "https://framerusercontent.com/images/47saXZtn5vCGrXNlPfIHSGm0.png",
+  "clips": [],
+  "works": [
+   {
+    "title": "Why Is Britain Turning Off Its Own Wind Farms?",
+    "author": "Modo Energy",
+    "provider": "youtube",
+    "id": "vX7ZOn3KKfU",
+    "thumb": "https://i.ytimg.com/vi/vX7ZOn3KKfU/hqdefault.jpg"
+   },
+   {
+    "title": "Product Overview - What is the Modo Energy Terminal?",
+    "author": "Modo Energy",
+    "provider": "youtube",
+    "id": "rukT7NB6hVQ",
+    "thumb": "https://i.ytimg.com/vi/rukT7NB6hVQ/hqdefault.jpg"
+   },
+   {
+    "title": "Coast to Coast: Modo Energy forecasts now covers every US ISO",
+    "author": "Modo Energy",
+    "provider": "youtube",
+    "id": "ZL-GiPo5ob0",
+    "thumb": "https://i.ytimg.com/vi/ZL-GiPo5ob0/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Hardware",
@@ -300,7 +426,23 @@
   "site": "https://www.mitchmyers.tv/",
   "focus": "Cinematic CG product rendering; consumer tech; YouTube/TikTok",
   "cover": "https://static.wixstatic.com/media/018c2e_a8a5e5bf370349eaab72b97b7b50867d%7Emv2.png/v1/fit/w_2500,h_1330,al_c/018c2e_a8a5e5bf370349eaab72b97b7b50867d%7Emv2.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Reel",
+    "author": "Mitch Myers",
+    "provider": "youtube",
+    "id": "PCX1T-wf2ZQ",
+    "thumb": "https://i.ytimg.com/vi/PCX1T-wf2ZQ/hqdefault.jpg"
+   },
+   {
+    "title": "THE CRUEL SELF",
+    "author": "Mitch Myers",
+    "provider": "youtube",
+    "id": "MsC7WZMDZkk",
+    "thumb": "https://i.ytimg.com/vi/MsC7WZMDZkk/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Hardware",
@@ -309,6 +451,7 @@
   "site": "https://okuev.com/",
   "focus": "Product CGI for Miele, BMW, Philips, Bork",
   "cover": "https://okuev.com/og-cover.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -318,6 +461,7 @@
   "site": "https://schoberth.studio/",
   "focus": "Photoreal product CGI & launch films",
   "cover": "https://schoberth.studio/img/about-me.webp",
+  "clips": [],
   "works": []
  },
  {
@@ -327,6 +471,7 @@
   "site": "https://skromatic.com/",
   "focus": "Startup launch videos; 17 clips on site",
   "cover": "https://skromatic.com/assets/img/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -336,6 +481,7 @@
   "site": "https://www.jgrupper.com/",
   "focus": "Kickstarter hardware videos (Powerup, $1M+ campaign); 'behind $100M+ raised'",
   "cover": "https://static.wixstatic.com/media/b54750_7b840a5223b746d0b84dccebf180536d%7Emv2.jpg/v1/fit/w_2500,h_1330,al_c/b54750_7b840a5223b746d0b84dccebf180536d%7Emv2.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Showreel  - Animator & Video",
@@ -353,6 +499,7 @@
   "site": "https://zacktrolier.com/",
   "focus": "Million-dollar Kickstarter product videos ($3.6M, $1.2M)",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "NERF Nuke from ThinkGeek",
@@ -376,7 +523,8 @@
   "loc": "Warsaw, Poland",
   "site": "https://agatamusial.com/",
   "focus": "App product-launch videos; ~6 clips on site",
-  "cover": null,
+  "cover": "https://agatamusial.com/wp-content/uploads/2024/11/Agata-Showreel.png",
+  "clips": [],
   "works": []
  },
  {
@@ -386,7 +534,23 @@
   "site": "https://tesovtech.com/",
   "focus": "Studio-shot desk/audio/creator-gear product videos",
   "cover": "https://tesovtech.com/brand/social-card.jpg?v=3",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Rainy75 V2 vs Rainy75 Pro: Is the Upgrade Worth It?",
+    "author": "TesovTech",
+    "provider": "youtube",
+    "id": "lV7jzkG9rQM",
+    "thumb": "https://i.ytimg.com/vi/lV7jzkG9rQM/hqdefault.jpg"
+   },
+   {
+    "title": "Rainy75 Pro Review: The First Keyboard I Didn't Have to Fix for My Mac",
+    "author": "TesovTech",
+    "provider": "youtube",
+    "id": "K2p36Pdm-fY",
+    "thumb": "https://i.ytimg.com/vi/K2p36Pdm-fY/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -395,6 +559,7 @@
   "site": "https://impct.framer.website/",
   "focus": "Launch videos incl. concepts for Cluely, Lovable, Replit; 15 YouTube embeds",
   "cover": "https://framerusercontent.com/images/5VTMsRVHy5qyJoh4q0FAt1BLfI.png",
+  "clips": [],
   "works": [
    {
     "title": "LARPY LAUNCH",
@@ -426,7 +591,23 @@
   "site": "https://ugcaegli.com/",
   "focus": "Talking-head + screen-recorded SaaS demos",
   "cover": "https://ugcaegli.com/og.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Did Claude Code Actually Convert My Site to Elementor V4?",
+    "author": "andrea egli",
+    "provider": "youtube",
+    "id": "XXJj-6jBHVA",
+    "thumb": "https://i.ytimg.com/vi/XXJj-6jBHVA/hqdefault.jpg"
+   },
+   {
+    "title": "I Let Claude Code Convert My Elementor Site from V3 to V4",
+    "author": "andrea egli",
+    "provider": "youtube",
+    "id": "gAxeW6iwCQI",
+    "thumb": "https://i.ytimg.com/vi/gAxeW6iwCQI/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -435,6 +616,7 @@
   "site": "https://adumisri.com/",
   "focus": "Real product capture demos for SaaS/AI",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -444,6 +626,7 @@
   "site": "https://alarifin.com/portfolio",
   "focus": "SaaS product demos, UI animation, launch films",
   "cover": "https://alarifin.com/opengraph-image",
+  "clips": [],
   "works": [
    {
     "title": "From Waiting to Clarity | How ZAKRA Powers Smarter Decisions",
@@ -475,6 +658,7 @@
   "site": "https://tiagohiggs.com/",
   "focus": "OnePlus earbuds launch teaser, product launch films",
   "cover": "https://cdn.myportfolio.com/bf23dd40-1c8f-4dd7-9208-bdbb42fcde35/12586e09-79a6-45a0-a56d-786f115737ef_rwc_0x0x1920x1920x1920.jpg?h=f4505da08cdb7976e92b0eea01b8ad99",
+  "clips": [],
   "works": []
  },
  {
@@ -483,7 +667,8 @@
   "loc": "Not stated",
   "site": "https://www.asmotiondesign.com/",
   "focus": "Phone/earbud assets, Sciex launch film",
-  "cover": null,
+  "cover": "https://www.asmotiondesign.com/wp-content/uploads/2026/03/EE-SIMO-1-uai-258x258.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -493,7 +678,30 @@
   "site": "https://www.bacosil.com/",
   "focus": "3D tech & SaaS motion, boAt earbuds animation; YouTube",
   "cover": "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=756,fit=crop,f=jpeg/m7VkyvK3jKhyRRKQ/website-cover-m2W4q36zg2uO84bK.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Comata | 3D Brand Film (Cinema 4D)",
+    "author": "Bacosil",
+    "provider": "youtube",
+    "id": "MXHlO97PVTY",
+    "thumb": "https://i.ytimg.com/vi/MXHlO97PVTY/hqdefault.jpg"
+   },
+   {
+    "title": "Showreel 2026 - Bacosil 3D/2D Motion",
+    "author": "Bacosil",
+    "provider": "youtube",
+    "id": "YmmpSsDM6gA",
+    "thumb": "https://i.ytimg.com/vi/YmmpSsDM6gA/hqdefault.jpg"
+   },
+   {
+    "title": "How I Go From a Blank Script to High-End 3D Animation",
+    "author": "Bacosil",
+    "provider": "youtube",
+    "id": "Q2TUScTdDXc",
+    "thumb": "https://i.ytimg.com/vi/Q2TUScTdDXc/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Hardware",
@@ -502,7 +710,23 @@
   "site": "https://divyanshrawat.in/",
   "focus": "Tech gadgets for Nothing, Hollyland, Casio, Lumix; 22M+ views",
   "cover": "https://divyanshrawat.in/assets/img/brand/og-home.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Cinematic Watch Commercial at Home (Shot on Sony A6300) #casio",
+    "author": "Divyansh Rawat",
+    "provider": "youtube",
+    "id": "8Q17x4noee0",
+    "thumb": "https://i.ytimg.com/vi/8Q17x4noee0/hqdefault.jpg"
+   },
+   {
+    "title": "This Plugin will convert your videos into FILM #Dehancerpro",
+    "author": "Divyansh Rawat",
+    "provider": "youtube",
+    "id": "XJVYGDo_nNs",
+    "thumb": "https://i.ytimg.com/vi/XJVYGDo_nNs/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -511,6 +735,7 @@
   "site": "https://themjstudio.site/",
   "focus": "Short-form edits incl. Google India; 15 YouTube clips",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "End of Indian Stockbrokers?",
@@ -542,6 +767,7 @@
   "site": "https://khaledfarek.com/",
   "focus": "Marketing/product motion; Vimeo + Behance",
   "cover": "https://cdn.prod.website-files.com/62cc86a672640f7b5fa668ff/63017622d14c08db8508a22e_Layer%208.png",
+  "clips": [],
   "works": [
    {
     "title": "showreel 2024",
@@ -559,6 +785,7 @@
   "site": "https://irkabyrka.com/",
   "focus": "UI/UX animation, fintech product demos (Mollie)",
   "cover": "https://framerusercontent.com/images/1VyoJAmih7hCrSiiDKDNJW6azLY.png",
+  "clips": [],
   "works": []
  },
  {
@@ -568,7 +795,23 @@
   "site": "https://josiahbout.com/",
   "focus": "3D product videos for tech brands; YouTube/TikTok/X",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Impress Your Clients with a Paint Coating Effect in Blender",
+    "author": "Josiah | 3D Artist",
+    "provider": "youtube",
+    "id": "oCCH1LcoMwk",
+    "thumb": "https://i.ytimg.com/vi/oCCH1LcoMwk/hqdefault.jpg"
+   },
+   {
+    "title": "How I re-created the Pluribus intro in Blender",
+    "author": "Josiah | 3D Artist",
+    "provider": "youtube",
+    "id": "ElDaZ5rMHiA",
+    "thumb": "https://i.ytimg.com/vi/ElDaZ5rMHiA/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Software",
@@ -577,7 +820,23 @@
   "site": "https://lucamontgomery.com/",
   "focus": "Explainers, UI animation, product demos for AI/SaaS/fintech",
   "cover": "https://lucamontgomery.com/wp-content/uploads/2026/08/lucavfx-showreel-poster.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "The Art of Owning Things",
+    "author": "Luca ",
+    "provider": "youtube",
+    "id": "PDsphAhY-hE",
+    "thumb": "https://i.ytimg.com/vi/PDsphAhY-hE/hqdefault.jpg"
+   },
+   {
+    "title": "Luca's 2025 Showreel",
+    "author": "Luca ",
+    "provider": "youtube",
+    "id": "qZbKYz0LN24",
+    "thumb": "https://i.ytimg.com/vi/qZbKYz0LN24/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Product demo (software & hardware) — Hardware",
@@ -586,6 +845,7 @@
   "site": "https://bizzieliving.com/",
   "focus": "Tech product demos, unboxings, B-roll; 10 clips on site",
   "cover": "https://bizzieliving.com/__l5e/assets-v1/6f296450-b4df-4037-836e-92b6e099389d/hero-portrait.png",
+  "clips": [],
   "works": []
  },
  {
@@ -595,6 +855,7 @@
   "site": "https://bakkali.com/",
   "focus": "Product demos & B-roll for tech/app brands",
   "cover": "https://bakkali.com/assets/photos/hero.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Vibe coders are winning $10K for building apps with AI",
@@ -619,6 +880,7 @@
   "site": "https://explainerace.com/work",
   "focus": "33 software walkthroughs/screencasts on YouTube",
   "cover": "https://img.youtube.com/vi/kqmPTZOBv9k/hqdefault.jpg",
+  "clips": [],
   "works": [
    {
     "title": "bloom exploded app",
@@ -650,6 +912,7 @@
   "site": "https://sachinvats.com/",
   "focus": "B2B SaaS motion content",
   "cover": "https://framerusercontent.com/images/n0o8kOAJ1xuMavbAKTcKP2VprgQ.png",
+  "clips": [],
   "works": []
  },
  {
@@ -659,6 +922,7 @@
   "site": "https://faridrasul.com/motion-design.html",
   "focus": "SaaS launch films, 1-min product demos, logo animation; ~78 clips",
   "cover": "https://faridrasul.com/work/og/motion-design.jpg?v=2",
+  "clips": [],
   "works": [
    {
     "title": "Logo Animation.mp4",
@@ -676,6 +940,7 @@
   "site": "https://ottr.work/",
   "focus": "Logitech G hardware product video, tech-gear content; 30 YouTube links",
   "cover": "https://ottr.work/og.jpg",
+  "clips": [],
   "works": [
    {
     "title": "How to play Newcastle in Season 13 - Apex Legends Tips & Tricks",
@@ -707,6 +972,7 @@
   "site": "https://vaghelabhavesh.com/",
   "focus": "Work for Browserbase, Krater AI, Lovable; Vimeo/YouTube",
   "cover": "https://vaghelabhavesh.com/img/og.jpg",
+  "clips": [],
   "works": [
    {
     "title": "SaaS Explainer Animation for Browserbase | Motion Graphics",
@@ -738,6 +1004,7 @@
   "site": "https://www.mattmacedo.com/",
   "focus": "Vertical directing reel on site; #1 hits Call Me Alpha / The Unwanted Mate; NYFA BFA",
   "cover": "https://static.wixstatic.com/media/761c8b_afbe32f826b84c89b150394fbe391da1~mv2.jpg/v1/fill/w_1050,h_600,al_c/761c8b_afbe32f826b84c89b150394fbe391da1~mv2.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -746,8 +1013,24 @@
   "loc": "New York area, USA",
   "site": "https://www.michaelalanhoy.com/verticals",
   "focus": "Daddy Help! (ReelShort) 120M+ views; ex-BuzzFeed Video creative director",
-  "cover": null,
-  "works": []
+  "cover": "https://static.parastorage.com/services/santa-resources/resources/viewer/editorUI/fonts.v19.png",
+  "clips": [],
+  "works": [
+   {
+    "title": "Dear Kitten",
+    "author": "BuzzFeedVideo",
+    "provider": "youtube",
+    "id": "G4Sn91t1V4g",
+    "thumb": "https://i.ytimg.com/vi/G4Sn91t1V4g/hqdefault.jpg"
+   },
+   {
+    "title": "Dear Kitten: Regarding the Big Game (TEASER) – Purina® Friskies",
+    "author": "Purina Friskies",
+    "provider": "youtube",
+    "id": "erF_SdGRGEs",
+    "thumb": "https://i.ytimg.com/vi/erF_SdGRGEs/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -756,6 +1039,7 @@
   "site": "https://ruarichambers.com/micro-drama",
   "focus": "Tens of millions of views across platforms",
   "cover": "https://ruarichambers.com/about-photo.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -764,7 +1048,8 @@
   "loc": "Australia (on call US/UK/AU)",
   "site": "https://www.celestediep.com/long-form",
   "focus": "ReelShort, DramaBox, ShortMax credits",
-  "cover": null,
+  "cover": "https://images.squarespace-cdn.com/content/v1/67cb977e48ea900978b02642/f89e38a8-6de2-4c4a-b39b-64d96300624e/vlcsnap-00134.png",
+  "clips": [],
   "works": []
  },
  {
@@ -774,7 +1059,30 @@
   "site": "https://entropycat.studio/paddy/",
   "focus": "English-language vertical drama; builds her own AI pipeline",
   "cover": "https://entropycat.studio/images/profile/hero-paddy.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "📺【FULL】 The Rejected Luna Returns with a Son | ShortMax - Watch Dramas & Show",
+    "author": "ShortMax - Watch Dramas & Show",
+    "provider": "youtube",
+    "id": "k-zifVhDByA",
+    "thumb": "https://i.ytimg.com/vi/k-zifVhDByA/hqdefault.jpg"
+   },
+   {
+    "title": "摸摸猫头AI 样片集",
+    "author": "Paddy Film",
+    "provider": "youtube",
+    "id": "HOMkiwoFtis",
+    "thumb": "https://i.ytimg.com/vi/HOMkiwoFtis/hqdefault.jpg"
+   },
+   {
+    "title": "TRAILER",
+    "author": "Paddy Film",
+    "provider": "youtube",
+    "id": "tQfslvRaovw",
+    "thumb": "https://i.ytimg.com/vi/tQfslvRaovw/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -783,6 +1091,7 @@
   "site": "https://www.laurajeanbransky.com/",
   "focus": "Vertical vampire trailer + 2023 reel; strong performance direction",
   "cover": "https://static.wixstatic.com/media/bf6aae_109256ee9c8f47ce876125176f3c4d57~mv2.jpg/v1/fill/w_528,h_232,al_c/bf6aae_109256ee9c8f47ce876125176f3c4d57~mv2.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Laura Jean Bransky - Showreel",
@@ -814,6 +1123,7 @@
   "site": "https://www.verticalsunsets.com/",
   "focus": "Worked for ReelShort, ByteDance, Narval Films; festival shorts (LA Shorts, HollyShorts)",
   "cover": "http://static1.squarespace.com/static/6792b42f51131822323eebd1/t/6972be2e4e1bbd21551bd0cc/1769127470781/VerticalSunsets-1280w-sunset-RGB-vertical-FINAL.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -823,6 +1133,7 @@
   "site": "https://www.verticalsunsets.com/",
   "focus": "DramaShorts, ReelShort, GoodShort, Stardust TV, Kalos TV, MiniShort; USC MFA; Short of the Week",
   "cover": "http://static1.squarespace.com/static/6792b42f51131822323eebd1/t/6972be2e4e1bbd21551bd0cc/1769127470781/VerticalSunsets-1280w-sunset-RGB-vertical-FINAL.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -832,6 +1143,7 @@
   "site": "https://www.jonathanzhaofilm-dp.com/",
   "focus": "DP for DramaBox, ReelShort, DramaWave, FlareFlow, ShortMax, NetShort",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "2026 Narrative Reel Jonathan Zhao",
@@ -848,7 +1160,8 @@
   "loc": "Los Angeles, USA (from Shanghai)",
   "site": "https://www.eveyyu.com/portfolio",
   "focus": "Chapman grad; directs for GoodShort, DreameShort, ShortWave, Tallflix",
-  "cover": null,
+  "cover": "https://static.parastorage.com/services/santa-resources/resources/viewer/editorUI/fonts.v19.png",
+  "clips": [],
   "works": []
  },
  {
@@ -857,7 +1170,8 @@
   "loc": "Los Angeles, USA",
   "site": "https://www.leomaxhe.com/projects/verticaldramas",
   "focus": "CalArts / Communication University of China; ReelShort series",
-  "cover": null,
+  "cover": "https://static.parastorage.com/services/santa-resources/resources/viewer/editorUI/fonts.v19.png",
+  "clips": [],
   "works": []
  },
  {
@@ -866,7 +1180,8 @@
   "loc": "Los Angeles, USA",
   "site": "https://www.rokulong.com/vertical-web-series",
   "focus": "How to Tame a Silver Fox (350M views); Vertical Drama Love award 2025",
-  "cover": null,
+  "cover": "https://static.parastorage.com/services/santa-resources/resources/viewer/editorUI/fonts.v19.png",
+  "clips": [],
   "works": []
  },
  {
@@ -876,6 +1191,7 @@
   "site": "https://michaelnoir.com/",
   "focus": "12+ yrs; micro-drama DP experience",
   "cover": "http://static1.squarespace.com/static/5ee4dd34286e012fb6e987ce/t/5efef729e5e0f777e3e62f95/1593767723542/michaelNoir-logoNoWords.jpg?format=1500w",
+  "clips": [],
   "works": [
    {
     "title": "Narrative Cinematography Reel",
@@ -900,6 +1216,7 @@
   "site": "https://www.blakestudwell.com/",
   "focus": "ReelShort and other platforms; worked LA/ATL/NY/Canada/China",
   "cover": "http://static1.squarespace.com/static/5b72d488f79392a7aae329a1/t/67400c7491411f18899ab4ef/1732250740667/404.jpg?format=1500w",
+  "clips": [],
   "works": [
    {
     "title": "Firecracker Teaser preview",
@@ -931,6 +1248,7 @@
   "site": "https://www.omarderby.com/",
   "focus": "How to Snatch a Billionaire (viral vertical); SCAD MFA; festival wins 2026",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Omar Derby | Director Reel | Narrative",
@@ -948,6 +1266,7 @@
   "site": "https://alexobrien.co/about-1",
   "focus": "Clients DKNY, Walmart, Tecate; bilingual EN/ES",
   "cover": "https://cdn.myportfolio.com/38f48eea-5d5f-4892-8493-f6b250eb3329/cb587c0a-644c-4a50-bd18-9f6d799b06fe_rw_600.jpeg?h=bb9a336751a095756f9786cdc055d3e4",
+  "clips": [],
   "works": []
  },
  {
@@ -957,6 +1276,7 @@
   "site": "https://positive-motion-pictures.ueniweb.com/about-us/verticulture-giannetti-films-6743588",
   "focus": "Vertical filmmaking + microdrama producer",
   "cover": "https://img77.uenicdn.com/image/upload/v1791253533/business/890f80da-9882-43a7-a5a0-01f8c035e476.png",
+  "clips": [],
   "works": [
    {
     "title": "Our Family Pride | Series Trailer | Family, Faith & Love",
@@ -988,6 +1308,7 @@
   "site": "https://tangyanlun.art/",
   "focus": "AI vertical dramas: Billionaires' Death Game, From Broke to Billionaire, Bound to My Enemy",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -996,7 +1317,8 @@
   "loc": "Los Angeles, USA",
   "site": "https://doulingyan.com/",
   "focus": "Vertical-drama & AI-native production; bilingual EN/中文",
-  "cover": null,
+  "cover": "https://doulingyan.com/wp-content/uploads/2025/10/Subject-6-150x150.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1006,6 +1328,7 @@
   "site": "https://adamzhucine.com/",
   "focus": "ReelShort 'Vicious'; Chapman Dodge + HKBU",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1015,7 +1338,30 @@
   "site": "https://www.allisonfilms.com/portfolio/dramas",
   "focus": "Lead creative producer on ReelShort 'Pool Boy' (29M)",
   "cover": "http://static1.squarespace.com/static/5e3321effe6afc4cddbf497a/5e3322348d20f734ba361c8b/68f002d17ffb77053efe18ef/1791334621164/Vertical+Drama+Portfolio+Allison+Tate.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Big Boys (2024) Official Trailer | Coming of Age | Audience Award OutFest",
+    "author": "Dark Star Pictures Trailers",
+    "provider": "youtube",
+    "id": "VPPS3SbnTCk",
+    "thumb": "https://i.ytimg.com/vi/VPPS3SbnTCk/hqdefault.jpg"
+   },
+   {
+    "title": "A Kiss From Your Lips (short film)",
+    "author": "OML",
+    "provider": "youtube",
+    "id": "n4xfiZzaERU",
+    "thumb": "https://i.ytimg.com/vi/n4xfiZzaERU/hqdefault.jpg"
+   },
+   {
+    "title": "A Kiss From Your Lips",
+    "author": "AllisonFilms",
+    "provider": "vimeo",
+    "id": "117434660",
+    "thumb": "https://i.vimeocdn.com/video/578540816-0dc38aeadac8a71042713d3b9eb3aa85b5044f2563c5f021195b32616f52c121-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -1024,6 +1370,7 @@
   "site": "https://www.chriscampbellfilm.com/vertical",
   "focus": "FlareFlow, PocketFM, DramaBox-adjacent ('Bring Back My Heart')",
   "cover": "https://static.wixstatic.com/media/302d0c_9f2bea40aedd4e1389fca926afde8558%7Emv2.jpg/v1/fit/w_2500,h_1330,al_c/302d0c_9f2bea40aedd4e1389fca926afde8558%7Emv2.jpg",
+  "clips": [],
   "works": [
    {
     "title": "A GIRL NAMED JO | Season 2 | Ep. 6: “The Path We Pave”",
@@ -1041,6 +1388,7 @@
   "site": "https://www.wesleyrodriguez.com/verticals",
   "focus": "DramaBox 'Hide-and-Seek with the CEO' (Alza festival); comedy/romance focus",
   "cover": "https://framerusercontent.com/assets/2XIMjxlUq4g6lHDDoafL70Zjgs.jpeg",
+  "clips": [],
   "works": [
    {
     "title": "Verticals Director Reel - Wesley Rodriguez",
@@ -1058,7 +1406,30 @@
   "site": "https://www.ericaeng.com/verticals",
   "focus": "ReelShort, NetShort, GoodShort, DramaWave; 'Americanized' Vimeo Staff Pick, 26 awards",
   "cover": "http://static1.squarespace.com/static/59d2d663f14aa173520313ac/t/5db74c8ba67b370091ea8190/1572293773952/Director+Website.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Off Fairfax | Website Banner",
+    "author": "Erica Eng",
+    "provider": "vimeo",
+    "id": "908059635",
+    "thumb": "https://i.vimeocdn.com/video/1790870674-5471a5230dcb7908c3a5223b9d67122251ff96ae745dd426cdae14ae16151c44-d_295x166?region=us"
+   },
+   {
+    "title": "FrontPro \"Love Fearlessly\"",
+    "author": "Erica Eng",
+    "provider": "vimeo",
+    "id": "781656944",
+    "thumb": "https://i.vimeocdn.com/video/1805683761-0094e6ecd79a2734312fc8278e26b50d18c0424bc394eb95354e406996b12b8e-d_295x166?region=us"
+   },
+   {
+    "title": "Website Banner 1080p",
+    "author": "Erica Eng",
+    "provider": "vimeo",
+    "id": "551650540",
+    "thumb": "https://i.vimeocdn.com/video/1139890345-de5e22247d76af1417721867075bcc4b5ceb1550450dcc4d238241c770be85cd-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -1067,6 +1438,7 @@
   "site": "https://weiyanglifilm.com/",
   "focus": "ReelShort credits; editor on 4 features + Netflix episode",
   "cover": "https://cdn.myportfolio.com/74d94a0d-0969-4e44-b624-dcd60c24bcd1/1a60f98a-665c-483a-ae28-ba06cae64211_rw_600.png?h=121ec4bca5828d280096e49163a54171",
+  "clips": [],
   "works": [
    {
     "title": "Weiyang Li Directing Reel 2026",
@@ -1091,6 +1463,7 @@
   "site": "https://dcmarlow.com/",
   "focus": "Writes for FlareFlow, ShortMax, Vigloo",
   "cover": "https://dcmarlow.com/wp-content/uploads/2025/07/website2.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1100,6 +1473,7 @@
   "site": "https://www.jackyuandirector.com/",
   "focus": "Lead director on EN/CN co-productions; £7.5M+ revenue claimed",
   "cover": "https://static.wixstatic.com/media/bbd6ca_a2c21e95a16f4f2087ceba94cdb22a70%7Emv2.png/v1/fit/w_2500,h_1330,al_c/bbd6ca_a2c21e95a16f4f2087ceba94cdb22a70%7Emv2.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1108,7 +1482,8 @@
   "loc": "Los Angeles, USA",
   "site": "https://www.imdb.com/name/nm0881135",
   "focus": "Edited ReelShort 'Outplayed', 'When Love Walked Away'; film professor",
-  "cover": null,
+  "cover": "https://storage.ghost.io/c/4e/08/4e085894-1c5a-4767-b4c4-70c385ab0d9d/content/images/size/w1200/2026/04/rw04--1-.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1118,6 +1493,7 @@
   "site": "https://www.sirdannyfarber.com/",
   "focus": "ReelShort, DramaBox, GoodShort, DramaPops, KalosTV, NetShort",
   "cover": "http://static1.squarespace.com/static/668b5b769928de19ab3023aa/t/67a91da3b07be2294cc5f3a5/1739136423468/danny+thumbnail.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -1127,6 +1503,7 @@
   "site": "https://www.louisezhangfilms.com/",
   "focus": "DramaBox AI exec producer; CMU CS + NYU Tisch MFA",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1136,6 +1513,7 @@
   "site": "https://www.onsetoctopus.co.uk/",
   "focus": "DramaBox releases; bilingual producer, 10+ yrs",
   "cover": "http://static1.squarespace.com/static/68234d481d3baf0cb16064e8/t/682f51baf4a94755c383606c/1747931578914/Onset+Octopus+Vertical+Drama+Production+Company.png?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -1145,6 +1523,7 @@
   "site": "https://sonalsheopori.com/",
   "focus": "Writer for vertical micro-drama + AI content",
   "cover": "https://sonalsheopori.com/images/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1154,6 +1533,7 @@
   "site": "https://davidguthrie.myportfolio.com/reelshort",
   "focus": "Lead editor on ReelShort titles; Lionsgate feature, docs",
   "cover": "https://cdn.myportfolio.com/088d8592-171a-4aa9-801d-c5a4a880d654/e29e7063-d474-4d54-af3f-935cd1ced992_rwc_333x0x1333x1333x1333.jpeg?h=4461490da427168e4ab20e5b82fbae5f",
+  "clips": [],
   "works": [
    {
     "title": "The Cursed Alpha's Mate EP1-7 | ReelShort",
@@ -1185,6 +1565,7 @@
   "site": "https://www.nancympop.com/",
   "focus": "DramaBox credits",
   "cover": "http://static1.squarespace.com/static/51d4ac2de4b0108eefdb0c34/t/5b9722650e2e723077a1dbb6/1536631441096/Screen+Shot+2018-09-10+at+10.03.01+PM.png?format=1500w",
+  "clips": [],
   "works": [
    {
     "title": "Why Microdramas Are the Next Big Thing With Nancy Pop and James Barker",
@@ -1208,7 +1589,8 @@
   "loc": "Tokyo, Japan",
   "site": "https://v0-jumpei-hirota.vercel.app/",
   "focus": "Japanese vertical drama pioneer",
-  "cover": null,
+  "cover": "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_4002%202.JPG",
+  "clips": [],
   "works": []
  },
  {
@@ -1218,6 +1600,7 @@
   "site": "https://smallwarner.com/",
   "focus": "Author of 'Vertical Filmmaking' (2020); Tribeca Film Institute resident",
   "cover": "http://static1.squarespace.com/static/514499dce4b0e93a319ae768/t/6524befa87131f547b400d4c/1696907002675/SMWR_112618.png?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -1227,6 +1610,7 @@
   "site": "https://www.brunapias.com/",
   "focus": "Vertical short 'Flowered' 1M+ TikTok views, 6 vertical festivals",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Bruna Pias | Showreel 2026",
@@ -1244,6 +1628,7 @@
   "site": "https://hallucination28.com/creator/lin-chung-yen/",
   "focus": "Taiwanese folk-tale AI dramas; 4 awards",
   "cover": "https://hallucination28.com/_astro/portrait.S3Oz2R34.jpg",
+  "clips": [],
   "works": [
    {
     "title": "AI 台灣原創生態紀錄片｜台灣神獸「椰香乖乖虎」現身！牠的尾巴竟然藏著神祕力量？",
@@ -1261,6 +1646,7 @@
   "site": "https://film.leixiang.top/",
   "focus": "AI live-action-style short dramas (e.g. Dragon King: Soul of Flame)",
   "cover": "https://film.leixiang.top/videos/xunlongji-cover.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1270,7 +1656,16 @@
   "site": "https://jeffzambrano.com/",
   "focus": "Vertical series + AI films",
   "cover": "https://jeffzambrano.com/assets/v2/img/bw-20.jfif",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Borrowed Wounds",
+    "author": "Jeff Zambrano",
+    "provider": "youtube",
+    "id": "j4e81Rp33JU",
+    "thumb": "https://i.ytimg.com/vi/j4e81Rp33JU/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -1279,7 +1674,23 @@
   "site": "https://www.youtube.com/@PeterMcSweeneyDirector",
   "focus": "Films for RADA, Warner Bros",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "THE FINAL FROLIC | RADA & Warner Bros. Present | Written by Peter McSweeney",
+    "author": "Peter McSweeney",
+    "provider": "youtube",
+    "id": "IqZqxgZlAc8",
+    "thumb": "https://i.ytimg.com/vi/IqZqxgZlAc8/hqdefault.jpg"
+   },
+   {
+    "title": "THE TEST | Clive Russell (Game of Thrones) | Psychological Short Film",
+    "author": "Peter McSweeney",
+    "provider": "youtube",
+    "id": "LCWpspiuvf4",
+    "thumb": "https://i.ytimg.com/vi/LCWpspiuvf4/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -1288,7 +1699,23 @@
   "site": "https://www.youtube.com/@starraeproductions",
   "focus": "Vertical microdrama scripts & films; also teaches microdrama",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Is Neighbours a Microdrama? Racheal Leigh talks to ABC Perth Radio to discuss the Vertical Re-Edit",
+    "author": "Star Rae Productions",
+    "provider": "youtube",
+    "id": "Cj1ylTQFJGo",
+    "thumb": "https://i.ytimg.com/vi/Cj1ylTQFJGo/hqdefault.jpg"
+   },
+   {
+    "title": "I Wrote & Sold My First #microdrama Script in 6 Weeks! Here's how I did it!",
+    "author": "Star Rae Productions",
+    "provider": "youtube",
+    "id": "3-eckVJi5ho",
+    "thumb": "https://i.ytimg.com/vi/3-eckVJi5ho/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -1297,6 +1724,7 @@
   "site": "https://alejandronorenha.myportfolio.com/series-verticales",
   "focus": "Spanish-language vertical series",
   "cover": "https://cdn.myportfolio.com/ea1b801a-843a-4f49-a33d-cf8835ee1de7/71a0210f-5fe2-4e19-a138-bf43cf16c723_rwc_0x0x3968x2260x3968.png?h=0209e86276277c8c874102b46be76b08",
+  "clips": [],
   "works": []
  },
  {
@@ -1306,6 +1734,7 @@
   "site": "https://siningxiang.com/",
   "focus": "ReelShort 'The Double Life of My Billionaire Husband' 400M+ views",
   "cover": "https://siningxiang.com/wp-content/uploads/2023/06/the_new_yorker_logo-700x222-1.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1315,6 +1744,7 @@
   "site": "https://vimeo.com/analydiamonaco",
   "focus": "Worked for ReelShort, Apple TV+, Netflix, VICE; director's reel",
   "cover": "https://i.vimeocdn.com/portrait/129675269_360x360?subrect=0%2C713%2C2160%2C2873&r=cover&sig=2309257ee50c0c19bb2b3fed5af4963f63977c842f066225c14c8c82470837ab&v=1&region=us",
+  "clips": [],
   "works": []
  },
  {
@@ -1324,6 +1754,7 @@
   "site": "https://vimeo.com/charlesdong",
   "focus": "AI-powered vertical series; cinematography reel; NOWNESS film",
   "cover": "https://i.vimeocdn.com/portrait/130686610_360x360?subrect=0%2C0%2C1254%2C1254&r=cover&sig=978a8b4d4d8537414be837eed55209f9125eeaa962377cde3dea59be50f95eac&v=1&region=us",
+  "clips": [],
   "works": []
  },
  {
@@ -1333,7 +1764,16 @@
   "site": "https://pinteafilms.com/portfolio/vertical-film",
   "focus": "GoodShort 'One Last Temptation Before I Say I Do'",
   "cover": "http://static1.squarespace.com/static/622ba0b27ad511776112aef0/6281358c8fecb629809e2c59/67400eb60ee6e91e0e703157/1793746633825/vertical-projects-01.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "2025 Cinematography Reel",
+    "author": "Mike Pintea",
+    "provider": "vimeo",
+    "id": "1034060928",
+    "thumb": "https://i.vimeocdn.com/video/1955680998-bd97ed538113191e2574bb17ef206b9ed043ecf6eaee8734285f81bf32158dd4-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "短剧 / Vertical micro-drama",
@@ -1342,6 +1782,7 @@
   "site": "https://www.linkedin.com/in/amit-rai-bb176b48",
   "focus": "Hindi vertical series",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1351,6 +1792,7 @@
   "site": "https://www.linkedin.com/in/utsavsarkar04",
   "focus": "Hindi microdramas",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1360,6 +1802,7 @@
   "site": "https://www.linkedin.com/in/sejal-dound-609964154",
   "focus": "Micro-drama specialist",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1369,6 +1812,7 @@
   "site": "https://www.paulraschid.com/interactivefilms",
   "focus": "Stornaway partner; films on Steam/PS/Xbox",
   "cover": "https://static.wixstatic.com/media/2ba6d1_8255f571d65a431bb529c310726715d5%7Emv2.jpg/v1/fit/w_2500,h_1330,al_c/2ba6d1_8255f571d65a431bb529c310726715d5%7Emv2.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1378,6 +1822,7 @@
   "site": "https://pokrovskaya.com/",
   "focus": "Award-winning interactive films + VR",
   "cover": "https://pokrovskaya.com/og-image.jpg",
+  "clips": [],
   "works": [
    {
     "title": "World of Tanks: HEAT - Official Announcement Trailer",
@@ -1409,7 +1854,16 @@
   "site": "https://dkt3.com/",
   "focus": "Large live-interactive series experience",
   "cover": "https://dkt3.com/og-image.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "DC Heroes United - Story Trailer | DC",
+    "author": "DC",
+    "provider": "youtube",
+    "id": "TT6zcWEgJHE",
+    "thumb": "https://i.ytimg.com/vi/TT6zcWEgJHE/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1417,8 +1871,31 @@
   "loc": "USA",
   "site": "https://www.ethanshaftel.com/",
   "focus": "Gargoyle Doyle (Annecy 2024), Ajax All Powerful (Venice 2020)",
-  "cover": null,
-  "works": []
+  "cover": "https://www.ethanshaftel.com/wp-content/uploads/2015/12/vimeo-link.png",
+  "clips": [],
+  "works": [
+   {
+    "title": "GARGOYLE DOYLE • Trailer",
+    "author": "Ethan Shaftel",
+    "provider": "vimeo",
+    "id": "943376824",
+    "thumb": "https://i.vimeocdn.com/video/1944027730-2b7af35ea2e9863405036ec434406b434db0bc85409732bd373a40256ab59c9d-d_295x166?region=us"
+   },
+   {
+    "title": "Behind the scenes // AJAX ALL POWERFUL",
+    "author": "Ethan Shaftel",
+    "provider": "vimeo",
+    "id": "450279160",
+    "thumb": "https://i.vimeocdn.com/video/1763197172-d29c179d91b0cc9e60c94d600454d478d4a52763fc8f470b13dc47cc556cd712-d_295x166?region=us"
+   },
+   {
+    "title": "KAIJU CONFIDENTIAL is Coming Soon!",
+    "author": "Ethan Shaftel",
+    "provider": "vimeo",
+    "id": "303605134",
+    "thumb": "https://i.vimeocdn.com/video/742649257-e7afb839a7a731a8a387007c8e28ef639c39bc9ea9d60d2458f950e993e503f4-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1427,6 +1904,7 @@
   "site": "https://www.hetongzhang.com/",
   "focus": "Edmonton IFF Grand Jury doc award",
   "cover": "https://www.hetongzhang.com/assets/images/van-pianist-hero.webp",
+  "clips": [],
   "works": [
    {
     "title": "Horror Short Film \"The Door\" | ALTER",
@@ -1444,6 +1922,7 @@
   "site": "https://www.cameronkostopoulos.com/",
   "focus": "Directed Eko-powered interactive 'This Bitter Earth'",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Little Red Lie",
@@ -1475,7 +1954,23 @@
   "site": "https://mareikegabrisch.de/aboutme/",
   "focus": "Focus on branching storylines",
   "cover": "https://mareikegabrisch.de/wp-content/uploads/2025/02/IMG-20240831-WA0007.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Heart of the Forest - Official Launch Trailer | Interactive FMV Horror",
+    "author": "Wales Interactive",
+    "provider": "youtube",
+    "id": "Ht6FUZHNgtg",
+    "thumb": "https://i.ytimg.com/vi/Ht6FUZHNgtg/hqdefault.jpg"
+   },
+   {
+    "title": "Mareike Gabrisch - Filmmaker Showreel 2021",
+    "author": "Mareike Gabrisch",
+    "provider": "youtube",
+    "id": "30G8p5yGzpc",
+    "thumb": "https://i.ytimg.com/vi/30G8p5yGzpc/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1483,8 +1978,31 @@
   "loc": "Regina, Canada",
   "site": "https://www.aaronsinclairfilm.com/",
   "focus": "Choose-your-way interactive rom-com/thriller releases",
-  "cover": null,
-  "works": []
+  "cover": "https://static.wixstatic.com/media/62f36b_a75b34b9e9e845a28803ac4015dec87f%7Emv2.jpg/v1/fit/w_2500,h_1330,al_c/62f36b_a75b34b9e9e845a28803ac4015dec87f%7Emv2.jpg",
+  "clips": [],
+  "works": [
+   {
+    "title": "Have You Felt It Yet? | A Scene From Indie Film The Wild",
+    "author": "aaronsinclairfilm",
+    "provider": "youtube",
+    "id": "Z8mj4xCLHho",
+    "thumb": "https://i.ytimg.com/vi/Z8mj4xCLHho/hqdefault.jpg"
+   },
+   {
+    "title": "A Cinematic Short Film About Friendship",
+    "author": "aaronsinclairfilm",
+    "provider": "youtube",
+    "id": "AH5qEoGJhvk",
+    "thumb": "https://i.ytimg.com/vi/AH5qEoGJhvk/hqdefault.jpg"
+   },
+   {
+    "title": "Pan of Neverland by Kylie Jayde SPOKEN WORD FILM",
+    "author": "aaronsinclairfilm",
+    "provider": "youtube",
+    "id": "2syIHVwZnTc",
+    "thumb": "https://i.ytimg.com/vi/2syIHVwZnTc/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1493,6 +2011,7 @@
   "site": "https://felicitychen.com/",
   "focus": "Immersive/interactive docs",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1502,6 +2021,7 @@
   "site": "https://www.barnaszasz.com/",
   "focus": "Fulbright; festival AR/VR",
   "cover": "http://static1.squarespace.com/static/5d2e62ddb98be90001ec05ef/t/5d913c03072f653a6f5e274d/1569799174614/Barna+Headshot+-+Double+by+ZsofiaHeisler+1.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -1510,7 +2030,8 @@
   "loc": "France (TBC)",
   "site": "https://www.remipetitjean.com/",
   "focus": "Interactive narrations, short games",
-  "cover": null,
+  "cover": "https://static.parastorage.com/services/santa-resources/resources/viewer/editorUI/fonts.v19.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1520,6 +2041,7 @@
   "site": "https://matthiaspilz.com/",
   "focus": "Shot FMV game The Complex (Wales Interactive)",
   "cover": "https://media.cargocollective.com/1/15/487384/headerimg/head12.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1529,6 +2051,7 @@
   "site": "https://store.steampowered.com/app/4064520/",
   "focus": "90s-style FMV survival horror, 5 endings",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4064520/8c5d1bd54ad6f31f90d0e4ed7e3e30e5e74f90d5/capsule_616x353.jpg?t=1768511094",
+  "clips": [],
   "works": []
  },
  {
@@ -1538,7 +2061,23 @@
   "site": "https://store.steampowered.com/app/3978240/",
   "focus": "PC Gamer/Polygon coverage; well-shot wilderness FMV",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3978240/e6cb2b57987f1afc4cb30a9f2917640dd34cf818/capsule_616x353.jpg?t=1794762868",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Wordless Forest — Out Now on Steam",
+    "author": "Wordless Forest",
+    "provider": "youtube",
+    "id": "oT3v3cjSvBI",
+    "thumb": "https://i.ytimg.com/vi/oT3v3cjSvBI/hqdefault.jpg"
+   },
+   {
+    "title": "40-Day Solo Shoot in the Wild | Wordless Forest Behind The Scenes [Raw Audio]",
+    "author": "Wordless Forest",
+    "provider": "youtube",
+    "id": "M2-BMVNyO1s",
+    "thumb": "https://i.ytimg.com/vi/M2-BMVNyO1s/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1547,6 +2086,7 @@
   "site": "https://beyzaboyacioglu.com/",
   "focus": "MoMA, IDFA, Venice Biennial screenings",
   "cover": "https://static.fabrik.io/1ajl/4034c4b8ccd3af70.jpg?lossless=1&w=1280&h=1280&fit=max&s=39a20c387ce9b4df91367b0d697aef5b",
+  "clips": [],
   "works": [
    {
     "title": "How Islam Influenced Black Americans in 1920s Chicago | American Muslims: A History Revealed",
@@ -1578,6 +2118,7 @@
   "site": "https://dinakhalil.com/interactive-film-anomalous-(ue-+-ae)",
   "focus": "Branching interactive short in UE + AE",
   "cover": "https://freight.cargo.site/w/440/i/U2249417441093180890425831232639/that-s-ai-lolGemini_Generated_Image_dxhkbxdxhkbxdxhk.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1587,7 +2128,16 @@
   "site": "https://mandivision.com/EKO-WALMART-Create-With-Me",
   "focus": "Directed Eko interactive branded series",
   "cover": "https://freight.cargo.site/w/1200/i/a8b1b7b0c58fbe7d506ce96ada7e98b85d4c6af824dd5ac4dcacf2fda4e111eb/Screen-Shot-2020-01-22-at-11.25.55-AM_1250.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Free Spirit Video Portrait",
+    "author": "Mandy Mandelstein",
+    "provider": "vimeo",
+    "id": "304016564",
+    "thumb": "https://i.vimeocdn.com/video/743143191-9392cb38c85c5d2838df8818818dfdb724faf6d8d2d4e091586d9b32b31417ed-d_640?region=us"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1596,7 +2146,30 @@
   "site": "https://lorenzocarly.com/",
   "focus": "Volumetric video + Gaussian splats",
   "cover": "https://framerusercontent.com/images/nMrmU8v1dK8SQDmJkbVbZud7rcY.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Modern Love - Lorenzo Carly",
+    "author": "Lorenzo Carly",
+    "provider": "youtube",
+    "id": "Onl9hplGwPQ",
+    "thumb": "https://i.ytimg.com/vi/Onl9hplGwPQ/hqdefault.jpg"
+   },
+   {
+    "title": "XRCC Film & Storytelling Track Winner - Nowhere to Belong",
+    "author": "Romy Aboudarham",
+    "provider": "youtube",
+    "id": "Aukul5M2N_c",
+    "thumb": "https://i.ytimg.com/vi/Aukul5M2N_c/hqdefault.jpg"
+   },
+   {
+    "title": "Wonder Wall Trailer",
+    "author": "Lorenzo Carly",
+    "provider": "youtube",
+    "id": "muSjEliUeNs",
+    "thumb": "https://i.ytimg.com/vi/muSjEliUeNs/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1604,7 +2177,8 @@
   "loc": "UK (TBC)",
   "site": "https://www.matthewtibbenham.com/",
   "focus": "Genre storytelling across film/XR/games",
-  "cover": null,
+  "cover": "https://www.matthewtibbenham.com/assets/ftd-hero.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1614,6 +2188,7 @@
   "site": "https://germanheller.com/",
   "focus": "Emmy-nominated interactive VR; Sundance/Venice/Tribeca",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1623,7 +2198,16 @@
   "site": "https://katevoet.com/",
   "focus": "Venice Immersive award 'A Long Goodbye'",
   "cover": "https://katevoet.com/social.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Les Homards Immortels - Teaser",
+    "author": "Kate Voet",
+    "provider": "vimeo",
+    "id": "206725218",
+    "thumb": "https://i.vimeocdn.com/video/762726431-7a3bee13c5867f616e22dca4d83fbac555892ef6c88ff0e5e8a46847d597bab2-d_640?region=us"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1632,6 +2216,7 @@
   "site": "https://www.shanesmall.com/exp-content",
   "focus": "Created Sony's interactive live-action series EXP",
   "cover": "http://static1.squarespace.com/static/5f9b25d635298a451733ba17/t/6495eee697d6bd58bf0a6054/1687547622717/ShaneSmall.com.png?format=1500w",
+  "clips": [],
   "works": [
    {
     "title": "EXP Non-Interactive Demo",
@@ -1649,7 +2234,16 @@
   "site": "https://store.steampowered.com/app/4720690/",
   "focus": "First FMV CYOA, 2026",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4720690/882407b5a4fa1f35489c84f03e04ea49744bcf41/capsule_616x353.jpg?t=1780938679",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "I looove my fans《Apology Video (Game)》",
+    "author": "Yuan-Hsiu",
+    "provider": "youtube",
+    "id": "OV-XeQs7Q6Q",
+    "thumb": "https://i.ytimg.com/vi/OV-XeQs7Q6Q/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1658,7 +2252,30 @@
   "site": "https://kimulatorsfilms.com/",
   "focus": "I'm in Love With Your Dead Grandmother (FMV)",
   "cover": "http://kimulatorsfilms.com/cdn/shop/files/obamaprismyooooo_1200x1200.png?v=1647907913",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Buy The Game, I Have a Gun 2: Online Open World - Official Trailer 2027 | PS4, PS5, Xbox, Steam, EGS",
+    "author": "Kimulator's Films",
+    "provider": "youtube",
+    "id": "h4TNci7jmdQ",
+    "thumb": "https://i.ytimg.com/vi/h4TNci7jmdQ/hqdefault.jpg"
+   },
+   {
+    "title": "I'm in Love With Your Dead Grandmother 3: Online Battle Royale - Official Trailer 2025 | PS4 PS5 PC",
+    "author": "Kimulator's Films",
+    "provider": "youtube",
+    "id": "L7UNhI0r2d8",
+    "thumb": "https://i.ytimg.com/vi/L7UNhI0r2d8/hqdefault.jpg"
+   },
+   {
+    "title": "Baby Boomer 2: 35 Years Too Soon - Official Gameplay Trailer 2024 | PS4 PS5 | Epic Games PC",
+    "author": "Kimulator's Films",
+    "provider": "youtube",
+    "id": "jZh1tWDEtgE",
+    "thumb": "https://i.ytimg.com/vi/jZh1tWDEtgE/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1666,8 +2283,31 @@
   "loc": "Galicia, Spain",
   "site": "https://melgocinema.itch.io/you-first",
   "focus": "Interactive film on itch.io",
-  "cover": null,
-  "works": []
+  "cover": "https://melgocinema.com/wp-content/uploads/2026/11/cartel-camino-kaput-dixit-provisional.png",
+  "clips": [],
+  "works": [
+   {
+    "title": "Melgo Cinema - REEL (2024)",
+    "author": "Melgo Cinema",
+    "provider": "youtube",
+    "id": "Il-4d1Zdzpc",
+    "thumb": "https://i.ytimg.com/vi/Il-4d1Zdzpc/hqdefault.jpg"
+   },
+   {
+    "title": "As tres vidas de María Santiso - TRÁILER",
+    "author": "Melgo Cinema",
+    "provider": "youtube",
+    "id": "OeC-auP8TPA",
+    "thumb": "https://i.ytimg.com/vi/OeC-auP8TPA/hqdefault.jpg"
+   },
+   {
+    "title": "As tres outras vidas de María Santiso - TRÁILER",
+    "author": "Melgo Cinema",
+    "provider": "youtube",
+    "id": "648faEaGvy0",
+    "thumb": "https://i.ytimg.com/vi/648faEaGvy0/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1676,6 +2316,7 @@
   "site": "https://torhelmstein.com/",
   "focus": "Live-action & mocap direction for games",
   "cover": "https://impro.usercontent.one/appid/oneComWsb/domain/torhelmstein.com/media/torhelmstein.com/onewebmedia/SWH_CHAOS.jpg?etag=%22232d3a-682de0ac%22&sourceContentType=image%2Fjpeg&quality=85",
+  "clips": [],
   "works": []
  },
  {
@@ -1685,7 +2326,16 @@
   "site": "https://store.steampowered.com/app/2121510/",
   "focus": "Practical-FX horror live action, Xbox Wire coverage",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2121510/56351355999365f7ba16062731331c51c72c7d7a/capsule_616x353.jpg?t=1793505650",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Tenebris Somnia | Animation",
+    "author": "Lobo Ludo",
+    "provider": "youtube",
+    "id": "v9j_5ZeYA7A",
+    "thumb": "https://i.ytimg.com/vi/v9j_5ZeYA7A/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1694,6 +2344,7 @@
   "site": "https://darkrifthorror.com/",
   "focus": "Dead Reset (Wales Interactive)",
   "cover": "http://static1.squarespace.com/static/58a0b67fd1758ebeb9f5a2fa/t/6183e1f612336b4fc5e83375/1636033019784/DARK+RIFT+HORROR+Website+banner.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -1703,6 +2354,7 @@
   "site": "https://nightsignalentertainment.com/",
   "focus": "Home Safety Hotline (2.8k Steam reviews), Forbidden Solitaire FMV",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "The Real Estate Update (Analog Horror)",
@@ -1727,6 +2379,7 @@
   "site": "https://store.steampowered.com/app/898650/",
   "focus": "Well-reviewed FMV mysteries",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/898650/capsule_616x353.jpg?t=1780398945",
+  "clips": [],
   "works": []
  },
  {
@@ -1736,7 +2389,23 @@
   "site": "https://store.steampowered.com/app/1450830/",
   "focus": "Live-action + graphics hybrid horror",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1450830/9c57c08a16c1c2a6e4ab6edf53e95a8174a9b222/capsule_616x353.jpg?t=1759702068",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "At Dead Of Night - Trailer 1",
+    "author": "Baggy Cat Games",
+    "provider": "youtube",
+    "id": "p3vzyt4AmHI",
+    "thumb": "https://i.ytimg.com/vi/p3vzyt4AmHI/hqdefault.jpg"
+   },
+   {
+    "title": "Contradiction",
+    "author": "Baggy Cat Entertainment",
+    "provider": "vimeo",
+    "id": "132201028",
+    "thumb": "https://i.vimeocdn.com/video/524912508-e66839a7fc867de3fc9b6a7d31ded7761aef5a500f5a8441a306fbe922a47fa4-d_640?region=us"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1745,6 +2414,7 @@
   "site": "https://store.steampowered.com/app/402330/",
   "focus": "3.7k Steam reviews, 90% positive",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/402330/capsule_616x353.jpg?t=1783307428",
+  "clips": [],
   "works": [
    {
     "title": "PRESS X TO NOT DIE - David Cage Would Be Proud",
@@ -1769,6 +2439,7 @@
   "site": "https://rhinotales.com/",
   "focus": "2.7k reviews; noir interactive thriller",
   "cover": "https://rhinotales.com/assets/critical-shift/hero-desktop.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Critical Shift - Announcement Trailer (2025)",
@@ -1786,7 +2457,16 @@
   "site": "https://www.trapped-predator.com/",
   "focus": "Cinematic FMV games",
   "cover": "http://static1.squarespace.com/static/5bb378eb704680483c8f6cfe/t/614c673af9503103dc28089b/1632397119665/Logo+TP+Po2+dark.png?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Filmmaker Reel - 2017",
+    "author": "Trapped Predator",
+    "provider": "youtube",
+    "id": "ditZulsxtxc",
+    "thumb": "https://i.ytimg.com/vi/ditZulsxtxc/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "影游 / Interactive film & FMV",
@@ -1795,6 +2475,7 @@
   "site": "https://www.ten-thousand-hearts.com/fmv-thriller-full-motion-voyeur-enters-development-launch-planned-for-2026/",
   "focus": "FMV thriller in production",
   "cover": "https://www.ten-thousand-hearts.com/wp-content/uploads/2025/08/FMV_Steam_Main-Capsule_1232x706_1_page-launch.png",
+  "clips": [],
   "works": [
    {
     "title": "FMV - Full Motion Voyeur: Announcement Trailer",
@@ -1819,6 +2500,10 @@
   "site": "https://store.steampowered.com/app/3233260/",
   "focus": "FMV interrogation/murder mystery series",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3233260/2c6193d7442440fe5fa6259afd2216dfd3b86e5b/capsule_616x353.jpg?t=1782012974",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3233260/extras/ed65610cfa7d6d78cd506102ea9c8bd3.mp4?t=1782012974",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2659650/extras/c5981af3ec2f2e1ce2c073574891ea72.mp4?t=1760205528"
+  ],
   "works": []
  },
  {
@@ -1827,7 +2512,11 @@
   "loc": "Turkey",
   "site": "https://buttoninteractive.com/",
   "focus": "2026 FMV mystery reviewed by GameSpew",
-  "cover": null,
+  "cover": "https://buttoninteractive.com/wp-content/uploads/2023/06/trans-blue.png",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2425130/extras/5569ea5b70f317b44fc08538827663f2.mp4?t=1787194311",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2425130/extras/dbe50b1554eabcdff6460a7605091bee.mp4?t=1787194311"
+  ],
   "works": []
  },
  {
@@ -1837,6 +2526,7 @@
   "site": "https://anvilframe.com/interactive_movie",
   "focus": "Live-action integrated into Unreal gameplay",
   "cover": "https://static.tildacdn.com/tild6163-6633-4963-a538-633564663330/LOGO_fhd.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1846,6 +2536,7 @@
   "site": "https://www.havlo.io/",
   "focus": "Interactive vertical thriller/horror",
   "cover": "https://www.havlo.io/og.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -1855,6 +2546,10 @@
   "site": "https://store.steampowered.com/app/3652650/",
   "focus": "Live-action 影游 shot in Norway",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3652650/93d482f7431a69e96f85491ae2ca2b2a6ccd52a0/capsule_616x353.jpg?t=1781005981",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3652650/extras/56227d6bf131d0dc7e0791f74f2ad754.mp4?t=1781005981",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3652650/extras/b5864fae394e490624785899e6d35e89.mp4?t=1781005981"
+  ],
   "works": []
  },
  {
@@ -1864,6 +2559,10 @@
   "site": "https://store.steampowered.com/app/3350200/",
   "focus": "One of the biggest FMV hits on Steam",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3350200/455d6703a079ce4ff80e7e4b0818ffd0a61cfabb/capsule_616x353.jpg?t=1783592456",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3350200/extras/fcaa3ea94358ba0b00ff239d34891913.mp4?t=1783592456",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3350200/extras/35058ec9f05dcda58fda6d8cb79b2597.mp4?t=1783592456"
+  ],
   "works": []
  },
  {
@@ -1873,6 +2572,10 @@
   "site": "https://store.steampowered.com/app/2786680/",
   "focus": "Knowledge, or know Lady (95% positive, 9k reviews)",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2786680/capsule_616x353.jpg?t=1757668350",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2786680/extras/af011ca62589833b0d3279b63472a25d.mp4?t=1757668350",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2786680/extras/34bd251af99a388bf0469f57d3b92586.mp4?t=1757668350"
+  ],
   "works": []
  },
  {
@@ -1882,6 +2585,10 @@
   "site": "https://store.steampowered.com/app/3831120/",
   "focus": "Historical/palace live-action 影游; 5k+ reviews",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3831120/6a5af0317c2156f49b790588f09484e1f63cbbed/capsule_616x353.jpg?t=1769500928",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3831120/extras/f98dd11b8aee1b88ba3d4daeb7cf6480.mp4?t=1769500928",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3831120/extras/16d9e61ee6c6b3a77fffd5a03564a3c4.mp4?t=1769500928"
+  ],
   "works": []
  },
  {
@@ -1891,6 +2598,10 @@
   "site": "https://store.steampowered.com/app/2322560/",
   "focus": "Love Is All Around: 45k+ reviews, 93% positive",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2322560/capsule_616x353.jpg?t=1777556172",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2322560/extras/560c02544073a4d79c46972aee06b55b.mp4?t=1777556172",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2322560/extras/3990fb56cc74344c519808ed7ad2acab.mp4?t=1777556172"
+  ],
   "works": []
  },
  {
@@ -1900,6 +2611,10 @@
   "site": "https://store.steampowered.com/app/3478050/",
   "focus": "13k+ reviews, very positive",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3478050/fa469f01336258e5d76b35ea0315264ca26e7103/capsule_616x353.jpg?t=1783058959",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3478050/extras/1a15e600574cd8936a3340aacefff6f8.mp4?t=1783058959",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3478050/extras/0b8c53908e3d404c7a76e38bb5006a1d.mp4?t=1783058959"
+  ],
   "works": []
  },
  {
@@ -1909,6 +2624,10 @@
   "site": "https://store.steampowered.com/app/5129220/",
   "focus": "Live-action interactive revenge drama",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/5129220/0fa2fb900c34759312544ad4fb71496f58b3dd07/capsule_616x353.jpg?t=1795147179",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/5129220/extras/81158a9014e5d68561d52dd6ddbf380e.mp4?t=1795147179",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/5129220/extras/056c76568753af9148b7d1489afad2af.mp4?t=1795147179"
+  ],
   "works": []
  },
  {
@@ -1918,6 +2637,7 @@
   "site": "https://store.steampowered.com/app/4354460/",
   "focus": "Prolific FMV output 2025-26",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4354460/cf005f82a909a8a5750540aba3462ae9a2f4aced/capsule_616x353.jpg?t=1790264788",
+  "clips": [],
   "works": []
  },
  {
@@ -1927,6 +2647,10 @@
   "site": "https://store.steampowered.com/app/3021100/",
   "focus": "Five Hearts Under One Roof 6k reviews",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3021100/90553a0ae698152162dd9ed33838bbb4c00bad81/capsule_616x353.jpg?t=1794184655",
+  "clips": [
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3021100/extras/a65d55968ac5d1e218b7d6bdf0ecaff7.mp4?t=1794184655",
+   "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3021100/extras/9ccadc383b7022e41c6af1f43d45dbf9.mp4?t=1794184655"
+  ],
   "works": []
  },
  {
@@ -1936,6 +2660,7 @@
   "site": "https://store.steampowered.com/app/3850560/",
   "focus": "Scam-compound thriller FMV, 1.2k reviews",
   "cover": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3850560/cf1291d61d564e36a6b553f864b14ad43c5c7b2e/capsule_616x353.jpg?t=1773536219",
+  "clips": [],
   "works": []
  },
  {
@@ -1944,7 +2669,8 @@
   "loc": "China",
   "site": "https://www.ctrlvideo.com/content/",
   "focus": "真人互动影游 full-service shooting",
-  "cover": null,
+  "cover": "https://res-1300249927.cos.ap-guangzhou.myqcloud.com/static/office/_nuxt/img/content_1_bg.923fcdc.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1954,6 +2680,7 @@
   "site": "https://ugcjogee.my.canva.site/",
   "focus": "Tech, voiceover, product-in-action; agency testimonials cite 7M impressions, 20% lower CPA (Nespresso, OkCupid campaigns)",
   "cover": "https://ugcjogee.my.canva.site/e128c8b223bdd97ae41c707771fe867a.png",
+  "clips": [],
   "works": []
  },
  {
@@ -1963,6 +2690,7 @@
   "site": "https://kambraugc.my.canva.site/",
   "focus": "Wedding, lifestyle, food, health; clients Zola, Buffalo Wild Wings, Jimmy John's, Zeelool",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1972,7 +2700,23 @@
   "site": "https://xuanklevecka.my.canva.site/xuan-klevecka-ugc-portfolio",
   "focus": "Story-first demos, testimonials, b-roll w/ VO; home, pets, wellness, food",
   "cover": "https://xuanklevecka.my.canva.site/xuan-klevecka-ugc-portfolio/_assets/images/fdba77bab9706df31cdbe0cc0405c175.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "What's in my creator bag + my favorite creator tools for 2027",
+    "author": "cozy notes",
+    "provider": "youtube",
+    "id": "r-zHZbswyUQ",
+    "thumb": "https://i.ytimg.com/vi/r-zHZbswyUQ/hqdefault.jpg"
+   },
+   {
+    "title": "Don't feel like cleaning? Put this on. | 50-MINUTE BODY DOUBLING | no music, no chatting",
+    "author": "cozy notes",
+    "provider": "youtube",
+    "id": "GXj18yRYwMk",
+    "thumb": "https://i.ytimg.com/vi/GXj18yRYwMk/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -1981,6 +2725,7 @@
   "site": "https://ugckiara.my.canva.site/",
   "focus": "Aesthetic everyday ad content, lifestyle/beauty",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1990,6 +2735,7 @@
   "site": "https://taylordugc.my.canva.site/",
   "focus": "Ad-style: K18, Rare Beauty, Native, Dossier, Sleepgram",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -1999,6 +2745,7 @@
   "site": "https://lenugc.com/",
   "focus": "Performance-minded UGC; 50+ brands",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2008,6 +2755,7 @@
   "site": "https://www.amyschwabofficial.com/ugc/",
   "focus": "Energetic hotel/stay/lifestyle content: room tours, guest-experience POV",
   "cover": "https://www.amyschwabofficial.com/assets/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2017,6 +2765,7 @@
   "site": "https://peguyugc.com/",
   "focus": "Tech, apps, SaaS demos",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2026,6 +2775,7 @@
   "site": "https://jessica-strand.com/",
   "focus": "Emotional, story-led UGC for outdoor, lifestyle, wellness, beauty",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2035,7 +2785,23 @@
   "site": "https://contentbylourdesmari.my.canva.site/",
   "focus": "Organic + paid-ad UGC, TikTok Shop style",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Ep: 1 Chasing Waterfalls 📍Ozone Falls ",
+    "author": "Lourdes Mari",
+    "provider": "youtube",
+    "id": "M8FmT1hDVwc",
+    "thumb": "https://i.ytimg.com/vi/M8FmT1hDVwc/hqdefault.jpg"
+   },
+   {
+    "title": "Pt 1. Building My Dream Walk In Closet 🎀 My Cloffice ",
+    "author": "Lourdes Mari",
+    "provider": "youtube",
+    "id": "5agUBARSAtc",
+    "thumb": "https://i.ytimg.com/vi/5agUBARSAtc/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2044,6 +2810,7 @@
   "site": "https://seemoreugc.com/",
   "focus": "App demos, screen recordings, travel/hotel UGC",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2053,7 +2820,30 @@
   "site": "https://www.ugcroy.com/",
   "focus": "SaaS, AI tech, gadgets; clear product demos",
   "cover": "http://static1.squarespace.com/static/68a7bb6161a18d273fc22681/t/68b22932460ac0674cafe87e/1756506418997/social2%402x.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "27 PDF Expert",
+    "author": "UGC Roy",
+    "provider": "youtube",
+    "id": "1I4v1AeZIBY",
+    "thumb": "https://i.ytimg.com/vi/1I4v1AeZIBY/hqdefault.jpg"
+   },
+   {
+    "title": "30 ssdihelp org",
+    "author": "UGC Roy",
+    "provider": "youtube",
+    "id": "P3PcF6BDaEw",
+    "thumb": "https://i.ytimg.com/vi/P3PcF6BDaEw/hqdefault.jpg"
+   },
+   {
+    "title": "29 eHarmony",
+    "author": "UGC Roy",
+    "provider": "youtube",
+    "id": "EalYyyrnJOw",
+    "thumb": "https://i.ytimg.com/vi/EalYyyrnJOw/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2062,6 +2852,7 @@
   "site": "https://itsclairevillalba.my.canva.site/",
   "focus": "App/SaaS walkthroughs, paid creative",
   "cover": "https://itsclairevillalba.my.canva.site/_assets/images/c7906c9b4f4075441f110eebf73d8e44.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2071,6 +2862,7 @@
   "site": "https://mimacontent.com/ugc-creator-apps",
   "focus": "UGC for apps, AI tools, EdTech in English, French, German",
   "cover": "https://mimacontent.com/og-mima-v2.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2080,6 +2872,7 @@
   "site": "https://jaxsonterrero.com/app-demo-ugc",
   "focus": "Consumer app walkthroughs",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2089,6 +2882,7 @@
   "site": "https://leiugcca.com/",
   "focus": "Beauty, wellness, parenting, tech",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2098,6 +2892,7 @@
   "site": "https://ugcwithramani.my.canva.site/",
   "focus": "Voiceover + aesthetic videos; beauty (Wet n Wild)",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2107,6 +2902,7 @@
   "site": "https://fobcreatives.com/",
   "focus": "'UGC that doesn't look like an ad'",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2116,6 +2912,7 @@
   "site": "https://www.ugcbyadamg.com/",
   "focus": "Fitness/supplements/lifestyle",
   "cover": "http://static1.squarespace.com/static/649b3f031e03cb2ed22dd8be/t/64b179391241aa5f8b669d92/1689352505650/adam_headshot_4x4.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -2125,6 +2922,7 @@
   "site": "https://deanperrone.com/",
   "focus": "Health, wellness, fitness brands",
   "cover": "https://deanperrone.lovable.app/__l5e/assets-v1/f730a92e-5483-45f6-a042-5b21d18af308/dean-perrone-share-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2134,6 +2932,7 @@
   "site": "https://nicolesugc.my.canva.site/",
   "focus": "Beauty: Gisou, GHD, Ultra Violette, Morphe, Skims, Sephora",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2143,6 +2942,7 @@
   "site": "https://juliaougc.my.canva.site/",
   "focus": "Beauty/wellness: Cosrx, The Ordinary, Ilia, NARS, AstroAI",
   "cover": "https://juliaougc.my.canva.site/ee37870410b6d69293735adcfe5fe073.png",
+  "clips": [],
   "works": []
  },
  {
@@ -2152,7 +2952,23 @@
   "site": "https://bryanchen.my.canva.site/",
   "focus": "Tech/home: Philips, Logitech, Owala, Autobrush",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "How to make $4,000 from Side Hustles in 2026",
+    "author": "Bryan Chen",
+    "provider": "youtube",
+    "id": "PORbTML5vmo",
+    "thumb": "https://i.ytimg.com/vi/PORbTML5vmo/hqdefault.jpg"
+   },
+   {
+    "title": "How Anyone Can Become a Millionaire on a Small Salary",
+    "author": "Bryan Chen",
+    "provider": "youtube",
+    "id": "N9tJbUefgo8",
+    "thumb": "https://i.ytimg.com/vi/N9tJbUefgo8/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2161,7 +2977,16 @@
   "site": "https://heybasha.my.canva.site/ugcportfolio",
   "focus": "Hotels, food, beverage: Groupon, Coldstone, Made Good, HOPWTR",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Santa Cruz CA Vlog | things to do, best beach, Capitola Village",
+    "author": "Visha Hernandez",
+    "provider": "youtube",
+    "id": "7BoNqDMdCNY",
+    "thumb": "https://i.ytimg.com/vi/7BoNqDMdCNY/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2170,6 +2995,7 @@
   "site": "https://ugcpreneur.com/",
   "focus": "Mom/lifestyle/wellness",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2179,6 +3005,7 @@
   "site": "https://indiewugc.my.canva.site/",
   "focus": "Beauty, lifestyle, art; inclusive mom content",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2188,6 +3015,7 @@
   "site": "https://ugcwithmel.my.canva.site/",
   "focus": "Food & beverage, pets",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2196,7 +3024,8 @@
   "loc": "Not stated",
   "site": "https://www.carolinejkim.com/ugc",
   "focus": "Beverage, pets, wellness",
-  "cover": null,
+  "cover": "https://images.squarespace-cdn.com/content/v1/5edadf6d8d0218429d87bc5a/ee81802c-ca8d-4866-b361-12bd3b6f5dd3/IMG_5135.png",
+  "clips": [],
   "works": []
  },
  {
@@ -2206,6 +3035,7 @@
   "site": "https://ugcashleyjulia.com/",
   "focus": "Health/wellness, talking-to-camera testimonials",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2215,7 +3045,23 @@
   "site": "https://kristineugc.com/",
   "focus": "Finance, tech, lifestyle; Tarte, Ulta, Everlane",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "light a candle, take a sip of water, and let’s dive in",
+    "author": "Kristine",
+    "provider": "youtube",
+    "id": "pas2nBFZ35Q",
+    "thumb": "https://i.ytimg.com/vi/pas2nBFZ35Q/hqdefault.jpg"
+   },
+   {
+    "title": "your flow state is waiting, let's find it together",
+    "author": "Kristine",
+    "provider": "youtube",
+    "id": "2_SrITlq858",
+    "thumb": "https://i.ytimg.com/vi/2_SrITlq858/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2224,6 +3070,7 @@
   "site": "https://ugcbyasya.com/",
   "focus": "Conversion-driven short-form, street interviews, beauty/tech",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2233,6 +3080,7 @@
   "site": "https://veramulintseva.com/",
   "focus": "Beauty, wellness, running, travel",
   "cover": "https://www.veramulintseva.com/images/hero/vera-portrait.webp",
+  "clips": [],
   "works": []
  },
  {
@@ -2241,7 +3089,8 @@
   "loc": "Not stated",
   "site": "https://builtbybritt.framer.website/",
   "focus": "Scroll-stopping lifestyle content",
-  "cover": null,
+  "cover": "https://framerusercontent.com/images/WtQoMBApAWYC9N45xhxYvJrS48.jpg?width=1290&height=2281",
+  "clips": [],
   "works": []
  },
  {
@@ -2251,6 +3100,7 @@
   "site": "https://yas-inthe-world-ugc-portfolio.my.canva.site/",
   "focus": "Fashion, beauty, lifestyle, wellness, travel",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2260,7 +3110,23 @@
   "site": "https://travelugcportfolio.my.canva.site/ugc",
   "focus": "Travel, fashion, skincare",
   "cover": "https://travelugcportfolio.my.canva.site/ugc/4d0688277f95e891b7fc7bc9cb11c4dc.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "PARK CITY, MIDWAY E CASTELO DE GELO EM UTAH - VLOG DE VIAGEM EM UTAH",
+    "author": "Pâmela Noschang",
+    "provider": "youtube",
+    "id": "PQlGvsspY_0",
+    "thumb": "https://i.ytimg.com/vi/PQlGvsspY_0/hqdefault.jpg"
+   },
+   {
+    "title": "GUIA & ROTEIRO DE UTAH - Seu Guia Definitivo para uma Aventura Inesquecível!",
+    "author": "Pâmela Noschang",
+    "provider": "youtube",
+    "id": "Wezch8WbZSw",
+    "thumb": "https://i.ytimg.com/vi/Wezch8WbZSw/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2269,7 +3135,23 @@
   "site": "https://ugclarsonportfolio.my.canva.site/",
   "focus": "Food, fashion, tech, wellness, travel",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "The key to what you want is simple…",
+    "author": "Chef Larson",
+    "provider": "youtube",
+    "id": "awTkI1LV5IU",
+    "thumb": "https://i.ytimg.com/vi/awTkI1LV5IU/hqdefault.jpg"
+   },
+   {
+    "title": "5 min to change your life (my experiences)",
+    "author": "Chef Larson",
+    "provider": "youtube",
+    "id": "ekji0NWaajw",
+    "thumb": "https://i.ytimg.com/vi/ekji0NWaajw/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2278,6 +3160,7 @@
   "site": "https://lalitalaing.com/",
   "focus": "Home, wellness, beauty, food, pet; case studies on site",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2287,7 +3170,23 @@
   "site": "https://alexischristine.com/",
   "focus": "Makeup, skincare, home, apps & services",
   "cover": "https://alexischristine.com/a943ddb8931d0a11c8c134470cdd9769.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "River otters are too cute not to share #riverotter #lakeoftheozarks #wildlife #caughtoncamera #otter",
+    "author": "Alexis Christine",
+    "provider": "youtube",
+    "id": "H4nVcXghx2g",
+    "thumb": "https://i.ytimg.com/vi/H4nVcXghx2g/hqdefault.jpg"
+   },
+   {
+    "title": "Glitbalm shade throb #glitbalm #glitterlips #glitterlipstick #lippies #lipstick",
+    "author": "Alexis Christine",
+    "provider": "youtube",
+    "id": "wvQm2T43rVE",
+    "thumb": "https://i.ytimg.com/vi/wvQm2T43rVE/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2296,6 +3195,7 @@
   "site": "https://ugc.chucklasker.com/",
   "focus": "Performance UGC; cites 2.87 ROAS case",
   "cover": "https://ugc.chucklasker.com/_assets/images/4b4075e3be60394611bfe6c2e8d8b202.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2305,6 +3205,7 @@
   "site": "https://ugcbrandon.com/",
   "focus": "Lifestyle, tech; real-life style",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2314,6 +3215,7 @@
   "site": "https://mahsazr.com/",
   "focus": "Beauty, skincare, haircare, fragrance",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2323,6 +3225,7 @@
   "site": "https://ugc-georgia.my.canva.site/",
   "focus": "Fashion, beauty, lifestyle: Novo Shoes, JS Health",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2332,6 +3235,7 @@
   "site": "https://camilleugc.com/",
   "focus": "Conversion-focused UGC; 1M+ views",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2340,7 +3244,8 @@
   "loc": "Pacific Northwest, USA",
   "site": "https://austinugc.com/",
   "focus": "Tech, food & beverage, lifestyle ads",
-  "cover": null,
+  "cover": "https://i.imgur.com/L8RqhY0.jpeg?1",
+  "clips": [],
   "works": []
  },
  {
@@ -2350,6 +3255,7 @@
   "site": "https://ugcbyselena.com/portfolio",
   "focus": "Biolage, RoundLab, Coddy.tech, Gauth – apps + beauty",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2359,7 +3265,30 @@
   "site": "https://tomcugc.com/",
   "focus": "Health, fitness, tech: C4, True Classic, Harry's, Wahl",
   "cover": "https://tomcugc.com/assets/og-image.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "reel 1",
+    "author": "Tom",
+    "provider": "youtube",
+    "id": "fwS62sqkDPY",
+    "thumb": "https://i.ytimg.com/vi/fwS62sqkDPY/hqdefault.jpg"
+   },
+   {
+    "title": "reel 2",
+    "author": "Tom",
+    "provider": "youtube",
+    "id": "AzY7zRnJDfw",
+    "thumb": "https://i.ytimg.com/vi/AzY7zRnJDfw/hqdefault.jpg"
+   },
+   {
+    "title": "reel 3",
+    "author": "Tom",
+    "provider": "youtube",
+    "id": "8LYrafOOZX0",
+    "thumb": "https://i.ytimg.com/vi/8LYrafOOZX0/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "UGC",
@@ -2368,6 +3297,7 @@
   "site": "https://quethecreator.my.canva.site/ugc-que-portfolio",
   "focus": "Unboxing/demo, tech/apps, home",
   "cover": "https://quethecreator.my.canva.site/ugc-que-portfolio/8ec735a68d1d676933e6fe154e1649f4.png",
+  "clips": [],
   "works": []
  },
  {
@@ -2377,6 +3307,7 @@
   "site": "https://larissavugc.my.canva.site/",
   "focus": "Wellness, beauty, family, home; tech/app experience",
   "cover": "https://larissavugc.my.canva.site/ed88f5f74a23ebf55826a3f98bbaa99d.png",
+  "clips": [],
   "works": []
  },
  {
@@ -2386,6 +3317,7 @@
   "site": "https://ugccarty.my.canva.site/",
   "focus": "Lifestyle, home, beauty, parenthood",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2395,6 +3327,7 @@
   "site": "https://ugcwithkaytelynn.ca/",
   "focus": "Pet, lifestyle, fitness, beauty, SaaS",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2404,6 +3337,7 @@
   "site": "https://antonlagunouski.carbonmade.com/",
   "focus": "Vertical drama series, sci-fi series for Kweeks.com; Seedance/Kling/Veo + ComfyUI; ex live-action commercial director",
   "cover": "https://carbon-media.accelerator.net/0000000mR0j/fKXy4ZhUq99fo141U2jNrA;1120x630.png?auto=webp",
+  "clips": [],
   "works": []
  },
  {
@@ -2413,7 +3347,23 @@
   "site": "https://heydin.ai/",
   "focus": "AI horror/sci-fi shorts (GAUNTLET series) with Seedance, Kling, Runway",
   "cover": null,
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "TENZIN | Episode 2: The Beacon | Made with @AdobeFirefly",
+    "author": "Heydin",
+    "provider": "youtube",
+    "id": "VNxOjh_G5dE",
+    "thumb": "https://i.ytimg.com/vi/VNxOjh_G5dE/hqdefault.jpg"
+   },
+   {
+    "title": "TENZIN | Episode 1: The Invasion | Made with @AdobeFirefly",
+    "author": "Heydin",
+    "provider": "youtube",
+    "id": "dnRTO2mG11Q",
+    "thumb": "https://i.ytimg.com/vi/dnRTO2mG11Q/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2422,6 +3372,7 @@
   "site": "https://abdelabiad.com/",
   "focus": "AI spec commercials (Orange, Dacia, Glovo, McDonald's, Toyota); Higgsfield/Kling/Runway/Sora",
   "cover": "https://img.youtube.com/vi/DZ8-uarty6I/maxresdefault.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2431,6 +3382,7 @@
   "site": "https://moaz-genidy-portfolio.vercel.app/",
   "focus": "Local-business AI commercials; Kling, Veo, Seedance, Hailuo, Midjourney",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2440,7 +3392,23 @@
   "site": "https://alpius.studio/",
   "focus": "AI trailers, spec commercials (Liquid Death, Trezor, LANEIGE), creature VFX, creator ads; Higgsfield Creator Partner",
   "cover": "https://alpius.studio/og/home.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Insomniacs Guide to the Isstvan V | Narrated Warhammer Lore",
+    "author": "Fantasy Future",
+    "provider": "youtube",
+    "id": "x0rO8lN9Kik",
+    "thumb": "https://i.ytimg.com/vi/x0rO8lN9Kik/hqdefault.jpg"
+   },
+   {
+    "title": "Trench Crusade Lore Part VI | Immersive Narrated Lore",
+    "author": "Fantasy Future",
+    "provider": "youtube",
+    "id": "XW0c0gtxMAc",
+    "thumb": "https://i.ytimg.com/vi/XW0c0gtxMAc/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2449,6 +3417,7 @@
   "site": "https://adamai.myportfolio.com/about",
   "focus": "AI commercials, AI influencers, music videos; Seedance/Kling/Higgsfield + Midjourney/Suno",
   "cover": "https://cdn.myportfolio.com/72c22689-88c3-42a4-9b23-75a7e92f4a86/d9c8512c-5f79-4d89-847f-3d6d2d7d7349_rwc_0x0x1341x1173x1341.png?h=fa58faa577fadfc739731294602b07fb",
+  "clips": [],
   "works": []
  },
  {
@@ -2458,6 +3427,7 @@
   "site": "https://josepgutierrez.com/ai-filmmaker-josep-gutierrez/",
   "focus": "Cinematic AI commercials and spec films (e.g. R5 GT Turbo)",
   "cover": "https://josepgutierrez.com/wp-content/uploads/2019/07/seat_attitude_lifestyle_filmmaker_barcelona.png",
+  "clips": [],
   "works": [
    {
     "title": "The Path Unfolds by Bluefiremark Delirio AI",
@@ -2489,6 +3459,7 @@
   "site": "https://stasmareev.com/",
   "focus": "Vertical AI cinema series, music-driven pieces",
   "cover": "https://stasmareev.com/og.png",
+  "clips": [],
   "works": [
    {
     "title": "OVERSTAKE — PROMO 01 | AI Film Project",
@@ -2506,6 +3477,7 @@
   "site": "https://www.ianwilmoth.tv/",
   "focus": "AI reel + narrative shorts + advertising experiments",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Ian Wilmoth 2026 AI reel volume 4",
@@ -2522,7 +3494,8 @@
   "loc": "Not stated",
   "site": "https://talihuldai.com/",
   "focus": "Stylized AI short films + brand AI films",
-  "cover": null,
+  "cover": "https://img.youtube.com/vi/0B_q9m8qjsg/maxresdefault.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2531,8 +3504,31 @@
   "loc": "Bangkok / Los Angeles",
   "site": "https://animgeek.com/",
   "focus": "AI microdramas, commercials, comedy; character consistency workflow",
-  "cover": null,
-  "works": []
+  "cover": "https://img.youtube.com/vi/PX9jn-azyVY/maxresdefault.jpg",
+  "clips": [],
+  "works": [
+   {
+    "title": "Johnny Kim - Extended Reel: Celestial Order of Saints + Engineering",
+    "author": "Johnny Kim",
+    "provider": "vimeo",
+    "id": "1236233680",
+    "thumb": "https://i.vimeocdn.com/video/2212697508-5261d509ae4518b1ab4cd389ff25d22121d907b9c58c953c98450b2d19fae9de-d_295x166?region=us"
+   },
+   {
+    "title": "Mocap to 3D to AI Rendering test",
+    "author": "Johnny Kim",
+    "provider": "vimeo",
+    "id": "1193742933",
+    "thumb": "https://i.vimeocdn.com/video/2159289384-f7405c35eb6c9d7a762a1dfefbb7491c30d1f602dbe07f5bd170fd458901853a-d_295x166?region=us"
+   },
+   {
+    "title": "3D Animation Maya Greybox --> AI Rendering example",
+    "author": "Johnny Kim",
+    "provider": "vimeo",
+    "id": "1193750403",
+    "thumb": "https://i.vimeocdn.com/video/2159298799-d784897ff2299873bc5d4c32917b3eb84aaef29072abd27de114428f7485d326-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2541,6 +3537,7 @@
   "site": "https://jayprints.studio/",
   "focus": "AI films, AI influencer ads; big social reach",
   "cover": "https://jayprints.studio/logos/_assets/neela-poster.jpg",
+  "clips": [],
   "works": [
    {
     "title": "NEELA | AI Short Film - Kali, Butterflies & Survivor Transformation | JAYPRINTS",
@@ -2558,7 +3555,23 @@
   "site": "https://www.mkhamra.com/",
   "focus": "Cinematic title openers, AI-assisted films",
   "cover": "https://static.wixstatic.com/media/32eec8_59b2ad6b0ae54e8f8a849c6130ec6f08~mv2.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "SWAY | تمايل — Original Guitar Instrumental • Living Painting of Amman",
+    "author": "MKhamra",
+    "provider": "youtube",
+    "id": "Aa-tiTHq06g",
+    "thumb": "https://i.ytimg.com/vi/Aa-tiTHq06g/hqdefault.jpg"
+   },
+   {
+    "title": "NAFAS | نَفَس — An Audiovisual Poem",
+    "author": "MKhamra",
+    "provider": "youtube",
+    "id": "jjlRmRJccPY",
+    "thumb": "https://i.ytimg.com/vi/jjlRmRJccPY/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2567,6 +3580,7 @@
   "site": "https://bozzxyz.vercel.app/",
   "focus": "Realistic/cinematic AI video with Seedance; music video + campaigns",
   "cover": "https://bozzxyz.vercel.app/avatar-art.svg",
+  "clips": [],
   "works": []
  },
  {
@@ -2576,7 +3590,30 @@
   "site": "https://portfolio-andreeva.tiiny.site/",
   "focus": "AI music videos (Suno+Kling), kids' educational cartoons, creepy/sleep channels",
   "cover": "https://tiiny.host/assets/logo-purple-bg.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Испанский для детей: ФРАЗЫ ДЛЯ ШКОЛЫ 🎒Испанский для начинающих 🙋",
+    "author": "Испанский и английский для детей: песни, мультики",
+    "provider": "youtube",
+    "id": "faNpeU0J88E",
+    "thumb": "https://i.ytimg.com/vi/faNpeU0J88E/hqdefault.jpg"
+   },
+   {
+    "title": "Испанский для детей 🛁 Песенка про ВАННУЮ — малыш запомнит за 5 минут! | Baño",
+    "author": "Испанский и английский для детей: песни, мультики",
+    "provider": "youtube",
+    "id": "O2bGIN2hxgw",
+    "thumb": "https://i.ytimg.com/vi/O2bGIN2hxgw/hqdefault.jpg"
+   },
+   {
+    "title": "1 Hour Deep Focus Music for Coding 🌧️ Rainy Midnight Glitch Ambient for Programming",
+    "author": "Deep Sleep Space | Asmr Therapy ",
+    "provider": "youtube",
+    "id": "0axy9IshSfo",
+    "thumb": "https://i.ytimg.com/vi/0axy9IshSfo/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2584,7 +3621,8 @@
   "loc": "Hungary (site in EN/HU)",
   "site": "https://petobalint.com/",
   "focus": "Cinematic AI stories; Midjourney + Kling + 3D",
-  "cover": null,
+  "cover": "https://img.youtube.com/vi/GCrwD6IygHA/maxresdefault.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2594,6 +3632,7 @@
   "site": "https://pramodrajpurohit.com/",
   "focus": "Generative AI films/ads",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Hanuman Drama",
@@ -2625,6 +3664,7 @@
   "site": "https://ofrimargalit.com/",
   "focus": "Mix of live-action cinematography and gen-AI films",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "PerfectMan - AI Short Film",
@@ -2656,6 +3696,7 @@
   "site": "https://www.9cons.studio/",
   "focus": "Character-consistent AI shorts, motion, music videos, commercials",
   "cover": "https://www.9cons.studio/og.png",
+  "clips": [],
   "works": []
  },
  {
@@ -2665,6 +3706,7 @@
   "site": "https://bogdanakovalenko.tech/",
   "focus": "AI commercials + music videos (Midjourney, Kling)",
   "cover": "https://bogdanakovalenko.tech/__l5e/assets-v1/0be3dbc0-5402-4145-9ca9-179501af0211/poster_7.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2674,6 +3716,7 @@
   "site": "https://loriendean.com/",
   "focus": "AI ads (iPhone vs AI G-Wagon, direct response), films, music videos",
   "cover": "https://loriendean.com/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2683,6 +3726,7 @@
   "site": "https://pranavarya.com/",
   "focus": "Events/brand films + AI UGC and brand campaigns",
   "cover": "https://pranavarya.com/pranavarya.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2692,6 +3736,7 @@
   "site": "https://www.maddiehong.com/",
   "focus": "Runway AIFF 2025 finalist ('Emergence')",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2701,7 +3746,16 @@
   "site": "https://dakshdhawan.com/",
   "focus": "Commercial films without a shoot; YouTube @iamdakshdhawan",
   "cover": "https://dakshdhawan.com/og/home.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Gulf Oil India | Women’s Day Film",
+    "author": "Daksh Dhawan",
+    "provider": "youtube",
+    "id": "o-oOEjTg8fA",
+    "thumb": "https://i.ytimg.com/vi/o-oOEjTg8fA/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2710,6 +3764,7 @@
   "site": "https://daiyadai.com/",
   "focus": "Surreal brand films (e.g. 'Dreamride'), animated shorts",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2719,6 +3774,7 @@
   "site": "https://www.aryakarimi.com/",
   "focus": "Short films + brand cinema reel",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -2728,6 +3784,7 @@
   "site": "https://vimeo.com/nataliabut",
   "focus": "Cinematic shorts, brand films, ads, music videos, trailers",
   "cover": "https://i.vimeocdn.com/portrait/129063334_360x360?subrect=0%2C0%2C2160%2C2160&r=cover&sig=fbfda87f50ef49dfb4130e0f18f7d99a46ae625fc9e4d5473676067b77edbec4&v=1&region=us",
+  "clips": [],
   "works": [
    {
     "title": "Commercial | THE CRIMSON SHIFT",
@@ -2759,6 +3816,7 @@
   "site": "https://johannramos.art/work/3d-world-god-save-the-moon/",
   "focus": "AI music videos (3D World 'God Save de Moon'), art direction",
   "cover": "https://johannramos.art/og/work-3d-world-god-save-the-moon.jpg",
+  "clips": [],
   "works": [
    {
     "title": "3D World — God Save de Moon (Director’s Cut)",
@@ -2776,6 +3834,7 @@
   "site": "https://www.serrinehkhachatourians.com/work/musicvideo-xre2b-j6b7a-rrw2m",
   "focus": "Immersive AI music video work",
   "cover": "http://static1.squarespace.com/static/650278341341057472e12331/6502784a208c4327ba2a4ac1/66720472fe3a90744d4480ee/1718749045759/DSC08159++%282%29.jpg?format=1500w",
+  "clips": [],
   "works": []
  },
  {
@@ -2785,6 +3844,7 @@
   "site": "https://thebookofjax.com/",
   "focus": "AI world-building, motion design background",
   "cover": "https://thebookofjax.com/logo_alpha.png",
+  "clips": [],
   "works": [
    {
     "title": "Demo IA 2026",
@@ -2802,6 +3862,7 @@
   "site": "https://www.nickpaskhover.com/",
   "focus": "AI brand/commercial films + press features",
   "cover": "https://www.nickpaskhover.com/social-preview.png",
+  "clips": [],
   "works": [
    {
     "title": "Carbon & Hyde Fall 2024",
@@ -2833,6 +3894,7 @@
   "site": "https://www.johanhesselgren.com/systems",
   "focus": "AI filmmaking experiments + motion work",
   "cover": "https://www.johanhesselgren.com/assets/systems/share-airborne-1200x630.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2842,7 +3904,23 @@
   "site": "https://allent.framer.ai/",
   "focus": "AI films + tutorials; creative director at Tentacular Entertainment",
   "cover": "https://framerusercontent.com/assets/KlSm2afkXnWNxEyRy0dpP01xHWw.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Love Algorithm | Romantic Comedy | Date Scene",
+    "author": "Allen Artificial",
+    "provider": "youtube",
+    "id": "NMwy-k6T0H0",
+    "thumb": "https://i.ytimg.com/vi/NMwy-k6T0H0/hqdefault.jpg"
+   },
+   {
+    "title": "Love Algorithm | AI Animated Trailer",
+    "author": "Allen Artificial",
+    "provider": "youtube",
+    "id": "UICB_eZ0xpU",
+    "thumb": "https://i.ytimg.com/vi/UICB_eZ0xpU/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2851,6 +3929,7 @@
   "site": "https://nibph.com/",
   "focus": "Higgsfield/DaVinci campaigns; 100+ visual styles",
   "cover": "https://nibph.com/og-image.png",
+  "clips": [],
   "works": [
    {
     "title": "Día del padre - Tecate (director’s cut)",
@@ -2882,6 +3961,7 @@
   "site": "https://holdenboyles.com",
   "focus": "Runway Gen:48 Aleph Grand Prix winner",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "A Soft and Gentle Humming",
@@ -2913,7 +3993,30 @@
   "site": "https://www.theverenapuhm.com/",
   "focus": "Project Odyssey 3rd place (ANPU); TV commercial background",
   "cover": "http://static1.squarespace.com/static/66b17be19866e34ed01bd115/t/66b3c45e78ca4c455c29b7d6/1723057246932/vspire_a_beautiful_edgy_amazing_logo_of_a_V_for_a_gen_ai_direct_2a0921d7-349d-494a-8c11-16767e4b21c0_white.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "The mind-blowing, creative work in Project Odyssey, Title Sponsored by Viggle",
+    "author": "Viggle AI ",
+    "provider": "youtube",
+    "id": "JsUnEUzXMwE",
+    "thumb": "https://i.ytimg.com/vi/JsUnEUzXMwE/hqdefault.jpg"
+   },
+   {
+    "title": "9 AI Horror Films You NEED to watch!",
+    "author": "Curious Refuge",
+    "provider": "youtube",
+    "id": "DT4WDyjRWLM",
+    "thumb": "https://i.ytimg.com/vi/DT4WDyjRWLM/hqdefault.jpg"
+   },
+   {
+    "title": "G-PIGS",
+    "author": "Verena Puhm",
+    "provider": "youtube",
+    "id": "fRzzwC8gPGI",
+    "thumb": "https://i.ytimg.com/vi/fRzzwC8gPGI/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -2922,6 +4025,7 @@
   "site": "https://mejadhavr.com",
   "focus": "Cinematic editing + AI video",
   "cover": "https://mejadhavr.com/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -2931,6 +4035,7 @@
   "site": "https://genmagnetic.com/",
   "focus": "Cinematic AI visuals; YouTube @GenMagnetic",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "GenMagnetic Dream On Reel 2025",
@@ -2948,6 +4053,7 @@
   "site": "https://nikhilshambharkar.com/",
   "focus": "AI horror pilot 'Vashikaran' + 7 AI Hindi horror shorts; micro-drama expertise",
   "cover": "https://nikhilshambharkar.com/og-image.png",
+  "clips": [],
   "works": [
    {
     "title": "Arey Colony Ka Bhutiya Shortcut | Kya apne bhi aaisi koi kahani sunni hai? | Viral #iah #horrorstory",
@@ -2978,7 +4084,8 @@
   "loc": "Not stated",
   "site": "https://sreeverse.framer.website/",
   "focus": "Cinematic AI shorts with Midjourney + Kling",
-  "cover": null,
+  "cover": "https://framerusercontent.com/images/IL2h1lKDsqTvOcO4hPVDsqVTtQ.png?scale-down-to=512&width=1807&height=1011",
+  "clips": [],
   "works": []
  },
  {
@@ -2988,6 +4095,7 @@
   "site": "https://www.stage32.com/profile/jcl-aragon",
   "focus": "AI filmmaking pioneer in Mexico; AI films and campaigns",
   "cover": "https://stage32.sfo2.cdn.digitaloceanspaces.com/ui/share/stage32-default-1200x630-v4.png",
+  "clips": [],
   "works": []
  },
  {
@@ -2997,7 +4105,23 @@
   "site": "https://diffuse.runway.com/alsgh7893",
   "focus": "Seedance 2.5 AI shorts, one-world-per-bowl concept",
   "cover": "https://diffuse.runway.com/alsgh7893/opengraph-image?9a2be7c4d1bd8ee6",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "EP7: Closer | Breath: Original Series | #TheBowl",
+    "author": "Bowl Studio",
+    "provider": "youtube",
+    "id": "0gyHepLKXvI",
+    "thumb": "https://i.ytimg.com/vi/0gyHepLKXvI/hqdefault.jpg"
+   },
+   {
+    "title": "EP6: The Returnee | Breath: Original Series | #TheBowl",
+    "author": "Bowl Studio",
+    "provider": "youtube",
+    "id": "WZo5hVbOCig",
+    "thumb": "https://i.ytimg.com/vi/WZo5hVbOCig/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "AI film",
@@ -3006,6 +4130,7 @@
   "site": "https://piperapfelbeck.lovable.app/",
   "focus": "AI fashion/fragrance editorial shorts, AI UGC",
   "cover": "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8657a531-fbaa-4326-9f97-0b38e26b4ce4/id-preview-228f241b--a80f5d92-2aab-443b-8814-c8041f09a724.lovable.app-1784322615007.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3015,6 +4140,7 @@
   "site": "https://reactivvibeai.com/portfolio",
   "focus": "Full AI music videos with Suno + Midjourney",
   "cover": "https://reactivvibeai.com/og-image.png",
+  "clips": [],
   "works": [
    {
     "title": "would you go climbing with your dad?",
@@ -3046,6 +4172,7 @@
   "site": "https://patrickeleazar.com/ai",
   "focus": "LA AI Motion Picture Awards selection",
   "cover": "https://cdn.myportfolio.com/80da2986-24ff-4305-92f1-94d7049fbe7c/d4a62002-7692-4fc2-ba1a-61253b767fa2_rwc_0x209x1920x1501x1920.jpg?h=e1f735c1f951ae60f4afe6e4e3910b86",
+  "clips": [],
   "works": [
    {
     "title": "BABY | Easy money. Evil night.",
@@ -3077,6 +4204,7 @@
   "site": "https://heizzai.com/",
   "focus": "AI narrative shorts (Veo/Kling/Seedance)",
   "cover": "https://heizzai.com/uploads/red-white-minimalist-podcast-youtube-thumbnail.png",
+  "clips": [],
   "works": [
    {
     "title": "GPT IMAGE 2 CHARACTER SHEETS - THE SECRET TO AI CHARACTER SHEETS",
@@ -3108,6 +4236,7 @@
   "site": "https://leopaschal.netlify.app/",
   "focus": "AI movies and ads",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -3117,6 +4246,7 @@
   "site": "https://angpaomartin.framer.ai/",
   "focus": "AI films + motion design + editing",
   "cover": "https://framerusercontent.com/assets/xzsSV6nYRDGT4imPJGsCrV6g.png",
+  "clips": [],
   "works": [
    {
     "title": "MANILA SNATCH | AI Film | Angpao Martin",
@@ -3148,6 +4278,7 @@
   "site": "https://lennardsmith.com/",
   "focus": "Original AI narrative shorts, e.g. fantasy action 'Bone Throne' (Seedance 2.0, Kling 3.0, Nano Banana Pro); publishes full process breakdowns",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "How I Made a Short Film with Seedance 2.0 & Kling 3.0 (FULL BREAKDOWN)",
@@ -3179,7 +4310,30 @@
   "site": "https://designbyevore.com/ai-filmmaking",
   "focus": "Cinematic narrative shorts + brand/music visuals",
   "cover": "https://designbyevore.com/assets/og.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "CLIAR BAIS | He Calls. They Answer. | Scottish Folk-Horror Pilot Trailer (4K)",
+    "author": "Design by Évoré | AI Visual Director",
+    "provider": "youtube",
+    "id": "qE7aQvnkSpE",
+    "thumb": "https://i.ytimg.com/vi/qE7aQvnkSpE/hqdefault.jpg"
+   },
+   {
+    "title": "AI Luxury Commercial | Cinematic Brand Film Without the Hollywood Budget — ESCAPE Ep. 1",
+    "author": "Design by Évoré | AI Visual Director",
+    "provider": "youtube",
+    "id": "ySBfu1b5TSM",
+    "thumb": "https://i.ytimg.com/vi/ySBfu1b5TSM/hqdefault.jpg"
+   },
+   {
+    "title": "They're in the Woods | AI Horror Movie",
+    "author": "Design by Évoré | AI Visual Director",
+    "provider": "youtube",
+    "id": "ENrQ2MweDvI",
+    "thumb": "https://i.ytimg.com/vi/ENrQ2MweDvI/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3188,6 +4342,7 @@
   "site": "https://www.alandeanfilm.com/",
   "focus": "Google, Airbnb, Ford, HP, Uber spots; 30+ Vimeo embeds",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Taylor Stitch - 10 Years",
@@ -3219,6 +4374,7 @@
   "site": "https://www.op1creative.com/",
   "focus": "CAT, Knapheide, Red Bull spots; 1,000+ assets",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -3227,8 +4383,31 @@
   "loc": "Remote",
   "site": "https://www.hassancreatives.com/",
   "focus": "DTC direct-response ads & VSLs",
-  "cover": null,
-  "works": []
+  "cover": "https://i.ytimg.com/vi/xi5DPTzDFOc/maxresdefault.jpg",
+  "clips": [],
+  "works": [
+   {
+    "title": "My Vsl",
+    "author": "Hassan Murad",
+    "provider": "youtube",
+    "id": "xi5DPTzDFOc",
+    "thumb": "https://i.ytimg.com/vi/xi5DPTzDFOc/hqdefault.jpg"
+   },
+   {
+    "title": "Medicla VSL",
+    "author": "Hassan Murad",
+    "provider": "youtube",
+    "id": "HZkmryBQkoo",
+    "thumb": "https://i.ytimg.com/vi/HZkmryBQkoo/hqdefault.jpg"
+   },
+   {
+    "title": "VSL health",
+    "author": "Hassan Murad",
+    "provider": "youtube",
+    "id": "Fhfcp-h3DIA",
+    "thumb": "https://i.ytimg.com/vi/Fhfcp-h3DIA/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3237,6 +4416,7 @@
   "site": "https://nicholassantana.com/",
   "focus": "DTC ads, AI-assisted creative, VSLs; 12 clips",
   "cover": null,
+  "clips": [],
   "works": []
  },
  {
@@ -3245,7 +4425,8 @@
   "loc": "Brazil (.com.br site)",
   "site": "https://www.matheusluque.com.br/",
   "focus": "UGC/VSL ads with reported ROAS",
-  "cover": null,
+  "cover": "https://atheus-videos-cdn.b-cdn.net/qwdqwd21.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3254,8 +4435,24 @@
   "loc": "Not stated",
   "site": "https://josuanvaldovinos.com/",
   "focus": "DTC ad creative; YouTube channel",
-  "cover": null,
-  "works": []
+  "cover": "https://josuanvaldovinos.com/wp-content/uploads/2026/09/JOSUAN-VALDOVINOS-HERO-2115X744.jpg",
+  "clips": [],
+  "works": [
+   {
+    "title": "JOSUAN VALDOVINOS - DEMO REEL PRODUCTOR AUDIOVISUAL 2024",
+    "author": "Josuan Valdovinos",
+    "provider": "youtube",
+    "id": "LrFEutTF-dk",
+    "thumb": "https://i.ytimg.com/vi/LrFEutTF-dk/hqdefault.jpg"
+   },
+   {
+    "title": "Josuan Axel Valdovinos Lemus - Productor Audiovisual Demo Reel 2023",
+    "author": "Josuan Valdovinos",
+    "provider": "youtube",
+    "id": "BSFcZLDv5Tg",
+    "thumb": "https://i.ytimg.com/vi/BSFcZLDv5Tg/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3263,8 +4460,24 @@
   "loc": "US (not stated)",
   "site": "https://imnickmerola.com/",
   "focus": "Commercial, gaming & horror shorts; YouTube channel",
-  "cover": null,
-  "works": []
+  "cover": "https://img.youtube.com/vi/bgGLPwrgJOI/maxresdefault.jpg",
+  "clips": [],
+  "works": [
+   {
+    "title": "Silent Hill Magic The Gathering Deck",
+    "author": "Nick Merola",
+    "provider": "youtube",
+    "id": "6kx30CbG_KI",
+    "thumb": "https://i.ytimg.com/vi/6kx30CbG_KI/hqdefault.jpg"
+   },
+   {
+    "title": "Cotton Eye Joe | Official Trailer  - Kickstarter",
+    "author": "Nick Merola",
+    "provider": "youtube",
+    "id": "h3u0iXPJxr8",
+    "thumb": "https://i.ytimg.com/vi/h3u0iXPJxr8/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3273,6 +4486,7 @@
   "site": "https://jovanmarinovic.com/",
   "focus": "Meta/TikTok UGC ads with CTR/CPA results",
   "cover": "https://i.ytimg.com/vi/-OyXUcVQuhA/maxresdefault.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Coaching Founder Talking-Head Ad #1 | Meta",
@@ -3304,6 +4518,7 @@
   "site": "https://www.yatharth114.com/",
   "focus": "AI UGC ads & DR video; ~90-video portfolio",
   "cover": "https://www.yatharth114.com/images/og-yatharth-sharma.jpg",
+  "clips": [],
   "works": [
    {
     "title": "Yatharth Sharma: Performance AI Video Editor & AI UGC Ads Specialist | Introduction",
@@ -3321,6 +4536,7 @@
   "site": "https://dalywork.com/",
   "focus": "UGC/VSL/AI ads",
   "cover": "https://dalywork.com/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -3330,6 +4546,7 @@
   "site": "https://jamesoseman.com/",
   "focus": "950+ paid-social/UGC/VSL assets",
   "cover": "https://cdn.prod.website-files.com/694a6a2d82319bfdb74d5fbe/694a6a2f82319bfdb74d603d_06a9e7b575b12542cd0a4c98d1c3c766_Open%20Graph%20Preview.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3339,6 +4556,7 @@
   "site": "https://www.garrettporter.co/",
   "focus": "Brand films & campaigns",
   "cover": "http://static1.squarespace.com/static/6ab1347c12d3623608226fc8/t/6ab16774d5e67563c3b31fd9/1790011252825/share-e9-street.jpg?format=1500w",
+  "clips": [],
   "works": [
    {
     "title": "Lean_2",
@@ -3356,6 +4574,7 @@
   "site": "https://vimeo.com/camrinpetramale",
   "focus": "Kraft, Google, Nike, Mondelez",
   "cover": "https://i.vimeocdn.com/portrait/12685058_360x360?sig=538c300c877328dc6dac0fc967762a89472920077342a6edf76510f2c2a26e86&v=1&region=us",
+  "clips": [],
   "works": []
  },
  {
@@ -3365,6 +4584,7 @@
   "site": "https://lilozstudio.com/",
   "focus": "2x Emmy, 3x Telly; commercials & branded content",
   "cover": "https://framerusercontent.com/assets/vs2r3YfISr8PMOWAfUA6GnfodIo.png",
+  "clips": [],
   "works": [
    {
     "title": "The Border Baby Official Trailer",
@@ -3381,7 +4601,8 @@
   "loc": "US (not stated)",
   "site": "https://www.ryansaywitz.com/filmmaking",
   "focus": "Nike, Brooks, Red Bull spec ads",
-  "cover": null,
+  "cover": "https://images.squarespace-cdn.com/content/v1/667c89b71a116358a05d7f43/e7571927-4700-4d8f-8b50-258670c6b2fe/B2B57416-29F2-4D50-BB29-67737B3DE3DA_1_105_c.jpeg",
+  "clips": [],
   "works": []
  },
  {
@@ -3391,6 +4612,7 @@
   "site": "https://www.tilkittler.com/",
   "focus": "GOT BAG & automotive spec ads; YouTube",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Die Inneren Werte - 2026",
@@ -3422,7 +4644,30 @@
   "site": "https://www.lancecashwell.com/",
   "focus": "Corvette spec ad",
   "cover": "https://framerusercontent.com/images/OK2xjKrcjPkCvjFf105PC66ihw.png",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Nike x Yuto AF1",
+    "author": "Lance Cashwell",
+    "provider": "youtube",
+    "id": "s_g2nIHOkiE",
+    "thumb": "https://i.ytimg.com/vi/s_g2nIHOkiE/hqdefault.jpg"
+   },
+   {
+    "title": "NHLC | Holiday Relief",
+    "author": "Lance Cashwell",
+    "provider": "youtube",
+    "id": "vShRVpVj6Vg",
+    "thumb": "https://i.ytimg.com/vi/vShRVpVj6Vg/hqdefault.jpg"
+   },
+   {
+    "title": "Frontpoint Wireless Doorbell",
+    "author": "Lance Cashwell",
+    "provider": "youtube",
+    "id": "QfWQ464oGnU",
+    "thumb": "https://i.ytimg.com/vi/QfWQ464oGnU/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3431,6 +4676,7 @@
   "site": "https://www.richardprendergast.com/",
   "focus": "Viral WD-40 spec ad; 10+ Vimeo pieces",
   "cover": "https://static.fabrik.io/12jh/24981e856fb6b48.png?lossless=1&w=1280&h=1280&fit=max&s=a45f4f595d5c4f3b01df52f766f5622e",
+  "clips": [],
   "works": [
    {
     "title": "SYLVIA | Omeleto",
@@ -3462,7 +4708,30 @@
   "site": "https://www.danielvanly.com/",
   "focus": "Arsenal spec ad; F&B, travel, lifestyle",
   "cover": "http://static1.squarespace.com/static/672fbe59fe2cd620b9d867ac/t/696e8247d20c41685344310f/1768849991384/Untitled+design+%2812%29.png?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Visit Dubai (£30 Challenge)",
+    "author": "Daniel Van Ly",
+    "provider": "vimeo",
+    "id": "1159753409",
+    "thumb": "https://i.vimeocdn.com/video/2116936837-9f8251311c1f90495ad72fcb38081cf02a392a612221f58eb77387603f4b776d-d_200x150?region=us"
+   },
+   {
+    "title": "Colombia Tourism Board TV Commercial - Por qué los colombianos respondemos con orgullo：#SoyDeColombia?",
+    "author": "Daniel Van Ly",
+    "provider": "vimeo",
+    "id": "1225255095",
+    "thumb": "https://i.vimeocdn.com/video/2198926692-6633d8b54d40607422ceddd74969befaca6d1c1d5004a7d689b50351da2f373e-d_295x166?region=us"
+   },
+   {
+    "title": "Step into Dubai’s Interactive Art",
+    "author": "Visit Dubai",
+    "provider": "youtube",
+    "id": "yL4s5-ZsPiY",
+    "thumb": "https://i.ytimg.com/vi/yL4s5-ZsPiY/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3471,6 +4740,7 @@
   "site": "https://juanesogo.com/",
   "focus": "AI commercials & product films",
   "cover": "https://juanesogo.netlify.app/media/og-image.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -3480,6 +4750,7 @@
   "site": "https://grushincreative.com/",
   "focus": "AI commercials 'next to real film'",
   "cover": "https://grushincreative.com/og.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3489,7 +4760,23 @@
   "site": "https://kartikyekashyap.com/ai-commercial-director.html",
   "focus": "AI commercials, VFX & sound end-to-end",
   "cover": "https://kartikyekashyap.com/og-image.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Just Rinse and Repeat | Runway's Another Big Ad Contest",
+    "author": "Kartikye Kashyap",
+    "provider": "youtube",
+    "id": "LZgk9qBBGcE",
+    "thumb": "https://i.ytimg.com/vi/LZgk9qBBGcE/hqdefault.jpg"
+   },
+   {
+    "title": "Eureka Waterproof Notepad | Runway's Another Big Ad Contest",
+    "author": "Kartikye Kashyap",
+    "provider": "youtube",
+    "id": "sNxA2tPabgI",
+    "thumb": "https://i.ytimg.com/vi/sNxA2tPabgI/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3498,6 +4785,7 @@
   "site": "https://www.sebhartzell.com/",
   "focus": "Social ads for Samsung, PlayStation, Amazon, Emirates",
   "cover": "https://sebhartzell.com/Images/Ident/Seb-Ident.gif",
+  "clips": [],
   "works": [
    {
     "title": "Seb Hartzell - Reel",
@@ -3514,7 +4802,8 @@
   "loc": "Kent, UK",
   "site": "https://www.stefandavismotion.com/",
   "focus": "2D/3D motion & paid-social ads (Google)",
-  "cover": null,
+  "cover": "https://images.squarespace-cdn.com/content/v1/663360b01893f068f8214c42/59ed4f8f-f5d3-4768-ae61-7c04e3ae8297/Stefan+Dvais_Showreel+2024_Thumbnail.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3524,7 +4813,30 @@
   "site": "https://www.maayanerlich.com/",
   "focus": "Google, IBM, LinkedIn, Adobe, Adidas",
   "cover": "http://static1.squarespace.com/static/576a729315d5db796d3a2caa/t/663a2eebbb846d0e2552a739/1715089131639/cove3-09.png?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Showreel 2024",
+    "author": "Maayan Erlich",
+    "provider": "vimeo",
+    "id": "246231817",
+    "thumb": "https://i.vimeocdn.com/video/1843987572-3b6510e76e41f31f4a633823f154c0f561eae3f0a12179784fc33ee83ae2a601-d_295x166?region=us"
+   },
+   {
+    "title": "Cato Networks",
+    "author": "Maayan Erlich",
+    "provider": "vimeo",
+    "id": "1013836087",
+    "thumb": "https://i.vimeocdn.com/video/1932111328-12b7263f0f0634ac1f421dca1a5ce07bea4b5fa33f89c8ab07ec8fd209d4a39a-d_295x166?region=us"
+   },
+   {
+    "title": "AI Video Generator",
+    "author": "Maayan Erlich",
+    "provider": "vimeo",
+    "id": "862053227",
+    "thumb": "https://i.vimeocdn.com/video/1720782694-1505c082cf1a300e0c334a84cd4a88244612549bbae63c807bf40e1424bed573-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3533,7 +4845,23 @@
   "site": "https://www.simonsonghurst.com/",
   "focus": "Beauty: Dove, Lancôme, L'Oréal, Pantene",
   "cover": "http://static1.squarespace.com/static/5bf07da11aef1de706d5b257/t/6aeb0f83d7cdea6e72c9b3ee/1793789827864/commissioned-social-sharing.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Dell XPS 13 – Compact, Affordable and Touchscreen!",
+    "author": "Simon Songhurst",
+    "provider": "youtube",
+    "id": "DuJmo1YUnCs",
+    "thumb": "https://i.ytimg.com/vi/DuJmo1YUnCs/hqdefault.jpg"
+   },
+   {
+    "title": "FREEWELL V2 MAGNETIC HYBRID VND + CPL FILTER SYSTEM",
+    "author": "Simon Songhurst",
+    "provider": "youtube",
+    "id": "Ex2U2Jontko",
+    "thumb": "https://i.ytimg.com/vi/Ex2U2Jontko/hqdefault.jpg"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3542,6 +4870,7 @@
   "site": "https://nikolacustomframesbrusinportfolio.framer.website/",
   "focus": "E-com paid-ad edits, UGC mashups",
   "cover": "https://framerusercontent.com/images/acmq9k7TyzoBkBInYnW6sh3Ekjg.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3550,7 +4879,8 @@
   "loc": "Remote",
   "site": "https://richardhend.com/",
   "focus": "UGC ads, VSLs, hook variations; 24 clips",
-  "cover": null,
+  "cover": "https://richardhend.com/profile.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3560,6 +4890,7 @@
   "site": "https://nirajvisuals.in/",
   "focus": "Meta ads & product videos; 13 YouTube embeds",
   "cover": "https://nirajvisuals.in/opengraph-image?59c679492f2ef4d7",
+  "clips": [],
   "works": [
    {
     "title": "Creatiene",
@@ -3591,6 +4922,7 @@
   "site": "https://www.danfrantzfilms.com/",
   "focus": "Food & beverage reel",
   "cover": "https://static.wixstatic.com/media/876375_f1f93f3d1f364f2da0d2c2a550c19e2b~mv2.gif/v1/fill/w_600,h_338,al_c/876375_f1f93f3d1f364f2da0d2c2a550c19e2b~mv2.gif",
+  "clips": [],
   "works": [
    {
     "title": "Horror Short Film \"Super Host\" | ALTER",
@@ -3622,6 +4954,7 @@
   "site": "https://www.louisjparker.com/",
   "focus": "Hospitality & brand ads",
   "cover": "http://static1.squarespace.com/static/5afc39d21137a6c7fcb48b25/t/6026e6b5c8e9d063f4f6ca65/1613162167347/static1.squarespace+copy+2.png?format=1500w",
+  "clips": [],
   "works": [
    {
     "title": "Show Reel 2020",
@@ -3646,6 +4979,7 @@
   "site": "https://www.itayshay.com/",
   "focus": "Viral AI shorts (450M+ views per search); 22 clips",
   "cover": "https://www.itayshay.com/itayshay-og.png",
+  "clips": [],
   "works": [
    {
     "title": "הפכו את הבית שלכם ליצירת אומנות 🖼️ התחדשו בטלוויזייה המעוצבת – #TheFramePro",
@@ -3677,6 +5011,7 @@
   "site": "https://brent-baer.com/",
   "focus": "Dodge, Kia, Mercedes, Toyota, Chevy",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "banner_loop_2021",
@@ -3708,6 +5043,7 @@
   "site": "https://mattglen.com/",
   "focus": "Automotive & commercial; 20+ Vimeo embeds",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Brompton x Tour de France - Allez Every Day | DOP Matt Glen",
@@ -3739,6 +5075,7 @@
   "site": "https://coopergunndavis.com/",
   "focus": "Sports/lifestyle incl. Nike",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Lil Yachty - Murda (Official Music Video)",
@@ -3756,7 +5093,30 @@
   "site": "https://www.travishanour.com/",
   "focus": "Sport commercials & docs; Vimeo",
   "cover": "https://www.travishanour.com/img/case-study-imgs/_1200x630_crop_center-center_none/TravisHanour_crop.jpg",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Storm - Grimes",
+    "author": "Travis Hanour",
+    "provider": "vimeo",
+    "id": "1207966038",
+    "thumb": "https://i.vimeocdn.com/video/2177168877-be2ff24aebaf959ed1e67fe82fb2d28d25f04d57cd0d3a013e0abbf089d97860-d_295x166?region=us"
+   },
+   {
+    "title": "Finding Fast | The TaylorMade Driver Story",
+    "author": "TaylorMade Golf",
+    "provider": "youtube",
+    "id": "YvBGmcjlG8c",
+    "thumb": "https://i.ytimg.com/vi/YvBGmcjlG8c/hqdefault.jpg"
+   },
+   {
+    "title": "TaylorMade - Finding Fast",
+    "author": "Travis Hanour",
+    "provider": "vimeo",
+    "id": "1175292547",
+    "thumb": "https://i.vimeocdn.com/video/2136100067-13599fa6d42fff3ba9c3b396ef0e17b153c8fc6e5d9777d64e6c1b0001ef43a3-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3765,6 +5125,7 @@
   "site": "https://joelbrando.com/",
   "focus": "3D/CGI campaign motion for brands",
   "cover": "https://pub-545adea3391841c896c875b02d24aa3a.r2.dev/website_assets/og-image.png",
+  "clips": [],
   "works": [
    {
     "title": "SHOWREEL 02 - Horizontal",
@@ -3788,8 +5149,17 @@
   "loc": "Ho Chi Minh City, Vietnam",
   "site": "https://manhhuynh.work/",
   "focus": "3D/CGI brand ads; Behance + TikTok",
-  "cover": null,
-  "works": []
+  "cover": "https://img.manhhuynh.work/projects/colorkey-msf/images/cover.webp",
+  "clips": [],
+  "works": [
+   {
+    "title": "[3CE] COLORBAKER COLLECTION 3D ANIMATION",
+    "author": "Đức Mạnh Huỳnh",
+    "provider": "vimeo",
+    "id": "1191827021",
+    "thumb": "https://i.vimeocdn.com/video/2156932317-16c87d2e723a0e02c655b7bfd788a203ddd7b59ebdfeae691ebadf48de9aee2c-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3798,6 +5168,7 @@
   "site": "https://www.freelance-motion-design.com/en",
   "focus": "2D/3D brand films & social ads",
   "cover": "https://www.freelance-motion-design.com/images/projects/thumbnails/dior-backstage-motion-design-paris.webp",
+  "clips": [],
   "works": []
  },
  {
@@ -3807,6 +5178,7 @@
   "site": "https://www.dylansimel.com/",
   "focus": "Commercial work; 8+ Vimeo pieces",
   "cover": "https://freight.cargo.site/w/1000/i/B3199968067142381445516019215204/screenshot-4269957455.jpg",
+  "clips": [],
   "works": [
    {
     "title": "'You Should Have Been Here' Ford x John John Florence",
@@ -3838,6 +5210,7 @@
   "site": "https://www.chrisbomberger.com/",
   "focus": "Beverage spec ads (Espresso Martini, IPA)",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Espresso Martini Spec Ad",
@@ -3869,7 +5242,30 @@
   "site": "https://www.elliegravitte.com/",
   "focus": "Commercial reel on Vimeo",
   "cover": "http://static1.squarespace.com/static/59909baef9a61edf2e371c37/t/68b1e1d4d1e84b2606ae6777/1756488148244/reel+thumb.jpg?format=1500w",
-  "works": []
+  "clips": [],
+  "works": [
+   {
+    "title": "Directing Reel 2024",
+    "author": "Ellie Gravitte",
+    "provider": "vimeo",
+    "id": "729350737",
+    "thumb": "https://i.vimeocdn.com/video/1797541871-fb1019e81ea1f5d78bce738a68013496cae19f6326181f0b9d8efd3733a28776-d_295x166?region=us"
+   },
+   {
+    "title": "Life in Bared with Mary Kate Morrissey",
+    "author": "Bared Footwear",
+    "provider": "youtube",
+    "id": "BcFX7yq9wk0",
+    "thumb": "https://i.ytimg.com/vi/BcFX7yq9wk0/hqdefault.jpg"
+   },
+   {
+    "title": "Whistle Stop (2025)",
+    "author": "Ellie Gravitte",
+    "provider": "vimeo",
+    "id": "1083561710",
+    "thumb": "https://i.vimeocdn.com/video/2014878591-7ba378d99aa5e7c3e2de914286ea24cf36cc5b028d2e690448a281ea3a0fe236-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3877,7 +5273,8 @@
   "loc": "US (not stated)",
   "site": "https://www.tjmisny.com/",
   "focus": "Commercial reel; 25+ clips",
-  "cover": null,
+  "cover": "https://tjmisny.com/media/pages/home/a15c354c6b-1741374659/intro_thumb_reel.jpg",
+  "clips": [],
   "works": []
  },
  {
@@ -3887,6 +5284,7 @@
   "site": "https://dianartwork.com/",
   "focus": "TikTok/IG/YouTube ads, startup launch videos",
   "cover": "https://dianartwork.com/images/logo.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3895,8 +5293,17 @@
   "loc": "Los Angeles, CA",
   "site": "https://adamjrichman.com/portfolio/commercial/",
   "focus": "Commercial product portfolio",
-  "cover": null,
-  "works": []
+  "cover": "https://adamjrichman.com/wp-content/uploads/2018/08/000_111-gradient.png",
+  "clips": [],
+  "works": [
+   {
+    "title": "Adam J. Richman • Reel",
+    "author": "Ready ✨",
+    "provider": "vimeo",
+    "id": "40613579",
+    "thumb": "https://i.vimeocdn.com/video/280749503-8a1274efc24bb0d013ee7a62c1169eef04ae9ee21452a08a3c3c73bb266a5c21-d_295x166?region=us"
+   }
+  ]
  },
  {
   "cat": "Ads / commercial",
@@ -3905,6 +5312,7 @@
   "site": "https://www.kismetdursun.com/",
   "focus": "AI-powered brand creative",
   "cover": "https://www.kismetdursun.com/wp-content/uploads/portfolio-social.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3913,7 +5321,8 @@
   "loc": "Liverpool, UK",
   "site": "https://www.joshince.co.uk/",
   "focus": "BAE helmet product film, brand films",
-  "cover": null,
+  "cover": "https://framerusercontent.com/images/oU3fOx57BPhAfTDrW5obX9AQOGg.png",
+  "clips": [],
   "works": []
  },
  {
@@ -3923,6 +5332,7 @@
   "site": "https://denysborodin.com/",
   "focus": "Business commercials & ads; YouTube",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Toronto That We Have Not Used To See | Emotional Cinematic",
@@ -3940,6 +5350,7 @@
   "site": "https://www.kdthecreative.com/",
   "focus": "Branded content & commercials",
   "cover": null,
+  "clips": [],
   "works": [
    {
     "title": "Cinematography Reel 2024",
@@ -3957,6 +5368,7 @@
   "site": "https://richoecreate.com/",
   "focus": "Slow-mo beverage/beauty product reels; 50+ brands",
   "cover": "https://richoecreate.com/opengraph-image?655ef550e75a7e40",
+  "clips": [],
   "works": []
  }
 ]

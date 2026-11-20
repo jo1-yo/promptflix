@@ -140,8 +140,26 @@ function vProfile(s){
   s.append(h("div", { class: "page-title" }, h("h2", null, "Profile"), h("a", { class: "link", href: "#/creator-preview" }, "See it as clients do →")),
     h("div", { class: "stack", style: { gap: "40px" } },
       h("div", null, h("span", { class: "eyebrow" }, "Price record"), h("div", { class: "stats", style: { marginTop: "14px" } }, h("div", { class: "stat" }, h("b", null, c.ask ? money(c.ask) : "Not set"), h("span", null, "my ask")), h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "shown range")), h("div", { class: "stat" }, h("b", null, c.closes.length), h("span", null, "closed")), h("div", { class: "stat" }, h("b", null, c.quotes.length), h("span", null, "open quotes")), h("div", { class: "stat" }, h("b", null, DB.breaksLeft(c.id)), h("span", null, "breaks left"))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Every order that reaches contract adds its price here, closed or not. Clients see the range, never the list.")),
-      h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Add or remove films from the application flow: ", h("button", { class: "link", onclick: () => { W = { step: 2 }; c.live = false; DB.save(); go("#/apply"); } }, "edit work"), ". Your profile is hidden while you edit.")),
+      h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), filmPicker(c), h("p", { class: "hint", style: { marginTop: "10px" } }, "Upload a file from the application flow: ", h("button", { class: "link", onclick: () => { W = { step: 2 }; c.live = false; DB.save(); go("#/apply"); } }, "edit work"), ". Your profile is hidden while you edit.")),
       f));
+}
+/* ---------- choose which films clients see ---------- */
+// Shown films live in c.works (first = card cover); hidden ones wait in c.shelf, so every other view keeps reading c.works.
+function filmLink(url){ const y = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url), v = /vimeo\.com\/(?:video\/)?(\d{6,11})/.exec(url);
+  return y ? { yt: y[1], cover: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg`, lb: true, link: "https://www.youtube.com/watch?v=" + y[1], on: "YouTube" } : v ? { vm: v[1], cover: "https://vumbnail.com/" + v[1] + ".jpg", link: "https://vimeo.com/" + v[1], on: "Vimeo" } : null; }
+function filmPicker(c){
+  c.shelf ||= [];
+  const save = () => { DB.save(); render(); };
+  const row = (w, shown, i) => h("div", { class: "workrow pick" }, h("span", { class: "thumb" }, cover(w)), h("div", null, w[0], h("small", null, shown ? (i === 0 ? "Card cover · shown" : "Shown") : "Hidden")),
+    h("span", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } }, shown && i > 0 ? h("button", { class: "btn quiet small", onclick: () => { c.works.unshift(c.works.splice(i, 1)[0]); save(); } }, "Make cover") : null,
+    h("button", { class: "btn quiet small", onclick: () => { if (shown) c.shelf.push(c.works.splice(i, 1)[0]); else c.works.push(c.shelf.splice(i, 1)[0]); save(); } }, shown ? "Hide" : "Show")));
+  const add = h("form", { class: "row", style: { gap: "8px", marginTop: "12px", flexWrap: "wrap" }, onsubmit: e => { e.preventDefault(); const fd = new FormData(add), m = filmLink(fd.get("url") || "");
+      if (!m) return toast("Paste a YouTube or Vimeo link.");
+      if ([...c.works, ...c.shelf].some(w => w[5] && (w[5].yt && w[5].yt === m.yt || w[5].vm && w[5].vm === m.vm))) return toast("That film is already on your list.");
+      m.by = c.name; c.works.push([fd.get("title").trim() || "Untitled", c.cats[0], c.styles[0], null, null, m]); save(); } },
+    h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "YouTube or Vimeo link", style: { flex: "2 1 220px" } }), h("input", { class: "i", name: "title", maxlength: "60", placeholder: "Title", style: { flex: "1 1 140px" } }), h("button", { class: "btn", type: "submit" }, "Add film"));
+  return h("div", { style: { marginTop: "22px" } }, h("span", { class: "eyebrow" }, "Choose your films"), h("p", { class: "hint", style: { margin: "8px 0 12px" } }, "Pick what clients see. The first film is your card cover."),
+    h("div", { class: "worklist" }, ...c.works.map((w, i) => row(w, true, i)), ...c.shelf.map((w, i) => row(w, false, i))), add);
 }
 /* ---------- wallet ---------- */
 const PAYOUT_COUNTRIES = [["US", "United States"], ["CA", "Canada"], ["GB", "United Kingdom"], ["IE", "Ireland"], ["DE", "Germany"], ["FR", "France"], ["ES", "Spain"], ["IT", "Italy"], ["NL", "Netherlands"], ["SE", "Sweden"], ["PL", "Poland"], ["AU", "Australia"], ["NZ", "New Zealand"], ["JP", "Japan"], ["SG", "Singapore"], ["HK", "Hong Kong"], ["KR", "South Korea"], ["IN", "India"], ["AE", "UAE"], ["BR", "Brazil"], ["MX", "Mexico"]];

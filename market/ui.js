@@ -70,7 +70,25 @@ const footer = () => h("footer", { class: "wrap" }, h("span", null, "Promptflix 
 const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
-function tile(w, c, onclick){ return h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))); }
+/* Hover preview: while the pointer rests on a card, its film plays muted in place of the cover. Mouse only; touch keeps tap-to-open. */
+const PEEK = { el: null, t: 0 };
+function peekStop(){ clearTimeout(PEEK.t); if (PEEK.el){ PEEK.el.remove(); PEEK.el = null; } }
+function hoverPlay(card, w){
+  const m = w && w[5]; if (!m || !(m.yt || m.vm || m.mp4) || !matchMedia("(hover: hover)").matches) return card;
+  card.addEventListener("mouseenter", () => { peekStop(); PEEK.t = setTimeout(() => {
+    const r = card.getBoundingClientRect(), fw = Math.max(r.width, r.height * 16 / 9), fh = fw * 9 / 16;
+    const frame = m.mp4 ? h("video", { src: m.mp4, muted: true, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" })
+      : h("iframe", { src: m.yt ? `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${m.yt}&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`
+          : `https://player.vimeo.com/video/${m.vm}?autoplay=1&muted=1&loop=1&controls=0&title=0&byline=0&portrait=0`, allow: "autoplay; encrypted-media", referrerpolicy: "strict-origin-when-cross-origin", tabindex: "-1", "aria-hidden": "true", title: "" });
+    if (m.mp4) frame.muted = true; else Object.assign(frame.style, { width: fw + "px", height: fh + "px" });
+    PEEK.el = h("span", { class: "peek" + (m.mp4 ? " v" : "") }, frame); const face = card.querySelector(".art"); if (face) face.after(PEEK.el); else card.prepend(PEEK.el);
+    setTimeout(() => PEEK.el && PEEK.el.classList.add("on"), m.mp4 ? 120 : 700);   // let the player paint before fading it in over the cover
+  }, 220); });
+  card.addEventListener("mouseleave", peekStop);
+  return card;
+}
+function tile(w, c, onclick){ return hoverPlay(tileEl(w, c, onclick), w); }
+function tileEl(w, c, onclick){ return h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))); }
 async function playWork(w, c, cta){
   const m = w[5] || {};
   let player;
