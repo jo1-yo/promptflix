@@ -11,7 +11,7 @@ const hireCTA = c => h("button", { class: "btn primary", onclick: () => { closeS
 
 function header(){
   const u = me(); const n = pendingCount(u && u.id);
-  const links = [["#/", "Home"], ["#/creators", "Creators"], ["#/work", "Work"]]; if (u) links.push(["#/chats", "Messages", n]);
+  const links = [["#/", "Home"], ["#/work", "Work"]]; if (u) links.push(["#/chats", "Messages", n]);
   const right = u ? [h("button", { class: "btn primary small", onclick: () => gate({ type: "find" }, () => go("#/find")) }, "Start a project"), h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))]
     : [h("button", { class: "btn quiet small", onclick: () => openSignIn() }, "Sign in"), h("button", { class: "btn primary small", onclick: () => gate({ type: "find" }, () => go("#/find")) }, "Start a project")];
   mountHeader({ brand: "Promptflix", sub: "Market", links, right, home: "#/" });
@@ -21,7 +21,7 @@ function render(){
   const r = route(); const m = $("#main"); m.replaceChildren(); const v = r.parts[0];
   if (!v) vHome(m);
   else if (v === "work") vWork(m, r.q);
-  else if (v === "creators") vCreators(m, r.q);
+  else if (v === "creators") vWork(m, { cat: (r.q.cats || "").split(",")[0] || "", q: r.q.q || "" });   // the creator list is gone: old links land on Work
   else if (v === "creator") vCreator(m, r.parts[1]);
   else if (v === "find") vFind(m, r.q);
   else if (v === "onboarding") vOnboarding(m);
@@ -35,7 +35,7 @@ function render(){
 }
 
 /* ---------- public ---------- */
-const gallery = (items, limit) => h("div", { class: "gallery" }, ...items.slice(0, limit || items.length).map(({ w, c }) => tile(w, c, () => playWork(w, c, hireCTA(c)))));
+const gallery = (items, limit) => h("div", { class: "gallery" }, ...items.slice(0, limit || items.length).map(({ w, c }) => tile(w, c, () => go("#/creator/" + c.id))));   // a film opens its maker's page; films play there
 function ccard(c, why){
   const est = DB.priceRange(c).est;
   return hoverPlay(h("a", { class: "ccard", href: "#/creator/" + c.id }, face(c),
@@ -44,8 +44,8 @@ function ccard(c, why){
 }
 const cgrid = (list) => h("div", { class: "cgrid" }, ...list.map(({ c, why }) => ccard(c, why)));
 function heroSearch(){
-  const i = h("input", { class: "i", type: "search", placeholder: "Try “product ad for a skincare launch” or “anime short”", "aria-label": "Search creators" });
-  return h("form", { class: "hsearch", onsubmit: e => { e.preventDefault(); go("#/creators" + (i.value.trim() ? "?q=" + encodeURIComponent(i.value.trim()) : "")); } }, i, h("button", { class: "btn primary", type: "submit" }, "Search"));
+  const i = h("input", { class: "i", type: "search", placeholder: "Try “product ad for a skincare launch” or “anime short”", "aria-label": "Search work" });
+  return h("form", { class: "hsearch", onsubmit: e => { e.preventDefault(); go("#/work" + (i.value.trim() ? "?q=" + encodeURIComponent(i.value.trim()) : "")); } }, i, h("button", { class: "btn primary", type: "submit" }, "Search"));
 }
 function vHome(m){
   const items = allWorks(); const strip = DB.filmed().slice(0, 12).map(c => ({ w: c.works[0], c }));
@@ -54,17 +54,18 @@ function vHome(m){
       h("h1", null, "The filmmakers behind the best ", h("em", null, "AI video"), "."),
       h("p", { class: "lead" }, "Find the person who made the film you liked. Pay into escrow, review watermarked cuts, release on approval."),
       heroSearch(),
-      h("div", { class: "popular" }, h("span", { class: "dim small" }, "Popular"), ...[["biz", "Brand ads"], ["film", "Short films"], ["anim", "Animation"], ["mv", "Music videos"], ["reels", "UGC & Reels"]].map(([k, l]) => h("a", { class: "chip", href: "#/creators?cats=" + k }, l))),
+      h("div", { class: "popular" }, h("span", { class: "dim small" }, "Popular"), ...[["biz", "Brand ads"], ["film", "Short films"], ["anim", "Animation"], ["mv", "Music videos"], ["reels", "UGC & Reels"]].map(([k, l]) => h("a", { class: "chip", href: "#/work?cat=" + k }, l))),
       h("div", { class: "row small" }, h("button", { class: "link", onclick: () => gate({ type: "find" }, () => go("#/find")) }, "Or describe the project and we'll match you →"))),
     h("div", { class: "strip" }, ...strip.map(({ w, c }) => tile(w, c, () => playWork(w, c, hireCTA(c)))))));
   const byCat = CATS.map(k => ({ k, list: DB.roster().filter(c => c.cats[0] === k) })).filter(x => x.list.length);
   m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Browse by category")),
-    h("div", { class: "cats" }, ...byCat.map(({ k, list }) => h("a", { class: "catcard", href: "#/creators?cats=" + k }, cover(list[0].works[0]), h("span", { class: "cap" }, h("b", null, TAXONOMY[k].name), h("span", null, list.length + " creators")))))));
+    h("div", { class: "cats" }, ...byCat.map(({ k, list }) => h("a", { class: "catcard", href: "#/work?cat=" + k }, cover(list[0].works[0]), h("span", { class: "cap" }, h("b", null, TAXONOMY[k].name), h("span", null, list.length + " creators")))))));
   m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Selected work"), h("a", { class: "link", href: "#/work" }, "All work →")), gallery(DB.filmed().slice(12).filter((_, i) => i % 2 === 0).map(c => ({ w: c.works[1] || c.works[0], c })), 8)));
-  m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Creators"), h("a", { class: "link", href: "#/creators" }, "All creators →")), cgrid(DB.roster().slice(0, 8).map(c => ({ c })))));
 }
 function vWork(m, q){
-  const cat = q.cat || null; const items = allWorks().filter(x => !cat || x.w[1] === cat);
+  const cat = q.cat || null, words = (q.q || "").toLowerCase().split(/\s+/).filter(Boolean);
+  const hay = x => [x.w[0], x.c.name, x.c.bg, x.c.where, TAXONOMY[x.w[1]].name, ...x.c.styles.map(s => STYLES[s].name)].join(" ").toLowerCase();
+  const items = allWorks().filter(x => (!cat || x.w[1] === cat || x.c.cats.includes(cat)) && words.every(wd => hay(x).includes(wd)));
   m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Work"), h("p", null, items.length + " films by " + new Set(items.map(x => x.c.id)).size + " creators. Every one was made by the creator you'd hire.")),
     h("div", { class: "filters" }, h("button", { "aria-pressed": String(!cat), onclick: () => go("#/work") }, "All"), ...CATS.map(id => h("button", { "aria-pressed": String(cat === id), onclick: () => go("#/work?cat=" + id) }, TAXONOMY[id].name))), gallery(items)));
 }
@@ -115,7 +116,7 @@ function vCreators(m, q){
       h("div", { class: "toolbar" }, h("form", { onsubmit: e => { e.preventDefault(); go(F.url({ ...f, q: input.value.trim() })); } }, input, h("button", { class: "btn primary", type: "submit" }, "Search")), h("button", { class: "btn only-narrow", onclick: () => openFilters(f) }, "Filters" + (n ? " · " + n : ""))),
       h("div", { class: "resbar" }, h("span", { class: "small muted" }, sorted.length + (sorted.length === 1 ? " creator" : " creators") + (f.q ? " for “" + f.q + "”" : "")), h("label", { class: "small dim sortl" }, "Sort ", sort)),
       chips.length ? h("div", { class: "active" }, ...chips.map(([l, fn]) => h("span", { class: "chip on" }, l, h("button", { onclick: fn, "aria-label": "Remove" }, "×")))) : null,
-      sorted.length ? cgrid(sorted.map(x => ({ c: x.c, why: f.q ? x.why : [] }))) : h("div", { class: "empty" }, h("b", null, "No one matches all of that."), h("span", null, "Loosen a filter; our crawler is inviting creators who make it."), h("a", { class: "btn", href: "#/creators" }, "Clear filters")))));
+      sorted.length ? cgrid(sorted.map(x => ({ c: x.c, why: f.q ? x.why : [] }))) : h("div", { class: "empty" }, h("b", null, "No one matches all of that."), h("span", null, "Loosen a filter; our crawler is inviting creators who make it."), h("a", { class: "btn", href: "#/work" }, "All work")))));
 }
 function vCreator(m, id){
   const c = DB.creator(id); if (!c || !c.live) return m.append(h("div", { class: "wrap section" }, h("div", { class: "empty" }, "Creator not found.")));
@@ -160,7 +161,7 @@ function vFind(m, q){
   if (budget) ctx.push(h("span", { class: "chip" }, money(budget[0]) + "–" + (budget[1] > 500000 ? "∞" : money(budget[1]))));
   m.append(h("section", { class: "wrap section" },
     h("div", { class: "sec-head" }, h("div", null, h("h2", null, "Made for you"), h("div", { class: "chips", style: { marginTop: "14px" } }, ...ctx)), h("button", { class: "btn small", onclick: () => { W = { step: 1 }; go("#/onboarding"); } }, "Change the brief")),
-    matches.length ? cgrid(matches) : h("div", { class: "empty" }, h("b", null, "No exact match yet."), h("a", { class: "btn", href: "#/creators" }, "All creators"))));
+    matches.length ? cgrid(matches) : h("div", { class: "empty" }, h("b", null, "No exact match yet."), h("a", { class: "btn", href: "#/work" }, "All work"))));
 }
 
 /* ---------- onboarding ---------- */
@@ -222,7 +223,7 @@ function vOnboarding(m){
     head(W.round < 2 ? "Which feels more like you?" : "Your lead style?", W.round < 2 ? `Round ${W.round + 1} of 3. We use both of your picks.` : "The other stays as a secondary match.");
     const used = new Set();
     const example = st => { const pool = DB.filmed().filter(c => c.styles.includes(st) && !used.has(c.id)); const c = pool.find(x => x.cats.includes(W.cat)) || pool[0]; if (!c) return null; used.add(c.id); return { c, w: c.works[0] }; };
-    const card = (s, lbl) => { const ex = example(s); return h("button", { class: "style", "aria-label": STYLES[s].name, onclick: () => { if (W.round === 2){ W.styles = [s, W.winners.find(x => x !== s)]; W.step = 4; } else { W.winners.push(s); W.round++; } render(); } }, ex ? cover(ex.w) : art(s), h("span", { class: "lbl" }, lbl), h("span", { class: "t" }, h("b", null, STYLES[s].name), h("p", null, STYLES[s].desc), ex ? h("small", { class: "dim" }, "Example: " + ex.c.name) : null)); };
+    const card = (s, lbl) => { const ex = example(s); return h("button", { class: "style", "aria-label": STYLES[s].name, onclick: () => { if (W.round === 2){ W.styles = [s, W.winners.find(x => x !== s)]; W.step = 4; } else { W.winners.push(s); W.round++; } render(); } }, ex ? liveCover(ex.w) : art(s), h("span", { class: "lbl" }, lbl), h("span", { class: "t" }, h("b", null, STYLES[s].name), h("p", null, STYLES[s].desc), ex ? h("small", { class: "dim" }, "Example: " + ex.c.name) : null)); };
     page.append(h("div", { class: "duel" }, card(a, "A"), card(b, "B")));
     return;
   }
