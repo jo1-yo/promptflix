@@ -107,6 +107,8 @@ if os.path.exists(f"{D}/outreach300.json"):
             m = {"cover": f"https://i.ytimg.com/vi/{w['id']}/hqdefault.jpg" if yt else w.get("thumb"), "lb": yt, "link": f"https://www.youtube.com/watch?v={w['id']}" if yt else f"https://vimeo.com/{w['id']}", "on": "YouTube" if yt else "Vimeo", "by": w["author"]}
             m["yt" if yt else "vm"] = w["id"]
             works.append([w["title"], cats[0], styles[0], None, None, m])
+        for u in (o.get("clips") or [])[: 3 - len(works)]:   # clips hosted on the creator's Steam store page
+            works.append(["Clip from the Steam page", cats[0], styles[0], None, None, {"cover": o.get("cover"), "mp4": u, "link": o["site"], "on": "Steam", "by": name}])
         loc = o["loc"] or ""
         _, tz, region = place(loc)
         where = "" if re.search(r"not stated|^remote", loc, re.I) else re.sub(r"\s*\(.*?\)", "", loc)

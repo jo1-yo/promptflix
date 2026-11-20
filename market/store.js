@@ -35,6 +35,7 @@ const DB = {
   state: null,
   load(){ try { this.state = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch { this.state = fresh(); } if (!this.state.users) this.state = fresh();
     for (const seed of CREATORS){ const c = this.state.creators.find(x => x.id === seed.id); if (c) for (const k of ["tz", "region", "email", "live"]) if (c[k] == null) c[k] = seed[k];
+      if (c && c.real && !c.claimed){ c.works = clone(seed.works); c.cover = seed.cover || null; }   // unclaimed profiles follow the generated list; a claimed creator's own picks are kept
       if (!c){ this.state.creators.push({ ...clone(seed), quotes: [] }); this.state.discovered = (this.state.discovered || []).filter(d => d.url !== seed.social); } }   // creators added to the list after this browser first saved (e.g. the ones with no film yet) // migrate fields added after a record was saved
     if (!this.state.sessions) this.state.sessions = { merchant: null, creator: null, admin: null };
     for (const k of ["payments", "logins"]) this.state[k] ||= [];

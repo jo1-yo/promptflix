@@ -38,9 +38,9 @@ function render(){
 const gallery = (items, limit) => h("div", { class: "gallery" }, ...items.slice(0, limit || items.length).map(({ w, c }) => tile(w, c, () => playWork(w, c, hireCTA(c)))));
 function ccard(c, why){
   const est = DB.priceRange(c).est;
-  return h("a", { class: "ccard", href: "#/creator/" + c.id }, face(c),
+  return hoverPlay(h("a", { class: "ccard", href: "#/creator/" + c.id }, face(c),
     h("span", { class: "top" }, h("span", { class: est ? "est" : null, title: est ? "Estimate for this kind of work. They haven't set rates yet." : null }, rangeText(c)), h("span", null, c.tz || c.source || "")),
-    h("span", { class: "cap" }, h("b", null, c.name), h("span", null, [c.where, c.bg.replace(/\.$/, "")].filter(Boolean).join(" · ")), why && why.length ? h("span", { class: "why" }, ...why.map(w => h("i", null, w))) : null));
+    h("span", { class: "cap" }, h("b", null, c.name), h("span", null, [c.where, c.bg.replace(/\.$/, "")].filter(Boolean).join(" · ")), why && why.length ? h("span", { class: "why" }, ...why.map(w => h("i", null, w))) : null)), c.works[0]);
 }
 const cgrid = (list) => h("div", { class: "cgrid" }, ...list.map(({ c, why }) => ccard(c, why)));
 function heroSearch(){
