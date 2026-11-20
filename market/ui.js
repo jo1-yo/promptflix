@@ -70,22 +70,32 @@ const footer = () => h("footer", { class: "wrap" }, h("span", null, "Promptflix 
 const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
+for (const o of ["https://www.youtube-nocookie.com", "https://i.ytimg.com", "https://player.vimeo.com", "https://video.twimg.com"]) document.head.append(Object.assign(document.createElement("link"), { rel: "preconnect", href: o }));
 /* Hover preview: while the pointer rests on a card, its film plays muted in place of the cover. Mouse only; touch keeps tap-to-open. */
 const PEEK = { el: null, t: 0 };
 function peekStop(){ clearTimeout(PEEK.t); if (PEEK.el){ PEEK.el.remove(); PEEK.el = null; } }
+function peekLayer(m, bw, bh){   // muted, looping film sized to cover a bw x bh box
+  const fw = Math.max(bw, bh * 16 / 9), fh = fw * 9 / 16;
+  const frame = m.mp4 ? h("video", { src: m.mp4, muted: true, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" })
+    : h("iframe", { src: m.yt ? `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${m.yt}&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`
+        : `https://player.vimeo.com/video/${m.vm}?autoplay=1&muted=1&loop=1&controls=0&title=0&byline=0&portrait=0`, allow: "autoplay; encrypted-media", referrerpolicy: "strict-origin-when-cross-origin", tabindex: "-1", "aria-hidden": "true", title: "" });
+  const layer = h("span", { class: "peek" + (m.mp4 ? " v" : "") }, frame), show = () => layer.classList.add("on");
+  if (m.mp4){ frame.muted = true; frame.addEventListener("playing", show, { once: true }); }
+  else { Object.assign(frame.style, { width: fw + "px", height: fh + "px" }); frame.addEventListener("load", show, { once: true }); setTimeout(show, 600); }   // shown when the player has loaded, or after 0.6 s at the latest
+  return layer;
+}
+const playable = w => { const m = w && w[5]; return m && (m.yt || m.vm || m.mp4) ? m : null; };
 function hoverPlay(card, w){
-  const m = w && w[5]; if (!m || !(m.yt || m.vm || m.mp4) || !matchMedia("(hover: hover)").matches) return card;
-  card.addEventListener("mouseenter", () => { peekStop(); PEEK.t = setTimeout(() => {
-    const r = card.getBoundingClientRect(), fw = Math.max(r.width, r.height * 16 / 9), fh = fw * 9 / 16;
-    const frame = m.mp4 ? h("video", { src: m.mp4, muted: true, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" })
-      : h("iframe", { src: m.yt ? `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${m.yt}&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`
-          : `https://player.vimeo.com/video/${m.vm}?autoplay=1&muted=1&loop=1&controls=0&title=0&byline=0&portrait=0`, allow: "autoplay; encrypted-media", referrerpolicy: "strict-origin-when-cross-origin", tabindex: "-1", "aria-hidden": "true", title: "" });
-    if (m.mp4) frame.muted = true; else Object.assign(frame.style, { width: fw + "px", height: fh + "px" });
-    PEEK.el = h("span", { class: "peek" + (m.mp4 ? " v" : "") }, frame); const face = card.querySelector(".art"); if (face) face.after(PEEK.el); else card.prepend(PEEK.el);
-    setTimeout(() => PEEK.el && PEEK.el.classList.add("on"), m.mp4 ? 120 : 700);   // let the player paint before fading it in over the cover
-  }, 220); });
+  const m = playable(w); if (!m || !matchMedia("(hover: hover)").matches) return card;
+  card.addEventListener("mouseenter", () => { peekStop(); const r = card.getBoundingClientRect();   // starts loading the moment the pointer arrives
+    PEEK.el = peekLayer(m, r.width, r.height); const face = card.querySelector(".art"); if (face) face.after(PEEK.el); else card.prepend(PEEK.el); });
   card.addEventListener("mouseleave", peekStop);
   return card;
+}
+function liveCover(w, extra){   // a cover that plays its film on its own (onboarding style picks)
+  const box = cover(w, extra), m = playable(w); if (!m) return box;
+  setTimeout(() => { if (!box.isConnected) return; const r = box.getBoundingClientRect(); box.append(peekLayer(m, r.width, r.height)); }, 0);
+  return box;
 }
 function tile(w, c, onclick){ return hoverPlay(tileEl(w, c, onclick), w); }
 function tileEl(w, c, onclick){ return h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))); }
@@ -126,7 +136,7 @@ function vChats(root, id){
   const list = APP === "admin" ? DB.state.orders.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) : DB.ordersFor(u.id);
   let o = id ? DB.order(id) : (innerWidth > 800 ? list[0] : null);
   if (o && !(o.clientId === u.id || o.creatorId === u.id || APP === "admin")) o = null;
-  root.append(h("div", { class: "chats" + (o ? " open" : "") }, threadList(list, o, u), o ? thread(o, u) : h("div", { class: "thread none" }, h("div", { class: "chat-empty" }, list.length ? h("span", null, "Pick a conversation.") : [h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, APP === "creator" ? "No projects yet." : "No conversations yet."), h("span", null, APP === "creator" ? "When a client starts a project with you, the chat opens here." : "Start a project with a creator and the chat opens here."), APP === "merchant" ? h("a", { class: "btn", href: "#/creators" }, "Browse creators") : null]))));
+  root.append(h("div", { class: "chats" + (o ? " open" : "") }, threadList(list, o, u), o ? thread(o, u) : h("div", { class: "thread none" }, h("div", { class: "chat-empty" }, list.length ? h("span", null, "Pick a conversation.") : [h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, APP === "creator" ? "No projects yet." : "No conversations yet."), h("span", null, APP === "creator" ? "When a client starts a project with you, the chat opens here." : "Start a project with a creator and the chat opens here."), APP === "merchant" ? h("a", { class: "btn", href: "#/work" }, "Browse creators") : null]))));
 }
 function threadList(list, cur, u){
   return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null),
