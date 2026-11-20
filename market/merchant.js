@@ -38,7 +38,7 @@ function render(){
 const gallery = (items, limit) => h("div", { class: "gallery" }, ...items.slice(0, limit || items.length).map(({ w, c }) => tile(w, c, () => playWork(w, c, hireCTA(c)))));
 function ccard(c, why){
   const est = DB.priceRange(c).est;
-  return h("a", { class: "ccard", href: "#/creator/" + c.id }, cover(c.works[0]),
+  return h("a", { class: "ccard", href: "#/creator/" + c.id }, face(c),
     h("span", { class: "top" }, h("span", { class: est ? "est" : null, title: est ? "Estimate for this kind of work. They haven't set rates yet." : null }, rangeText(c)), h("span", null, c.tz || c.source || "")),
     h("span", { class: "cap" }, h("b", null, c.name), h("span", null, [c.where, c.bg.replace(/\.$/, "")].filter(Boolean).join(" · ")), why && why.length ? h("span", { class: "why" }, ...why.map(w => h("i", null, w))) : null));
 }
@@ -48,7 +48,7 @@ function heroSearch(){
   return h("form", { class: "hsearch", onsubmit: e => { e.preventDefault(); go("#/creators" + (i.value.trim() ? "?q=" + encodeURIComponent(i.value.trim()) : "")); } }, i, h("button", { class: "btn primary", type: "submit" }, "Search"));
 }
 function vHome(m){
-  const items = allWorks(); const strip = DB.roster().slice(0, 12).map(c => ({ w: c.works[0], c }));
+  const items = allWorks(); const strip = DB.filmed().slice(0, 12).map(c => ({ w: c.works[0], c }));
   m.append(h("section", { class: "wrap hero" },
     h("div", { class: "stack", style: { gap: "22px" } },
       h("h1", null, "The filmmakers behind the best ", h("em", null, "AI video"), "."),
@@ -60,7 +60,7 @@ function vHome(m){
   const byCat = CATS.map(k => ({ k, list: DB.roster().filter(c => c.cats[0] === k) })).filter(x => x.list.length);
   m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Browse by category")),
     h("div", { class: "cats" }, ...byCat.map(({ k, list }) => h("a", { class: "catcard", href: "#/creators?cats=" + k }, cover(list[0].works[0]), h("span", { class: "cap" }, h("b", null, TAXONOMY[k].name), h("span", null, list.length + " creators")))))));
-  m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Selected work"), h("a", { class: "link", href: "#/work" }, "All work →")), gallery(DB.roster().slice(12).filter((_, i) => i % 2 === 0).map(c => ({ w: c.works[1] || c.works[0], c })), 8)));
+  m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Selected work"), h("a", { class: "link", href: "#/work" }, "All work →")), gallery(DB.filmed().slice(12).filter((_, i) => i % 2 === 0).map(c => ({ w: c.works[1] || c.works[0], c })), 8)));
   m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Creators"), h("a", { class: "link", href: "#/creators" }, "All creators →")), cgrid(DB.roster().slice(0, 8).map(c => ({ c })))));
 }
 function vWork(m, q){
@@ -124,8 +124,9 @@ function vCreator(m, id){
     h("div", { class: "stack", style: { gap: "36px" } },
       h("div", { class: "stack", style: { gap: "14px" } }, h("span", { class: "eyebrow" }, ["@" + c.handle, c.where, c.tz].filter(Boolean).join(" · ")), h("h1", { class: "pname" }, c.name), h("p", { class: "muted", style: { fontSize: "17px", maxWidth: "56ch" } }, c.bg),
         h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t))),
-        c.real && !c.claimed ? h("div", { class: "unclaimed" }, h("span", null, h("b", null, "Not on Promptflix yet. "), `This profile was built from ${c.name}'s public work. Start a project and we'll send them your brief with an invite; the chat goes live when they claim the profile. `, h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, "Their " + c.source + " ↗"))) : null),
-      h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c, hireCTA(c))))),
+        c.real && !c.claimed ? h("div", { class: "unclaimed" }, h("span", null, h("b", null, "Not on Promptflix yet. "), `This profile was built from ${c.name}'s public work. Start a project and we'll send them your brief with an invite; the chat goes live when they claim the profile. `, h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, (c.source === "Portfolio" ? "Their site" : "Their " + c.source) + " ↗"))) : null),
+      c.works.length ? h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c, hireCTA(c)))))
+        : h("div", { class: "nofilm" }, h("span", null, "No films linked here yet."), h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, "See " + first(c.name) + "'s work on " + (c.source === "Portfolio" ? "their site" : c.source) + " ↗")),
       h("div", null, h("span", { class: "eyebrow" }, "Reviews · " + reviews.length), reviews.length ? reviews.map(rv => h("div", { class: "rev" }, h("span", { class: "s" }, "★".repeat(rv.stars) + "☆".repeat(5 - rv.stars)), h("span", null, rv.text), h("span", { class: "small dim" }, DB.nameOf(rv.from) + " · " + when(rv.at)))) : h("p", { class: "hint", style: { marginTop: "10px" } }, "No platform reviews yet."))),
     h("aside", { class: "side" },
       h("div", { class: "card" },
@@ -220,7 +221,7 @@ function vOnboarding(m){
     const pairs = [[W.pool[0], W.pool[1]], [W.pool[2], W.pool[3]], W.winners]; const [a, b] = pairs[W.round];
     head(W.round < 2 ? "Which feels more like you?" : "Your lead style?", W.round < 2 ? `Round ${W.round + 1} of 3. We use both of your picks.` : "The other stays as a secondary match.");
     const used = new Set();
-    const example = st => { const pool = DB.roster().filter(c => c.styles.includes(st) && !used.has(c.id)); const c = pool.find(x => x.cats.includes(W.cat)) || pool[0]; if (!c) return null; used.add(c.id); return { c, w: c.works[0] }; };
+    const example = st => { const pool = DB.filmed().filter(c => c.styles.includes(st) && !used.has(c.id)); const c = pool.find(x => x.cats.includes(W.cat)) || pool[0]; if (!c) return null; used.add(c.id); return { c, w: c.works[0] }; };
     const card = (s, lbl) => { const ex = example(s); return h("button", { class: "style", "aria-label": STYLES[s].name, onclick: () => { if (W.round === 2){ W.styles = [s, W.winners.find(x => x !== s)]; W.step = 4; } else { W.winners.push(s); W.round++; } render(); } }, ex ? cover(ex.w) : art(s), h("span", { class: "lbl" }, lbl), h("span", { class: "t" }, h("b", null, STYLES[s].name), h("p", null, STYLES[s].desc), ex ? h("small", { class: "dim" }, "Example: " + ex.c.name) : null)); };
     page.append(h("div", { class: "duel" }, card(a, "A"), card(b, "B")));
     return;

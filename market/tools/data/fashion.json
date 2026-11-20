@@ -4,21 +4,68 @@
   "social": "https://www.instagram.com/mihokinomura_ai/",
   "focus": "fashion film, beauty, jewellery",
   "based": "Los Angeles, USA",
-  "works": []
+  "works": [
+   {
+    "title": "TOKYO ROUGE",
+    "author": "NFFT_Miho Kinomura",
+    "provider": "youtube",
+    "id": "X6VkjgGXFYs",
+    "thumb": "https://i.ytimg.com/vi/X6VkjgGXFYs/hqdefault.jpg"
+   },
+   {
+    "title": "NatureX",
+    "author": "NFFT_Miho Kinomura",
+    "provider": "youtube",
+    "id": "chlpNJ5BdAQ",
+    "thumb": "https://i.ytimg.com/vi/chlpNJ5BdAQ/hqdefault.jpg"
+   },
+   {
+    "title": "Neo Heritage",
+    "author": "NFFT_Miho Kinomura",
+    "provider": "youtube",
+    "id": "3NKkfrXKRzQ",
+    "thumb": "https://i.ytimg.com/vi/3NKkfrXKRzQ/hqdefault.jpg"
+   }
+  ],
+  "website": "https://mihokinomura.com"
  },
  {
   "name": "Filipa Kinomoto",
   "social": "https://www.instagram.com/kinomoto.ai/",
   "focus": "high-concept fashion, red, geometry",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "RUNWAY WAS THE ROOM | AI Fashion film NFFT 2025",
+    "author": "Kinomoto AI",
+    "provider": "youtube",
+    "id": "U8Ds9rId6RQ",
+    "thumb": "https://i.ytimg.com/vi/U8Ds9rId6RQ/hqdefault.jpg"
+   },
+   {
+    "title": "RECOVERY | Fashion AI Film",
+    "author": "Kinomoto AI",
+    "provider": "youtube",
+    "id": "MA_dk5uUbno",
+    "thumb": "https://i.ytimg.com/vi/MA_dk5uUbno/hqdefault.jpg"
+   },
+   {
+    "title": "Fade to Flower | AI Fashion short film",
+    "author": "Kinomoto AI",
+    "provider": "youtube",
+    "id": "NbkultYk7lM",
+    "thumb": "https://i.ytimg.com/vi/NbkultYk7lM/hqdefault.jpg"
+   }
+  ],
+  "website": "https://filipakinomoto.com"
  },
  {
   "name": "Sally Trier",
   "social": "https://www.instagram.com/sallyflexbomb/",
   "focus": "fashion film, art direction",
-  "based": null,
-  "works": []
+  "based": "Copenhagen, Denmark",
+  "works": [],
+  "website": "https://badland.tv/sally-trier/"
  },
  {
   "name": "Maytte Araneda",
@@ -32,56 +79,188 @@
   "social": "https://www.instagram.com/alinami.art/",
   "focus": "beauty concept ads",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "Spec Ad | The Ordinary | How Far Would You Go?",
+    "author": "Alina Mi",
+    "provider": "vimeo",
+    "id": "1174936071",
+    "thumb": "https://i.vimeocdn.com/video/2168474339-6e7e37258aa14af8f03fe2ee07345a1ae640c076b484be9f7b1cfca8518451d0-d_200x150?region=us"
+   },
+   {
+    "title": "Gen Z Crocs Spec Ad. Cinderella Reimagined",
+    "author": "Alina Mi",
+    "provider": "vimeo",
+    "id": "1186197175",
+    "thumb": "https://i.vimeocdn.com/video/2149835687-17e63301f1709bb4b0feeffb3e461be2cd21135c637658a7945f1972c55c2f89-d_200x150?region=us"
+   },
+   {
+    "title": "The Survival Era | AI Short Film",
+    "author": "Alina Mi",
+    "provider": "vimeo",
+    "id": "1203490161",
+    "thumb": "https://i.vimeocdn.com/video/2171542868-544055d5e295db1b7c21d4c3708da7393e418b2358cb7ddffb143def078f3e7f-d_295x166?region=us"
+   }
+  ],
+  "website": "https://alinami.art"
  },
  {
   "name": "Jodi Jones",
   "social": "https://www.instagram.com/jodijonesstudio/",
   "focus": "fashion beauty, editorial brand film",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "Le Rouleau by Maison Peluchette — Luxury AI Spec Ad",
+    "author": "Jodi Jones",
+    "provider": "youtube",
+    "id": "YaqdEwG80M8",
+    "thumb": "https://i.ytimg.com/vi/YaqdEwG80M8/hqdefault.jpg"
+   },
+   {
+    "title": "STILL HERE | AI Short Film | Episode One",
+    "author": "Jodi Jones",
+    "provider": "youtube",
+    "id": "bPH6F34FKtY",
+    "thumb": "https://i.ytimg.com/vi/bPH6F34FKtY/hqdefault.jpg"
+   },
+   {
+    "title": "LOVELY DAY | film for the Higgsfield Global Film Festival 🎬",
+    "author": "Jodi Jones",
+    "provider": "youtube",
+    "id": "Bz7jTqSvYjo",
+    "thumb": "https://i.ytimg.com/vi/Bz7jTqSvYjo/hqdefault.jpg"
+   }
+  ],
+  "website": "https://www.jodijonesstudio.com"
  },
  {
   "name": "Mark Isle / Marco",
   "social": "https://www.instagram.com/ai_artworkgen/",
   "focus": "fashion film, character consistency",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "L'Animal. Release Your Wild Side.",
+    "author": "Marco",
+    "provider": "youtube",
+    "id": "anPJR-i-dkg",
+    "thumb": "https://i.ytimg.com/vi/anPJR-i-dkg/hqdefault.jpg"
+   },
+   {
+    "title": "PASTEL CITY",
+    "author": "Marco",
+    "provider": "youtube",
+    "id": "s-ATqrqPogg",
+    "thumb": "https://i.ytimg.com/vi/s-ATqrqPogg/hqdefault.jpg"
+   },
+   {
+    "title": "Where Petals Fall",
+    "author": "Marco",
+    "provider": "youtube",
+    "id": "lC2oooa2Ry0",
+    "thumb": "https://i.ytimg.com/vi/lC2oooa2Ry0/hqdefault.jpg"
+   }
+  ]
  },
  {
   "name": "Sarah Leidig",
   "social": "https://www.instagram.com/digitaldrapery.ai/",
   "focus": "garment design, fashion editorial",
   "based": "Barcelona, Spain",
-  "works": []
+  "works": [],
+  "website": "https://digitaldrapery.ai"
  },
  {
   "name": "Synne Kristine",
   "social": "https://www.instagram.com/synne_kris_art/",
   "focus": "fashion film, colour, feminine themes",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "NFFT2025 -  AI fashion film video, Tokyo, Japan February 2025",
+    "author": "Synkris",
+    "provider": "youtube",
+    "id": "tEyR0bXLXfg",
+    "thumb": "https://i.ytimg.com/vi/tEyR0bXLXfg/hqdefault.jpg"
+   },
+   {
+    "title": "SYNNE KRISTINE | RAPTURE",
+    "author": "Cluster London",
+    "provider": "vimeo",
+    "id": "1070002160",
+    "thumb": "https://i.vimeocdn.com/video/1998441447-edf6c974bcabe231636c2aedd179ff70360790968b663c79328209049349b30f-d_200x150?region=us"
+   },
+   {
+    "title": "Evol (2025)",
+    "author": "Synkris",
+    "provider": "youtube",
+    "id": "fF9xE825wgc",
+    "thumb": "https://i.ytimg.com/vi/fF9xE825wgc/hqdefault.jpg"
+   }
+  ],
+  "website": "https://synnekristine.com"
  },
  {
   "name": "Fatima Travassos",
   "social": "https://www.instagram.com/ftravassos_art/",
   "focus": "fashion shorts, styling",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "NeuroLeak | Finalist — Ukrainian Digital & AI Fashion Festival",
+    "author": "UFEG",
+    "provider": "youtube",
+    "id": "oW8NtqEensE",
+    "thumb": "https://i.ytimg.com/vi/oW8NtqEensE/hqdefault.jpg"
+   }
+  ]
  },
  {
   "name": "OPÉ / OPÉSTYLESTUDIO",
   "social": "https://www.instagram.com/opethestylist/",
   "focus": "fashion, jewellery, brand story",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "PopAfroChroma Fashion Short at Announce Digital Fashion | Lagos Fashion Week",
+    "author": "OPÉstylestudio",
+    "provider": "youtube",
+    "id": "m78Ye8aT6cM",
+    "thumb": "https://i.ytimg.com/vi/m78Ye8aT6cM/hqdefault.jpg"
+   }
+  ],
+  "website": "https://opestylestudio.com"
  },
  {
   "name": "Dustin Hollywood",
   "social": "https://www.instagram.com/dustinhollywoodphoto/",
   "focus": "fashion, music, cinematic",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "HE IS KING (2025) - DIRECTED BY DUSTIN HOLLYWOOD / NAKID PICTURES",
+    "author": "DUSTIN HOLLYWOOD / NAKID® PICTURES",
+    "provider": "youtube",
+    "id": "n-l7BNr9Lrk",
+    "thumb": "https://i.ytimg.com/vi/n-l7BNr9Lrk/hqdefault.jpg"
+   },
+   {
+    "title": "‘SILVER TOOTH’ ALEXVNDER - by Dustin Hollywood for MINIMAX | NAKID PICTURES",
+    "author": "DUSTIN HOLLYWOOD / NAKID® PICTURES",
+    "provider": "youtube",
+    "id": "0SMSF5ygNiQ",
+    "thumb": "https://i.ytimg.com/vi/0SMSF5ygNiQ/hqdefault.jpg"
+   },
+   {
+    "title": "‘REELING’ Directed by Dustin Hollywood / MAMMOTH Films + Oliver Michael ‘Ever Since’",
+    "author": "DUSTIN HOLLYWOOD / NAKID® PICTURES",
+    "provider": "youtube",
+    "id": "mMI-JPM8zso",
+    "thumb": "https://i.ytimg.com/vi/mMI-JPM8zso/hqdefault.jpg"
+   }
+  ],
+  "website": "https://dustinhollywood.io"
  },
  {
   "name": "Dina Al Zadjali / House of Z",
@@ -94,21 +273,66 @@
   "name": "Gianluca Traina",
   "social": "https://www.instagram.com/gianluca_traina/",
   "focus": "garment structure, body, art fashion",
-  "based": null,
-  "works": []
+  "based": "Sicily, Italy",
+  "works": [
+   {
+    "title": "SENSI - AI FASHION SHORT MOVIE - NFFT2024",
+    "author": "Gianluca Traina",
+    "provider": "youtube",
+    "id": "MYIObMR9c2M",
+    "thumb": "https://i.ytimg.com/vi/MYIObMR9c2M/hqdefault.jpg"
+   },
+   {
+    "title": "BEHIND THE SEAMS 2K",
+    "author": "Gianluca Traina",
+    "provider": "youtube",
+    "id": "AZsaNXhZbeI",
+    "thumb": "https://i.ytimg.com/vi/AZsaNXhZbeI/hqdefault.jpg"
+   },
+   {
+    "title": "AI Fashion Collection | Samarkand",
+    "author": "Gianluca Traina",
+    "provider": "youtube",
+    "id": "qJRPCGsb7hA",
+    "thumb": "https://i.ytimg.com/vi/qJRPCGsb7hA/hqdefault.jpg"
+   }
+  ],
+  "website": "https://gianlucatraina.com"
  },
  {
   "name": "Ljuba Roichman",
   "social": "https://www.instagram.com/lr.3dart/",
   "focus": "3D fashion, digital garments",
-  "based": null,
-  "works": []
+  "based": "Germany",
+  "works": [
+   {
+    "title": "Fashion Pixel Art Active Wear Style by LR.3Dart - PIKA Ai Video",
+    "author": "Ljuba Roichman",
+    "provider": "youtube",
+    "id": "tAT9MDgDPZo",
+    "thumb": "https://i.ytimg.com/vi/tAT9MDgDPZo/hqdefault.jpg"
+   },
+   {
+    "title": "Aquamorphosis | Finalist — Ukrainian Digital & AI Fashion Festival",
+    "author": "UFEG",
+    "provider": "youtube",
+    "id": "TQYtBixP3UA",
+    "thumb": "https://i.ytimg.com/vi/TQYtBixP3UA/hqdefault.jpg"
+   },
+   {
+    "title": "VR Digital Ukrainian Fashion Week 2022 by Ljuba Roichman",
+    "author": "Ljuba Roichman",
+    "provider": "youtube",
+    "id": "QMsTOGC6YjE",
+    "thumb": "https://i.ytimg.com/vi/QMsTOGC6YjE/hqdefault.jpg"
+   }
+  ]
  },
  {
   "name": "Maritza Rubio / AI Fashionlab",
   "social": "https://www.instagram.com/ai.fashionlab/",
   "focus": "architecture meets fashion",
-  "based": null,
+  "based": "London, UK",
   "works": []
  },
  {
@@ -116,14 +340,44 @@
   "social": "https://www.instagram.com/themixed_reality/",
   "focus": "fashion, photographic, cinematic",
   "based": null,
-  "works": []
+  "works": [
+   {
+    "title": "Поехали в путешествие🚂 #ии #нейросеть",
+    "author": " Смешанная Реальность",
+    "provider": "youtube",
+    "id": "q6j3U-81TlM",
+    "thumb": "https://i.ytimg.com/vi/q6j3U-81TlM/hqdefault.jpg"
+   },
+   {
+    "title": "Все изображения создала с помощью ии🤖 #ии #нейросеть #япония",
+    "author": " Смешанная Реальность",
+    "provider": "youtube",
+    "id": "-70mt3IhP3U",
+    "thumb": "https://i.ytimg.com/vi/-70mt3IhP3U/hqdefault.jpg"
+   },
+   {
+    "title": "Следующая остановка - Хогвартс🧙🏻 #ии #нейросеть #гаррипоттер",
+    "author": " Смешанная Реальность",
+    "provider": "youtube",
+    "id": "HSqfeCHB0rs",
+    "thumb": "https://i.ytimg.com/vi/HSqfeCHB0rs/hqdefault.jpg"
+   }
+  ]
  },
  {
   "name": "Man-Kha27",
   "social": "https://www.instagram.com/man_kha27/",
   "focus": "fashion, surreal, motion art",
-  "based": null,
-  "works": []
+  "based": "São Paulo, Brazil",
+  "works": [
+   {
+    "title": "Curtain Call",
+    "author": "Man-Kha27",
+    "provider": "youtube",
+    "id": "ZOH8EMqbz0Y",
+    "thumb": "https://i.ytimg.com/vi/ZOH8EMqbz0Y/hqdefault.jpg"
+   }
+  ]
  },
  {
   "name": "Rosa Lykiardopoulos / RIT.AI",

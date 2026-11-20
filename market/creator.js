@@ -34,7 +34,7 @@ function vLanding(m){
       h("p", { class: "lead" }, "Clients on Promptflix don't post jobs. They browse finished films by category and style, and hire the person who made them. Your portfolio is the pitch."),
       h("div", { class: "row" }, h("button", { class: "btn primary big", onclick: () => requireAuth(u => go(u.live ? "#/chats" : "#/apply")) }, "Apply to join"), h("a", { class: "btn big", href: "#/claim" }, "Claim your profile"))),
       h("p", { class: "hint" }, "Already making AI film? We may have built your profile from your public work. Claim it and clients can reach you."),
-    h("div", { class: "strip" }, ...DB.roster().slice(0, 10).map(c => tile(c.works[0], c, () => playWork(c.works[0], c))))));
+    h("div", { class: "strip" }, ...DB.filmed().slice(0, 10).map(c => tile(c.works[0], c, () => playWork(c.works[0], c))))));
   m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "The deal"), h("p", null, "Deposit before you start, watermarked previews until the final, revisions counted in the contract. Promptflix takes " + (COMMISSION * 100) + "% on each release; no listing fees, no bidding.")),
     h("div", { class: "kv", style: { maxWidth: "640px", fontSize: "15px" } }, h("dt", null, "Deposit"), h("dd", null, "Released to you the moment the client passes your first cut."), h("dt", null, "Balance"), h("dd", null, "Paid by the client to unlock the clean master. Released to you immediately."), h("dt", null, "If they walk"), h("dd", null, "A client who ends the contract after paying the deposit forfeits it to you."), h("dt", null, "If you walk"), h("dd", null, "The deposit is refunded and it counts against your " + BREAK_LIMIT + " breaks a month."))));
 }

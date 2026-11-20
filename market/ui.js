@@ -27,6 +27,11 @@ const me = () => DB.me();
 /* art: gradient fallback for works with no cover (e.g. a fresh upload); real works carry w[5].cover */
 const hueOf = id => (STYLES[id] || { hue: [40, 40] }).hue;
 function art(styleId, extra){ const [hue, sat] = hueOf(styleId); return h("div", { class: "art grain vig" + (extra ? " " + extra : ""), style: { "--h": hue, "--s": sat + "%" } }); }
+function monogram(c){ const a = art((c.styles || [])[0], "mono"); a.append(h("i", null, initials(c.name))); return a; }
+function face(c){   // creator card face: lead film, else the cover image from their own site, else a monogram
+  if (c.works && c.works.length) return cover(c.works[0]); if (!c.cover) return monogram(c);
+  const img = h("img", { src: c.cover, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" }); const box = h("div", { class: "art cover vig" }, img);
+  img.onerror = () => box.replaceWith(monogram(c)); return box; }   // card face for a creator with no film to show
 function cover(w, extra){
   const m = w && w[5]; if (!m || !m.cover) return art(w ? w[2] : null, extra);
   const img = h("img", { src: m.cover, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });

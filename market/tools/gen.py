@@ -52,7 +52,7 @@ for group in ["brand", "narrative", "experimental", "animation", "fashion", "ugc
         social = c["social"]; h = handle_of(social); src = "X" if "x.com" in social else ("LinkedIn" if "linkedin" in social else "Instagram")
         works = []
         for w in (c.get("works") or [])[:3]:
-            cover = f"https://i.ytimg.com/vi/{w['id']}/" + ("maxresdefault.jpg" if maxres.get(w["id"]) == "200" else "hqdefault.jpg") if w["provider"] == "youtube" else None
+            cover = f"https://i.ytimg.com/vi/{w['id']}/" + ("maxresdefault.jpg" if maxres.get(w["id"]) == "200" else "hqdefault.jpg") if w["provider"] == "youtube" else w.get("thumb")   # Vimeo: thumbnail_url from oEmbed
             m = {"cover": cover, "lb": cover.endswith("hqdefault.jpg") if cover else False, "link": f"https://www.youtube.com/watch?v={w['id']}" if w["provider"] == "youtube" else f"https://vimeo.com/{w['id']}", "on": "YouTube" if w["provider"] == "youtube" else "Vimeo", "by": w["author"]}
             m["yt" if w["provider"] == "youtube" else "vm"] = w["id"]
             works.append([w["title"], cats[0], styles[0], None, None, m])
@@ -74,32 +74,67 @@ for group in ["brand", "narrative", "experimental", "animation", "fashion", "ugc
             works = [lead] + [w for w in works if w is not lead]
         where, tz, region = place(c.get("based"), (xr or {}).get("location"))
         base = {"name": c["name"].split(" / ")[0] if group != "ugc" else c["name"].split(" / ")[0], "handle": h, "source": src, "social": social, "focus": c["focus"]}
-        if not works:
-            discovered.append({"id": "d_" + slug(h), "handle": ("@" if src != "LinkedIn" else "") + h, "name": base["name"], "source": src, "url": social,
-                               "followers": "—", "specialty": c["focus"], "status": "new"}); continue
+        # No embeddable film found (mostly Instagram-only people): still listed, with a monogram card and a link to their own page.
         creators.append({"id": "r_" + slug(h), "handle": h, "real": True, "claimed": False, "live": True, "email": None,
             "name": c["name"], "where": where or "", "tz": tz, "region": region, "source": src, "social": social,
             "bg": c["focus"][:1].upper() + c["focus"][1:] + ".", "tools": [], "cats": cats, "styles": styles, "fit": [],
             "ask": None, "closes": [], "est": est, "days": days, "rating": 0, "done": 0, "works": works,
             "avatar": (xr or {}).get("avatar") or None, "featured": c["name"] in FEATURED})
+# Second list: 300 freelancers from the outreach sheet (6 kinds x 50). Works and covers were scraped from each person's own portfolio page.
+OUTREACH = {  # sheet category prefix -> (cats, styles, est, days)
+  "Product demo": (["biz"], ["demo", "explainer", "hero"], [1000, 5000], 10),
+  "短剧":          (["duanju"], ["story", "hook", "cinematic"], [2000, 8000], 14),
+  "影游":          (["interactive"], ["story", "cinematic", "noir"], [3000, 10000], 21),
+  "UGC":          (["reels", "biz"], ["ugc", "hook", "trend"], [300, 1500], 4),
+  "AI film":      (["film"], ["cinematic", "noir", "story"], [3000, 8000], 14),
+  "Ads":          (["biz"], ["story", "hero", "cinematic"], [3000, 10000], 10),
+}
+TZ += [("USA", "", "UTC-5", "americas"), ("California", "", "UTC-8", "americas"), ("New York", "", "UTC-5", "americas"), ("Canada", "", "UTC-5", "americas"), ("UK", "", "UTC+0", "emea"),
+       ("Ukraine", "", "UTC+2", "emea"), ("Poland", "", "UTC+1", "emea"), ("Germany", "", "UTC+1", "emea"), ("France", "", "UTC+1", "emea"), ("Spain", "", "UTC+1", "emea"), ("Italy", "", "UTC+1", "emea"),
+       ("India", "", "UTC+5:30", "apac"), ("Australia", "", "UTC+10", "apac"), ("China", "", "UTC+8", "apac"), ("Japan", "", "UTC+9", "apac"), ("Brazil", "", "UTC-3", "americas")]
+have = {c["name"].lower() for c in creators}; ids = {c["id"] for c in creators}
+if os.path.exists(f"{D}/outreach300.json"):
+    for o in json.load(open(f"{D}/outreach300.json")):
+        cats, styles, est, days = next(v for k, v in OUTREACH.items() if o["cat"].startswith(k))
+        name = re.sub(r"\s*\(.*?\)\s*$", "", o["name"]).strip() or o["name"]
+        if name.lower() in have: continue
+        cid = "r_" + slug(name)
+        while cid in ids: cid += "x"
+        ids.add(cid); have.add(name.lower())
+        works = []
+        for w in o["works"][:3]:
+            yt = w["provider"] == "youtube"
+            m = {"cover": f"https://i.ytimg.com/vi/{w['id']}/hqdefault.jpg" if yt else w.get("thumb"), "lb": yt, "link": f"https://www.youtube.com/watch?v={w['id']}" if yt else f"https://vimeo.com/{w['id']}", "on": "YouTube" if yt else "Vimeo", "by": w["author"]}
+            m["yt" if yt else "vm"] = w["id"]
+            works.append([w["title"], cats[0], styles[0], None, None, m])
+        loc = o["loc"] or ""
+        _, tz, region = place(loc)
+        where = "" if re.search(r"not stated|^remote", loc, re.I) else re.sub(r"\s*\(.*?\)", "", loc)
+        focus = (o["focus"] or "").strip().rstrip(".")
+        creators.append({"id": cid, "handle": slug(name), "real": True, "claimed": False, "live": True, "email": None,
+            "name": name, "where": where, "tz": tz, "region": region, "source": "Portfolio", "social": o["site"],
+            "bg": (focus[:1].upper() + focus[1:] + ".") if focus else "", "tools": [], "cats": cats, "styles": styles, "fit": [],
+            "ask": None, "closes": [], "est": est, "days": days, "rating": 0, "done": 0, "works": works,
+            "cover": None if works else o.get("cover"), "avatar": None, "featured": False})
 # featured first (in FEATURED order), then round-robin by category so every page mixes kinds of work
 feat = sorted([c for c in creators if c["featured"]], key=lambda c: FEATURED.index(c["name"]))
+def mix(cs):
+    buckets, rr = {}, []
+    for c in cs: buckets.setdefault(c["cats"][0], []).append(c)
+    while any(buckets.values()):
+        for k in list(buckets):
+            if buckets[k]: rr.append(buckets[k].pop(0))
+    return rr
 rest = [c for c in creators if not c["featured"]]
-buckets = {}
-for c in rest: buckets.setdefault(c["cats"][0], []).append(c)
-rr = []
-while any(buckets.values()):
-    for k in list(buckets):
-        if buckets[k]: rr.append(buckets[k].pop(0))
-ordered = feat + rr
+ordered = feat + mix([c for c in rest if c["works"]]) + mix([c for c in rest if not c["works"] and c.get("cover")]) + mix([c for c in rest if not c["works"] and not c.get("cover")])   # films lead, then a cover from their site, then monograms
 for c in ordered: c.pop("featured")
 js = ("/* Real creators, generated from Jane's Notion list (Filmmaker Platform).\n"
-      "   Each work was verified on YouTube (oEmbed) or pulled from the creator's own X posts. None of these people has joined Promptflix:\n"
+      "   Each work was verified on YouTube (oEmbed) or pulled from the creator's own X posts; creators with no embeddable film have `works: []`. None of these people has joined Promptflix:\n"
       "   `claimed:false` profiles show an *estimated* range from the category (`est`), never a price they quoted. Regenerate rather than hand-edit. */\n"
       "const CREATORS = " + json.dumps(ordered, ensure_ascii=False, indent=0).replace("\n", "") + ";\n"
       "const DISCOVERED = " + json.dumps(discovered, ensure_ascii=False) + ";\n")
 js = js.replace("}, {", "},\n{")
 open(OUT, "w").write(js)
-print(len(ordered), "creators;", sum(len(c["works"]) for c in ordered), "works;", len(discovered), "discovered without video")
+print(len(ordered), "creators;", sum(len(c["works"]) for c in ordered), "works;", sum(1 for c in ordered if not c["works"]), "listed without a film")
 from collections import Counter
 print(Counter(c["cats"][0] for c in ordered), Counter(w[5]["on"] for c in ordered for w in c["works"]), sum(1 for c in ordered if c["tz"]), "with tz")
