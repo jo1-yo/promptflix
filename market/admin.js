@@ -1,4 +1,4 @@
-/* Promptflix Market — admin. Sign-in restricted to CONFIG.adminEmails.
+/* Rolvo Market — admin. Sign-in restricted to CONFIG.adminEmails.
    Overview (money, funnel, sign-in methods, activity), orders, payments in, payouts (creator balances and withdrawals),
    clients (manual verification), creators (joined, applying, unclaimed), discovery invites, trust (disputes, break limits),
    integrations (live vs demo). The rail groups them: money, people, system. */
@@ -7,7 +7,7 @@ const VIEWS = [[null, [["", "Overview"]]], ["Money", [["orders", "Orders"], ["pa
 
 function header(){
   const u = me();
-  mountHeader({ brand: "Promptflix", sub: "Admin", links: [],
+  mountHeader({ brand: "Rolvo", sub: "Admin", links: [],
     right: u && u.role === "admin" ? [h("a", { class: "btn quiet small", href: "../", target: "_blank" }, "Client site"), h("a", { class: "btn quiet small", href: "../creator/", target: "_blank" }, "Creator site"), h("button", { class: "btn quiet small", onclick: () => { DB.signOut(); go("#/"); render(); } }, "Sign out")] : [],
     home: "#/" });
 }
@@ -122,8 +122,8 @@ function vPayments(s, q){
     A.table([{ l: "When" }, { l: "Order" }, { l: "Client" }, { l: "Type" }, { l: "Reference" }, { l: "Mode" }, { l: "Card fee", right: 1 }, { l: "Amount", right: 1 }],
       P.map(p => { const o = DB.order(p.orderId); return h("tr", null, A.td(when(p.at), { cls: "muted" }), A.td(o ? h("a", { class: "link", href: "#/chat/" + o.id }, o.title) : p.orderId), A.td(DB.nameOf(p.uid)), A.td(p.kind + (p.method === "paypal" ? " · PayPal" : "")), A.td(h("code", { class: "ref" }, p.ref)), A.td(A.live(p.mode === "live")), A.td(p.fee ? money(p.fee) : "—", { right: 1, cls: "muted" }), A.td(money(p.amount), { right: 1 })); }),
       "No payments yet. Clients pay the deposit after both sides accept terms."));
-  const who = id => ["escrow", "promptflix", "bank"].includes(id) ? id : DB.nameOf(id);
-  s.append(h("div", { style: { marginTop: "44px" } }, A.title("Ledger", "Every movement of money: client, escrow, creator, Promptflix, bank."),
+  const who = id => id === "promptflix" ? "Rolvo" : ["escrow", "bank"].includes(id) ? id : DB.nameOf(id);   // "promptflix" stays the platform's id inside the ledger
+  s.append(h("div", { style: { marginTop: "44px" } }, A.title("Ledger", "Every movement of money: client, escrow, creator, Rolvo, bank."),
     A.table([{ l: "When" }, { l: "Order" }, { l: "Movement" }, { l: "From → to" }, { l: "Amount", right: 1 }],
       L.slice().reverse().map(t => h("tr", null, A.td(when(t.at), { cls: "muted" }), A.td(t.orderId ? (DB.order(t.orderId) || {}).title || t.orderId : "—"), A.td(t.type === "payout" ? "withdrawal" : t.type.replace(/_/g, " ")), A.td(who(t.from) + " → " + who(t.to), { cls: "muted" }), A.td(money(t.amount), { right: 1 }))), "Ledger is empty.")));
 }
@@ -168,12 +168,12 @@ function vCreators(s, q){
   const group = c => c.real ? (c.claimed ? "joined" : "unclaimed") : (c.live ? "joined" : "applying");
   const list = all.filter(c => (!q.s || group(c) === q.s) && (!term || [c.name, c.handle, c.email, c.phone].join(" ").toLowerCase().includes(term)));
   const n = k => all.filter(c => group(c) === k).length;
-  s.append(A.title("Creators", "On Promptflix = claimed a crawled profile or finished an application. Unclaimed profiles are built from public work; a client starting a project sends them an invite."),
-    h("div", { class: "toolrow" }, A.chips([["", "All", all.length], ["joined", "On Promptflix", n("joined")], ["applying", "Applying", n("applying")], ["unclaimed", "Unclaimed", n("unclaimed")]], q.s, "#/creators"), A.search(q.q, "#/creators", "Search name or handle")),
+  s.append(A.title("Creators", "On Rolvo = claimed a crawled profile or finished an application. Unclaimed profiles are built from public work; a client starting a project sends them an invite."),
+    h("div", { class: "toolrow" }, A.chips([["", "All", all.length], ["joined", "On Rolvo", n("joined")], ["applying", "Applying", n("applying")], ["unclaimed", "Unclaimed", n("unclaimed")]], q.s, "#/creators"), A.search(q.q, "#/creators", "Search name or handle")),
     A.table([{ l: "Creator" }, { l: "Status" }, { l: "Sign-in" }, { l: "Works", right: 1 }, { l: "Orders", right: 1 }, { l: "Rates" }, { l: "" }],
       list.slice(0, 200).map(c => { const g = group(c); return h("tr", null,
         A.td(h("div", { class: "row", style: { gap: "10px", flexWrap: "nowrap" } }, h("span", { class: "thumb" }, cover(c.works[0])), h("div", null, h("b", { style: { fontWeight: 500 } }, c.name || "(no name yet)"), h("small", { class: "dim", style: { display: "block" } }, c.handle ? "@" + c.handle + (c.source ? " · " + c.source : "") : "new application")))),
-        A.td(h("span", { class: g === "joined" ? "ok" : g === "applying" ? "warn" : "dim" }, g === "joined" ? "On Promptflix" : g === "applying" ? "Applying" : c.invitedAt ? "Invited " + ago(c.invitedAt) : "Unclaimed")),
+        A.td(h("span", { class: g === "joined" ? "ok" : g === "applying" ? "warn" : "dim" }, g === "joined" ? "On Rolvo" : g === "applying" ? "Applying" : c.invitedAt ? "Invited " + ago(c.invitedAt) : "Unclaimed")),
         A.td(c.claimed || !c.real ? A.login(c) : "—", { cls: "muted" }), A.td(c.works.length, { right: 1 }), A.td(DB.state.orders.filter(o => o.creatorId === c.id).length || "—", { right: 1 }), A.td(c.ask ? money(c.ask) + "+" : rangeText(c) + " est.", { cls: "muted" }),
         A.td(g === "unclaimed" && !c.invitedAt ? h("button", { class: "btn small", onclick: () => { DB.inviteCreator(c.id); toast("Invite queued for " + c.name); render(); } }, "Invite") : c.social ? h("a", { class: "link small", href: c.social, target: "_blank", rel: "noopener" }, c.source + " ↗") : null)); }),
       "No creators match."));
@@ -216,7 +216,7 @@ function vIntegrations(s){
       row("Payouts · Stripe Connect", LIVE.stripe, "Each creator gets a Stripe Express account. Stripe's page collects their bank account or debit card; releases are transfers; Withdraw is a payout.", "Same Stripe account with Connect turned on, plus Supabase sign-in so the function knows which creator is asking. The code has not been run against Stripe yet.")),
     h("div", { style: { marginTop: "36px" } }, h("span", { class: "eyebrow" }, "Data in this browser"),
       h("div", { class: "row", style: { marginTop: "12px" } },
-        h("button", { class: "btn", onclick: () => { const a = h("a", { href: URL.createObjectURL(new Blob([JSON.stringify(DB.state, null, 2)], { type: "application/json" })), download: "promptflix-market-" + new Date().toISOString().slice(0, 10) + ".json" }); a.click(); } }, "Export JSON"),
+        h("button", { class: "btn", onclick: () => { const a = h("a", { href: URL.createObjectURL(new Blob([JSON.stringify(DB.state, null, 2)], { type: "application/json" })), download: "rolvo-market-" + new Date().toISOString().slice(0, 10) + ".json" }); a.click(); } }, "Export JSON"),
         h("button", { class: "btn quiet", onclick: async () => { if (!confirm("Reset all demo data in this browser?")) return; await Files.clear(); DB.reset(); go("#/"); render(); } }, "Reset demo data"))));
 }
 

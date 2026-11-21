@@ -1,4 +1,4 @@
-# Promptflix
+# Rolvo
 
 A marketplace for AI filmmakers. Clients find the person who made a film they liked, pay into escrow, review watermarked cuts and release payment on approval.
 
@@ -34,7 +34,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | [`market/privacy/`](market/privacy/) · [`market/terms/`](market/terms/) | Privacy policy and terms (needed for Google sign-in branding). |
 | [`market/server/`](market/server/) | Payments Edge Function (Deno) and SQL for Supabase. Not deployed. |
 | [`market/tools/`](market/tools/) | Python pipeline that builds `market/creators.js` from research data. |
-| [`select/`](select/) | Promptflix Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
+| [`select/`](select/) | Rolvo Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
 | [`index.html`](index.html) · [`schema.sql`](schema.sql) | The original feed app (swipe through AI videos, send a hire request) and its Supabase schema. |
 | [`scripts/check.mjs`](scripts/check.mjs) | Repo checks, run locally and in CI. |
 | [`.github/workflows/`](.github/workflows/) | CI: `check` (required), `claude-review`, `claude` (`@claude` mentions). |
@@ -65,7 +65,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 **Payments** ([`market/pay.js`](market/pay.js), [`market/server/functions/payments/index.ts`](market/server/functions/payments/index.ts))
 - Stripe Payment Element (cards) and PayPal JS SDK Buttons (PayPal balance only; PayPal's own card option is turned off so all cards go through Stripe).
 - Server: one Supabase Edge Function (Deno, no dependencies) that creates Stripe PaymentIntents, creates and captures PayPal orders, verifies the Stripe webhook signature (HMAC SHA-256), and records payments in `market_payments`.
-- Card numbers never touch Promptflix.
+- Card numbers never touch Rolvo.
 
 **Backend (planned):** Supabase. Postgres with row-level security, Auth, Storage, Edge Functions. Schema so far: [`market/server/market.sql`](market/server/market.sql) (accounts, sign-in log, orders, payments).
 
@@ -95,7 +95,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | --- | --- | --- | --- |
 | Client | `/market/` | Startups, brands, agencies and studios hiring AI filmmakers | `merchant.js` (`APP = "merchant"`) |
 | Creator | `/market/creator/` | Filmmakers: claim a crawled profile or apply, then work orders from an inbox | `creator.js` (`APP = "creator"`) |
-| Admin | `/market/admin/` | The Promptflix team: money, verification, discovery, disputes | `admin.js` (`APP = "admin"`) |
+| Admin | `/market/admin/` | The Rolvo team: money, verification, discovery, disputes | `admin.js` (`APP = "admin"`) |
 
 Script load order on every site: `seed.js` → `creators.js` → `config.js` → `store.js` → `ui.js` → `auth.js` → `pay.js` → `voice.js` → the site script. The site script defines `APP` and calls `bootShared()`.
 
@@ -110,7 +110,7 @@ revising ──revision (up to the agreed count)──▶ revising ──approve
 Either side can end early at any stage: cancelled (counts toward the 10-per-30-days break limit).
 ```
 
-Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escrow.balance` is `none | released`. Promptflix keeps 1% (`FEES.commission`) of every release; the client pays the card fee on top (`FEES.card`); creators withdraw free, or instantly for 1% (`FEES.instant`). All money rules are the `FEES` object at the top of `store.js`. Each payment is recorded with method (`card` / `paypal`), processor reference and `live` / `demo` mode.
+Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escrow.balance` is `none | released`. Rolvo keeps 1% (`FEES.commission`) of every release; the client pays the card fee on top (`FEES.card`); creators withdraw free, or instantly for 1% (`FEES.instant`). All money rules are the `FEES` object at the top of `store.js`. Each payment is recorded with method (`card` / `paypal`), processor reference and `live` / `demo` mode.
 
 **What a client does**
 
@@ -127,7 +127,7 @@ Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escr
 
 **Admin views:** Overview (money, funnel, sign-ins and payments by method, needs attention, activity) · Orders · Payments · Clients (one-click Verify / Revoke) · Creators · Discovery (crawled profiles and invites) · Trust (early endings, failed pre-reviews, break limits) · Integrations (which pieces are live or demo).
 
-**Creators on the site:** 87 real people from the team's research list, across brand ads, narrative film, experimental and music video, animation and AI UGC. Covers and players come from their own YouTube uploads (IDs checked with oEmbed) or their own X posts. None has joined Promptflix: profiles say so, and prices are labelled estimates. 33 more handles with no public video (mostly Instagram-only fashion creators) wait in admin Discovery. Rebuild with [`market/tools/README.md`](market/tools/README.md).
+**Creators on the site:** 87 real people from the team's research list, across brand ads, narrative film, experimental and music video, animation and AI UGC. Covers and players come from their own YouTube uploads (IDs checked with oEmbed) or their own X posts. None has joined Rolvo: profiles say so, and prices are labelled estimates. 33 more handles with no public video (mostly Instagram-only fashion creators) wait in admin Discovery. Rebuild with [`market/tools/README.md`](market/tools/README.md).
 
 ## Run it locally
 
@@ -154,7 +154,7 @@ In demo mode no email or SMS is sent: the 6-digit code appears on screen.
 | `dev@northstar.app` | Email code | Verified client, straight to projects |
 | `mia@lumen.coffee` | Email code | Client who still has onboarding to do |
 | A real creator | Creator site → **Claim profile** → search a name → any login | Their crawled profile becomes an account with an inbox |
-| `team@promptflix.demo` | Admin site, email code or Google | The admin backend. Other addresses are refused |
+| `team@rolvo.demo` | Admin site, email code or Google | The admin backend. Other addresses are refused |
 
 ## Configuration
 
@@ -182,7 +182,7 @@ Sign-in uses Google's own "Continue with Google" button. Clicking it opens Googl
 2. Authorized JavaScript origins: `http://localhost`, `http://localhost:8131` and `https://imjane.top`. No redirect URI is needed. Copy the client ID (the secret is only for Supabase, step 5).
 3. Paste the client ID into `googleClientId`. The button now works, but the token is only checked in the browser. That's fine for a prototype; it isn't proof of identity for orders or money.
 4. **Audience:** while the app is in Testing, only listed test users can sign in. Click **Publish app** to open it to everyone. It only asks for name, email and picture (non-sensitive scopes), so Google doesn't need to review it.
-5. **Branding:** set the home page `https://imjane.top/promptflix/market/`, privacy policy `https://imjane.top/promptflix/market/privacy/`, terms `https://imjane.top/promptflix/market/terms/`, and authorized domain `imjane.top` (verify it in Google Search Console). Brand verification then shows the Promptflix name and logo on Google's screen.
+5. **Branding:** set the home page `https://imjane.top/promptflix/market/`, privacy policy `https://imjane.top/promptflix/market/privacy/`, terms `https://imjane.top/promptflix/market/terms/`, and authorized domain `imjane.top` (verify it in Google Search Console). Brand verification then shows the Rolvo name and logo on Google's screen.
 6. **Server-checked sessions:** with `supabaseUrl` and `supabaseKey` also set, each Google token goes to Supabase (`signInWithIdToken`), which checks Google's signature, our client ID and a one-time nonce before opening a session. In Supabase → Authentication → Sign In / Providers → Google, enable it and paste the same client ID and its secret. Google's screen then names imjane.top, not supabase.co.
 
 Google sign-in is free and doesn't use Google Cloud credits or need billing.
@@ -192,6 +192,7 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
 1. Create a Supabase project. Set `supabaseUrl` and `supabaseKey` (the publishable key). Free projects pause after a week without traffic; use a paid plan once real users depend on it.
 2. Email: in Authentication → Email Templates, put `{{ .Token }}` in the magic-link template so users get a 6-digit code. Add custom SMTP before launch, because the built-in sender is rate-limited.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
+   Live, the email and phone tabs stay hidden until `emailCodes` / `smsCodes` are `true` in `config.js`. Supabase's built-in mailer only delivers to your own team, so email codes also need custom SMTP. Until then the sign-in sheet shows Google only.
 4. Add `https://imjane.top/promptflix/market/` to Authentication → URL Configuration → Redirect URLs.
 
 **Accounts in the database**
@@ -224,7 +225,7 @@ Stripe setup, done by whoever legally owns the account (in the US an individual 
 - In Connect settings, set the instant payout fee creators pay (1%) if you want it collected by Stripe.
 - Non-US creators are onboarded as cross-border "recipient" accounts. Which countries Stripe supports changes; Stripe returns an error for the rest, and those creators need another route.
 
-Card numbers never touch Promptflix: Stripe's Payment Element and PayPal's buttons collect them. The server part is one Supabase Edge Function, [`market/server/functions/payments`](market/server/functions/payments/index.ts).
+Card numbers never touch Rolvo: Stripe's Payment Element and PayPal's buttons collect them. The server part is one Supabase Edge Function, [`market/server/functions/payments`](market/server/functions/payments/index.ts).
 
 1. Run [`market/server/market.sql`](market/server/market.sql) in the Supabase SQL editor.
 2. Deploy the function:

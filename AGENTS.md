@@ -4,7 +4,7 @@ Instructions for AI coding agents (Claude Code, Codex, Cursor, Copilot…) and h
 
 ## What this is
 
-Promptflix: a marketplace for AI filmmakers. Static site on GitHub Pages, no build step. The marketplace is in `market/`. It is a working prototype: data lives in the browser (`localStorage` + IndexedDB) and payments and sign-in run in demo mode until keys are set in `market/config.js`.
+Rolvo: a marketplace for AI filmmakers. Static site on GitHub Pages, no build step. The marketplace is in `market/`. It is a working prototype: data lives in the browser (`localStorage` + IndexedDB) and payments and sign-in run in demo mode until keys are set in `market/config.js`.
 
 ## Hard rules
 

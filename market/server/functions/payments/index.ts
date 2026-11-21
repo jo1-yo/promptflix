@@ -1,4 +1,4 @@
-// Promptflix Market — payments server (Supabase Edge Function, Deno).
+// Rolvo Market — payments server (Supabase Edge Function, Deno).
 // Deploy: supabase functions deploy payments --no-verify-jwt   (see README.md → Going live)
 //
 // Actions (POST JSON):
@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       const p = await caller(req); creatorOnly(p); if (!p.stripe_account) throw new Error("Add a payout method first");
       const amount = Number(b.amount); if (!Number.isFinite(amount) || amount < 1) throw new Error("Bad amount");
       // Stripe refuses anything above the available balance, so the balance can't be overdrawn from here.
-      const po = await stripe("payouts", { amount: String(Math.round(amount * 100)), currency: "usd", method: b.instant ? "instant" : "standard", description: "Promptflix withdrawal" }, { account: p.stripe_account });
+      const po = await stripe("payouts", { amount: String(Math.round(amount * 100)), currency: "usd", method: b.instant ? "instant" : "standard", description: "Rolvo withdrawal" }, { account: p.stripe_account });
       return json({ id: po.id, status: po.status, arrival: po.arrival_date });
     }
     if (b.action === "connect_release") {
@@ -168,12 +168,12 @@ Deno.serve(async (req) => {
     if (!b.orderId || !["deposit", "balance"].includes(b.kind)) return json({ error: "orderId and kind required" }, 400);
     if (b.action === "stripe_intent") {
       const amount = await expectedAmount(b.orderId, b.kind, Number(b.amount));
-      const pi = await stripe("payment_intents", { amount: String(withCardFee(amount)), currency: "usd", "metadata[order_amount]": String(amount), "automatic_payment_methods[enabled]": "true", transfer_group: b.orderId, "metadata[order_id]": b.orderId, "metadata[kind]": b.kind, description: `Promptflix ${b.kind} · ${b.orderId}` });
+      const pi = await stripe("payment_intents", { amount: String(withCardFee(amount)), currency: "usd", "metadata[order_amount]": String(amount), "automatic_payment_methods[enabled]": "true", transfer_group: b.orderId, "metadata[order_id]": b.orderId, "metadata[kind]": b.kind, description: `Rolvo ${b.kind} · ${b.orderId}` });
       return json({ clientSecret: pi.client_secret, id: pi.id });
     }
     if (b.action === "paypal_create") {
       const amount = await expectedAmount(b.orderId, b.kind, Number(b.amount));
-      const o = await pp("/v2/checkout/orders", { intent: "CAPTURE", purchase_units: [{ reference_id: b.orderId, custom_id: b.kind, description: `Promptflix ${b.kind}`, amount: { currency_code: "USD", value: (withCardFee(amount) / 100).toFixed(2) } }] });
+      const o = await pp("/v2/checkout/orders", { intent: "CAPTURE", purchase_units: [{ reference_id: b.orderId, custom_id: b.kind, description: `Rolvo ${b.kind}`, amount: { currency_code: "USD", value: (withCardFee(amount) / 100).toFixed(2) } }] });
       return json({ id: o.id });
     }
     if (b.action === "paypal_capture") {

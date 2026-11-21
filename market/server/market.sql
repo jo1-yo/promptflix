@@ -1,4 +1,4 @@
--- Promptflix Market — database. Run the whole file once in the Supabase SQL editor (safe to run again).
+-- Rolvo Market — database. Run the whole file once in the Supabase SQL editor (safe to run again).
 --
 -- Part 1 · Accounts. Every sign-up (Google, email code, phone code) gets a row in market_profiles; every sign-in a row in
 -- market_logins. The site calls market_enter() right after Supabase Auth succeeds (see market/auth.js → Cloud).

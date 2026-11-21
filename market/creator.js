@@ -1,4 +1,4 @@
-/* Promptflix Market — creator site. Public pitch; sign in → application → dashboard (inbox, profile, payouts). */
+/* Rolvo Market — creator site. Public pitch; sign in → application → dashboard (inbox, profile, payouts). */
 const APP = "creator";
 let W = {};
 const CATS = Object.keys(TAXONOMY);
@@ -8,7 +8,7 @@ function header(){
   const links = live ? [["#/chats", "Inbox", n], ["#/profile", "Profile"], ["#/payouts", "Wallet"]] : [["#/", "Home"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]];
   const right = u ? [live ? h("a", { class: "btn quiet small", href: "#/creator-preview" }, "View public profile") : null, h("a", { href: "#/profile", "aria-label": "Profile" }, avatar(u))]
     : [h("button", { class: "btn quiet small", onclick: () => openSignIn(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Sign in"), h("button", { class: "btn primary small", onclick: () => requireAuth(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Apply")];
-  mountHeader({ brand: "Promptflix", sub: "For creators", links, right, home: live ? "#/chats" : "#/" });
+  mountHeader({ brand: "Rolvo", sub: "For creators", links, right, home: live ? "#/chats" : "#/" });
 }
 function render(){
   header();
@@ -31,11 +31,11 @@ function vLanding(m){
   m.append(h("section", { class: "wrap hero" },
     h("div", { class: "stack", style: { gap: "22px" } },
       h("h1", null, "Get hired for the work you've ", h("em", null, "already made"), "."),
-      h("p", { class: "lead" }, "Clients on Promptflix don't post jobs. They browse finished films by category and style, and hire the person who made them. Your portfolio is the pitch."),
+      h("p", { class: "lead" }, "Clients on Rolvo don't post jobs. They browse finished films by category and style, and hire the person who made them. Your portfolio is the pitch."),
       h("div", { class: "row" }, h("button", { class: "btn primary big", onclick: () => requireAuth(u => go(u.live ? "#/chats" : "#/apply")) }, "Apply to join"), h("a", { class: "btn big", href: "#/claim" }, "Claim your profile"))),
       h("p", { class: "hint" }, "Already making AI film? We may have built your profile from your public work. Claim it and clients can reach you."),
     h("div", { class: "strip" }, ...DB.filmed().slice(0, 10).map(c => tile(c.works[0], c, () => playWork(c.works[0], c))))));
-  m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "The deal"), h("p", null, "Deposit before you start, watermarked previews until the final, revisions counted in the contract. Promptflix takes " + (COMMISSION * 100) + "% on each release; no listing fees, no bidding.")),
+  m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "The deal"), h("p", null, "Deposit before you start, watermarked previews until the final, revisions counted in the contract. Rolvo takes " + (COMMISSION * 100) + "% on each release; no listing fees, no bidding.")),
     h("div", { class: "kv", style: { maxWidth: "640px", fontSize: "15px" } }, h("dt", null, "Deposit"), h("dd", null, "Released to you the moment the client passes your first cut."), h("dt", null, "Balance"), h("dd", null, "Paid by the client to unlock the clean master. Released to you immediately."), h("dt", null, "If they walk"), h("dd", null, "A client who ends the contract after paying the deposit forfeits it to you."), h("dt", null, "If you walk"), h("dd", null, "The deposit is refunded and it counts against your " + BREAK_LIMIT + " breaks a month."))));
 }
 
@@ -173,7 +173,7 @@ function drawWallet(body, c, st){
   const rows = DB.walletRows(c.id);
   const methodCard = !m
     ? h("div", { class: "card" }, h("span", { class: "eyebrow" }, "Payout method"),
-        h("p", { class: "muted" }, st.submitted ? "Stripe is still checking your details. This usually takes a few minutes." : "Add the bank account or debit card your money goes to. You enter it on Stripe's secure page; Promptflix never sees the numbers."),
+        h("p", { class: "muted" }, st.submitted ? "Stripe is still checking your details. This usually takes a few minutes." : "Add the bank account or debit card your money goes to. You enter it on Stripe's secure page; Rolvo never sees the numbers."),
         h("div", null, h("button", { class: "btn primary", onclick: () => methodSheet(c) }, st.submitted ? "Continue on Stripe" : "Add payout method")))
     : h("div", { class: "card" }, h("span", { class: "eyebrow" }, "Payout method"),
         h("div", { class: "row between", style: { gap: "16px", flexWrap: "wrap" } },
@@ -184,7 +184,7 @@ function drawWallet(body, c, st){
       h("div", { class: "wcard main" }, h("span", { class: "eyebrow" }, "Available"), h("b", { class: "wnum" }, money(st.available)),
         h("div", null, h("button", { class: "btn primary", disabled: !canWithdraw, onclick: () => withdrawSheet(c, st) }, "Withdraw")),
         h("span", { class: "hint" }, !st.ready ? "Add a payout method to withdraw." : st.available < FEES.minPayout ? "Smallest withdrawal is " + money(FEES.minPayout) + "." : "Standard is free. Instant costs " + FEES.instant * 100 + "%.")),
-      h("div", { class: "wcard" }, h("span", { class: "eyebrow" }, "On hold"), h("b", { class: "wnum sm" }, money(st.pending)), h("span", { class: "hint" }, "Deposits held by Promptflix until the client passes your first cut.")),
+      h("div", { class: "wcard" }, h("span", { class: "eyebrow" }, "On hold"), h("b", { class: "wnum sm" }, money(st.pending)), h("span", { class: "hint" }, "Deposits held by Rolvo until the client passes your first cut.")),
       h("div", { class: "wcard" }, h("span", { class: "eyebrow" }, "Earned"), h("b", { class: "wnum sm" }, money(st.earned)), h("span", { class: "hint" }, "After the " + FEES.commission * 100 + "% platform fee. " + money(st.withdrawn) + " withdrawn."))),
     methodCard,
     h("div", null, h("span", { class: "eyebrow" }, "Activity"),
@@ -222,7 +222,7 @@ function withdrawSheet(c, st){
       closeSheet(); toast(instant ? "On its way. It should arrive within minutes." : "On its way. Expect it in 1 to 2 business days."); render(); } },
     field("Amount (USD)", amount, money(st.available) + " available"), seg, sum, btn,
     st.method.instant ? null : h("p", { class: "hint" }, "Instant payouts need a debit card as your payout method."));
-  openSheet([phead("Withdraw", "From your Promptflix balance to your own account."), f]);
+  openSheet([phead("Withdraw", "From your Rolvo balance to your own account."), f]);
 }
 function vPreview(m){
   const c = me(); if (!c) return requireAuth(() => render());

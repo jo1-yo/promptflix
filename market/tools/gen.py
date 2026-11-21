@@ -131,7 +131,7 @@ rest = [c for c in creators if not c["featured"]]
 ordered = feat + mix([c for c in rest if c["works"]]) + mix([c for c in rest if not c["works"] and c.get("cover")]) + mix([c for c in rest if not c["works"] and not c.get("cover")])   # films lead, then a cover from their site, then monograms
 for c in ordered: c.pop("featured")
 js = ("/* Real creators, generated from Jane's Notion list (Filmmaker Platform).\n"
-      "   Each work was verified on YouTube (oEmbed) or pulled from the creator's own X posts; creators with no embeddable film have `works: []`. None of these people has joined Promptflix:\n"
+      "   Each work was verified on YouTube (oEmbed) or pulled from the creator's own X posts; creators with no embeddable film have `works: []`. None of these people has joined Rolvo:\n"
       "   `claimed:false` profiles show an *estimated* range from the category (`est`), never a price they quoted. Regenerate rather than hand-edit. */\n"
       "const CREATORS = " + json.dumps(ordered, ensure_ascii=False, indent=0).replace("\n", "") + ";\n"
       "const DISCOVERED = " + json.dumps(discovered, ensure_ascii=False) + ";\n")

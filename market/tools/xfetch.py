@@ -4,7 +4,7 @@ def get(u):
     import subprocess
     for i in range(4):
         try:
-            d = json.loads(subprocess.run(["curl","-s","-m","20","-A","promptflix-prototype/0.1",u],capture_output=True,text=True).stdout)
+            d = json.loads(subprocess.run(["curl","-s","-m","20","-A","rolvo-prototype/0.1",u],capture_output=True,text=True).stdout)
             if d.get("code") == 200 and (d.get("user") or d.get("results")): return d
         except Exception: pass
         time.sleep(3 * (i + 1))

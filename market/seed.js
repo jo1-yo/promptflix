@@ -1,4 +1,4 @@
-/* Promptflix Market — seed data.
+/* Rolvo Market — seed data.
    Taxonomy, styles, brief lexicon, demo clients. Creators are in creators.js. Prices are USD. */
 
 // Big categories. `ask` is the follow-up question; `options` its answers; each option lists 4 styles to A/B.
@@ -135,7 +135,7 @@ const USERS = [
   { id:"u_mia", role:"client", name:"Mia Chen", org:"Lumen Coffee", type:"dtc", email:"mia@lumen.coffee", onboarded:false },
   { id:"u_dev", role:"client", name:"Dev Raman", org:"Northstar", type:"startup", email:"dev@northstar.app", onboarded:true, verified:true,
     profile:{ role:"Head of Growth", website:"northstar.app", size:"11-50", type:"startup", industry:"Fintech SaaS", goal:"Launch film for our new invoicing product", budget:"2000-5000", cadence:"monthly", cat:"biz", opt:"software", styles:["story","demo"] } },
-  { id:"u_admin", role:"admin", name:"Promptflix team", email:"team@promptflix.demo" },
+  { id:"u_admin", role:"admin", name:"Rolvo team", email:"team@rolvo.demo" },
 ];
 
 const SAMPLE_CLIP = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"; // CC0 sample used by "Use a sample clip"
