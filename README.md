@@ -192,6 +192,7 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
 1. Create a Supabase project. Set `supabaseUrl` and `supabaseKey` (the publishable key). Free projects pause after a week without traffic; use a paid plan once real users depend on it.
 2. Email: in Authentication → Email Templates, put `{{ .Token }}` in the magic-link template so users get a 6-digit code. Add custom SMTP before launch, because the built-in sender is rate-limited.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
+   Live, the email and phone tabs stay hidden until `emailCodes` / `smsCodes` are `true` in `config.js`. Supabase's built-in mailer only delivers to your own team, so email codes also need custom SMTP. Until then the sign-in sheet shows Google only.
 4. Add `https://imjane.top/promptflix/market/` to Authentication → URL Configuration → Redirect URLs.
 
 **Accounts in the database**

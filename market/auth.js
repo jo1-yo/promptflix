@@ -88,7 +88,11 @@ const Auth = {
   /* opts: { onIdentity, methods: ["google","email","phone"], hint } */
   open(then, copy, opts = {}){
     this.pending = { then, onIdentity: opts.onIdentity };
-    const methods = opts.methods || ["google", "email", "phone"];
+    // Live, a method shows only once it's switched on in config.js: email codes need Supabase's code template and our own SMTP,
+    // phone codes need an SMS provider. Google needs nothing more.
+    let methods = (opts.methods || ["google", "email", "phone"]).filter(m => !LIVE.auth || m === "google" || (m === "email" ? CONFIG.emailCodes : CONFIG.smsCodes));
+    if (!methods.length) methods = ["google"];
+    const codes = methods.includes("email") || methods.includes("phone");
     let tab = methods.includes("email") ? "email" : "phone";
     const box = h("div", { class: "auth" });
     const draw = () => {
@@ -102,14 +106,14 @@ const Auth = {
         methods.includes("email") && methods.includes("phone") ? h("div", { class: "seg", role: "tablist" }, ...[["email", "Email"], ["phone", "Phone"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(tab === k), onclick: () => { tab = k; draw(); } }, l))) : null,
         tab === "email" ? field("Email", email) : field("Mobile number", h("div", { class: "tel" }, cc, num)),
         h("button", { class: "btn primary big", type: "submit" }, "Continue"));
-      box.replaceChildren(
+      box.replaceChildren(...[   // filter: replaceChildren would print "null" for the parts left out
         methods.includes("google") ? (CONFIG.googleClientId ? this.gsiButton(box, draw) : h("button", { class: "btn big gbtn", type: "button", onclick: () => this.google(box, draw) }, googleIcon(), "Continue with Google")) : null,
-        methods.includes("google") ? h("div", { class: "or" }, h("span", null, "or")) : null,
-        f,
+        methods.includes("google") && codes ? h("div", { class: "or" }, h("span", null, "or")) : null,
+        codes ? f : null,
         h("p", { class: "hint" }, opts.hint || "New here? The same step creates your account. No password."),
         h("p", { class: "hint legal" }, "By continuing you agree to the ", h("a", { href: legalBase() + "terms/", target: "_blank", class: "link" }, "Terms"), " and ", h("a", { href: legalBase() + "privacy/", target: "_blank", class: "link" }, "Privacy Policy"), "."),
-        this.mode() === "demo" ? h("p", { class: "hint demo" }, "Demo mode: no email or SMS is sent" + (LIVE.google ? "" : " and Google isn't connected") + ". Codes appear on screen.") : null);
-      setTimeout(() => (tab === "email" ? email : num).focus(), 30);
+        this.mode() === "demo" ? h("p", { class: "hint demo" }, "Demo mode: no email or SMS is sent" + (LIVE.google ? "" : " and Google isn't connected") + ". Codes appear on screen.") : null].filter(Boolean));
+      if (codes) setTimeout(() => (tab === "email" ? email : num).focus(), 30);
     };
     draw();
     openSheet([phead(copy && copy.title || "Sign in or create an account", copy && copy.sub || (APP === "merchant" ? "Contacting a creator needs an account. A few questions about you and the job come next." : null)), box]);
