@@ -792,3 +792,7 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 .assist-act:hover{background:#3a3932}
 .assist-act i{width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:15px}
 #films{min-height:100vh}   /* a short or empty tag never makes the page shorter than where the visitor is */
+/* link-only work (Instagram, LinkedIn, X…): opens at the source */
+.linkstage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;aspect-ratio:16/9;max-height:70vh;padding:24px;text-align:center;border-radius:var(--r);background:var(--line,rgba(0,0,0,.06));color:inherit;text-decoration:none}
+.linkstage b{font-size:20px}.linkstage small{opacity:.6;word-break:break-all}
+.linkstage:hover b{text-decoration:underline}

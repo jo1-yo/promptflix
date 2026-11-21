@@ -119,12 +119,13 @@ function hoverPlay(el, w){
   el.addEventListener("mouseleave", () => { clearTimeout(t); if (node){ node.remove(); node = null; } });
   return el;
 }
-function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
+function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), !w[5] ? h("span", { class: "tag" }, STYLES[w[2]].name) : !(w[5].yt || w[5].vm || w[5].mp4 || w[5].cover) && w[5].on ? h("span", { class: "tag" }, w[5].on) : null, w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
 async function playWork(w, c, cta){
   const m = w[5] || {};
   let player;
   if (m.yt) player = h("iframe", { src: `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&rel=0&playsinline=1`, allow: "autoplay; encrypted-media; picture-in-picture; fullscreen", allowfullscreen: true, referrerpolicy: "strict-origin-when-cross-origin", title: w[0] });
   else if (m.vm) player = h("iframe", { src: `https://player.vimeo.com/video/${m.vm}?autoplay=1`, allow: "autoplay; fullscreen; picture-in-picture", allowfullscreen: true, referrerpolicy: "strict-origin-when-cross-origin", title: w[0] });
+  else if (m.link && !m.mp4) player = h("a", { class: "linkstage", href: m.link, target: "_blank", rel: "noopener" }, h("span", { class: "eyebrow" }, m.on), h("b", null, "View on " + m.on + " ↗"), h("small", null, m.link.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)));
   else player = h("video", { src: m.mp4 || await workSrc(w), poster: m.cover || "", controls: true, autoplay: true, playsinline: true });
   const meta = [c.name, TAXONOMY[w[1]].name, w[3] ? w[3] + "s" : null].filter(Boolean).join(" · ");
   const credit = m.link ? h("a", { class: "link small", href: m.link, target: "_blank", rel: "noopener" }, "Watch on " + m.on + (m.by && m.by !== c.name && m.by !== "@" + c.handle ? " · uploaded by " + m.by : "") + " ↗") : (w[4] ? null : h("span", { class: "small dim" }, "Demo uses a stock clip"));
