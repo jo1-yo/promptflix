@@ -7,6 +7,7 @@ const CONFIG = {
                             // With Supabase set too, the Google token is verified server-side; alone it's a browser-only prototype.
   emailCodes: false,        // live: show "sign in with an email code". Turn on after Supabase → Emails has {{ .Token }} and custom SMTP
   smsCodes: false,          // live: show "sign in with a phone code". Turn on after an SMS provider (Twilio Verify) is connected
+  codeLength: 6,            // digits in the email / SMS code; must match Supabase → Authentication → Email / Phone → OTP length
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
