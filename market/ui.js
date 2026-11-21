@@ -88,10 +88,9 @@ const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
 for (const o of ["https://www.youtube-nocookie.com", "https://i.ytimg.com", "https://player.vimeo.com", "https://video.twimg.com"]) document.head.append(Object.assign(document.createElement("link"), { rel: "preconnect", href: o }));
-/* Muted in-place preview of a film. YouTube draws its title, logo, buttons and captions over the first seconds of every embed
-   and they cannot be switched off, so the frame stays behind the cover until the player reports it has been playing long
-   enough for them to fade (about three seconds). A film that refuses to embed reports an error and the cover simply stays.
-   The frame is also three times the box height, which keeps the top and bottom bars outside the visible third. */
+/* Muted in-place preview of a film. It shows the moment the player reports it is playing; YouTube's own title and logo may
+   be visible for the first seconds. A film that refuses to embed reports an error and the cover simply stays.
+   The frame is three times the box height, which keeps YouTube's top and bottom bars outside the visible third. */
 const YT_PLAYERS = new WeakMap(); let ytBound = false;
 function previewNode(m, fit){
   if (!m || !(m.yt || m.vm || m.mp4)) return null;
@@ -107,7 +106,7 @@ function previewNode(m, fit){
   f.addEventListener("load", () => { YT_PLAYERS.set(f.contentWindow, d => {
       if (d.event === "onError") return box.remove();
       const st = d.event === "onStateChange" ? d.info : d.info && d.info.playerState;
-      if (st === 1 && !started){ started = true; say({ event: "command", func: "unloadModule", args: ["captions"] }); setTimeout(show, 3200); } });
+      if (st === 1 && !started){ started = true; say({ event: "command", func: "unloadModule", args: ["captions"] }); show(); } });
     say({ event: "listening", id: 1, channel: "widget" }); }, { once: true });
   return box;
 }

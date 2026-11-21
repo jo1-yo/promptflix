@@ -1,13 +1,11 @@
-/* Rolvo — warm light workbench. TWK Lausanne throughout. Ink does the work; no accent colour. */
-@font-face{font-family:"TWK Lausanne";src:url("fonts/TWKLausanne-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
-@font-face{font-family:"TWK Lausanne";src:url("fonts/TWKLausanne-500.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
-@font-face{font-family:"TWK Lausanne";src:url("fonts/TWKLausanne-600.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+/* Rolvo — warm light workbench. Inter throughout. Ink does the work; no accent colour. */
 :root{
   --bg:#f7f7f4; --bg2:#fafaf7; --panel:#fff; --raise:#e6e5e0; --raise2:#dcdbd5;
   --line:#e6e5e0; --line2:#cfcdc4;
   --fg:#26251e; --muted:#615f56; --dim:#6f6d64;
   --ok:#2c7a4b; --warn:#8a5a00; --bad:#b3372f; --focus:#26251e;
-  --sans:"TWK Lausanne",ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",sans-serif;
   --serif:var(--sans); /* kept so older rules resolve; there is no serif in this system */
   --mono:ui-monospace,"SF Mono",Menlo,monospace;
   --r:8px; --rc:12px; --wrap:1328px; --gut:40px;

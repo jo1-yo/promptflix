@@ -67,6 +67,8 @@ function ccard(c, why){
     h("span", { class: "top" }, h("span", { class: est ? "est" : null, title: est ? "Estimate for this kind of work. They haven't set rates yet." : null }, rangeText(c)), h("span", null, c.tz || c.source || "")),
     h("span", { class: "cap" }, h("b", null, c.name), h("span", null, [c.where, c.bg.replace(/\.$/, "")].filter(Boolean).join(" · ")), why && why.length ? h("span", { class: "why" }, ...why.map(w => h("i", null, w))) : null)), c.works[0]);
 }
+/* Lists of creators show only those with something to look at: a film, or the cover image from their own site. */
+const hasFace = c => c.works.length > 0 || !!c.cover;
 const cgrid = (list) => h("div", { class: "cgrid" }, ...list.map(({ c, why }) => ccard(c, why)));
 /* ---------- taste: the questions that used to sit behind sign-up now open in a window on arrival ----------
    Two questions, then three rounds of three films shown as a slide, the middle one playing. Each pick pulls the next three closer to it. The answers stay in this
@@ -153,7 +155,7 @@ function recommendedTab(){
   const score = x => { const i = styles.indexOf(x.w[2]); return (i === 0 ? 5 : i > 0 ? 3 : 0) + (x.w[1] === cat ? 2 : 0); };
   const similar = tastePool().filter(x => !mine.has(tasteKey(x))).map(x => ({ x, s: score(x) })).filter(y => y.s > 0).sort((a, b) => b.s - a.s).slice(0, 12).map(y => y.x);
   const budget = p.budget ? p.budget.split("-").map(Number) : null;
-  const makers = DB.match({ cat, styles: styles.slice(0, 2), type: p.type, budget, strict: true }).slice(0, 8);
+  const makers = DB.match({ cat, styles: styles.slice(0, 2), type: p.type, budget, strict: true }).filter(x => hasFace(x.c)).slice(0, 8);
   out.push(h("div", { class: "asknote between" }, h("div", { class: "chips" }, cat ? h("span", { class: "chip on" }, TAXONOMY[cat].name) : null, ...styles.slice(0, 3).map(st => styleChip(st, true))), h("button", { class: "link", onclick: openTaste }, "Reset recommendations")),
     similar.length ? gallery(similar) : h("div", { class: "empty" }, h("b", null, "Nothing close yet."), h("button", { class: "btn", onclick: openTaste }, "Try other answers")));
   if (makers.length) out.push(h("div", { class: "sec-head", style: { marginTop: "56px" } }, h("h2", null, "Creators who make this"), h("a", { class: "link", href: "#/creators?cats=" + cat }, "All creators →")), cgrid(makers));
@@ -242,7 +244,7 @@ function vSearch(m, q){
   const score = x => { const hay = [x.w[0], x.c.name, x.c.bg, STYLES[x.w[2]].name, TAXONOMY[x.w[1]].name].join(" ").toLowerCase();
     return (read.cat === x.w[1] ? 4 : 0) + (read.styles.includes(x.w[2]) ? 4 : 0) + words.filter(w => hay.includes(w)).length * 2; };
   const films = tastePool().map(x => ({ x, s: score(x) })).filter(y => y.s > 0).sort((a, b) => b.s - a.s).slice(0, 12).map(y => y.x);
-  const makers = DB.match({ cat: read.cat, styles: read.styles, text, strict: true }).slice(0, 12);
+  const makers = DB.match({ cat: read.cat, styles: read.styles, text, strict: true }).filter(x => hasFace(x.c)).slice(0, 12);
   const ref = SEARCHREF || {}; const kind = ref.url ? (ref.video ? "video" : "image") : ref.link ? "link" : null;
   m.append(h("section", { class: "wrap section" },
     h("div", { class: "recs-head" }, h("div", null, h("h1", { class: "pname" }, "Creators for this"), h("p", { class: "q" }, "“" + text + "”"),
@@ -262,7 +264,7 @@ const SORTS = [["", "Best match"], ["price", "Price: low to high"], ["-price", "
 const F = { parse(q){ return { sort: q.sort || "", q: q.q || "", min: +q.min || 0, max: +q.max || 0, region: q.region || "", cats: (q.cats || "").split(",").filter(Boolean), styles: (q.styles || "").split(",").filter(Boolean), days: +q.days || 0, joined: +q.joined || 0 }; },
   count(f){ return (f.min || f.max ? 1 : 0) + (f.region ? 1 : 0) + f.cats.length + f.styles.length + (f.days ? 1 : 0) + (f.joined ? 1 : 0); },
   url(f){ const p = new URLSearchParams(); if (f.q) p.set("q", f.q); if (f.sort) p.set("sort", f.sort); if (f.min) p.set("min", f.min); if (f.max) p.set("max", f.max); if (f.region) p.set("region", f.region); if (f.cats.length) p.set("cats", f.cats.join(",")); if (f.styles.length) p.set("styles", f.styles.join(",")); if (f.days) p.set("days", f.days); if (f.joined) p.set("joined", 1); const s = p.toString(); return "#/creators" + (s ? "?" + s : ""); },
-  apply(f){ return DB.match({ text: f.q, strict: !!f.q }).filter(({ c }) => { const r = DB.priceRange(c);
+  apply(f){ return DB.match({ text: f.q, strict: !!f.q }).filter(({ c }) => { if (!hasFace(c)) return false; const r = DB.priceRange(c);
     if (f.min && r.hi < f.min) return false; if (f.max && r.lo > f.max) return false; if (f.region && c.region !== f.region) return false;
     if (f.cats.length && !f.cats.some(x => c.cats.includes(x))) return false; if (f.styles.length && !f.styles.some(x => c.styles.includes(x))) return false;
     if (f.days && c.days > f.days) return false; if (f.joined && c.real && !c.claimed) return false; return true; }); } };

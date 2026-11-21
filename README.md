@@ -47,7 +47,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 - Rendering: a small `h(tag, attrs, ...children)` DOM helper in `ui.js`. Each site has a `render()` that rebuilds the main view from state.
 - Routing: hash router (`#/creators`, `#/chat/:id`, …). `route()` and `go()` in `ui.js`.
 - Styling: one stylesheet, [`market/styles.css`](market/styles.css). Warm light look after the Cursor study in Tasta: off-white canvas, dark ink, white cards, one orange marker. CSS custom properties in `:root`. Mobile-first, works down to 375 px.
-- Fonts: TWK Lausanne, self-hosted in [`market/fonts/`](market/fonts/) (400, 500, 600). It is a commercial typeface: the web licence must cover this domain. Icons: inline SVG.
+- Fonts: Inter (400, 500, 600) from Google Fonts. Icons: inline SVG.
 - Browser APIs: `localStorage`, IndexedDB (uploaded preview files), Web Speech API (voice answers in onboarding), `crypto.subtle` (sign-in nonce).
 
 **Data (today)**
