@@ -204,9 +204,9 @@ const Auth = {
       const { error } = await this.client().auth.signInWithOtp(target.email ? { email: target.email, options: { shouldCreateUser: true } } : { phone: target.phone, options: { shouldCreateUser: true } });
       if (error) return toast(/signups? not allowed|disabled/i.test(error.message) ? "Sign-ups are closed right now." : /rate|too many|seconds/i.test(error.message) ? "Too many codes. Wait a minute and try again." : error.message);
     } else demoCode = String(Math.floor(100000 + Math.random() * 900000));
-    let wait = 30, timer;
+    let wait = LIVE.auth ? 60 : 30, timer;   // live: Supabase refuses a new code within 60s per user
     const code = h("input", { class: "i code", inputmode: "numeric", autocomplete: "one-time-code", maxlength: String(LEN), pattern: "\\d{" + LEN + "}", required: true, placeholder: "•".repeat(LEN), oninput: e => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, LEN); if (e.target.value.length === LEN) f.requestSubmit(); } });
-    const resend = h("button", { class: "link small", type: "button", disabled: true, onclick: () => { clearInterval(timer); this.sendCode(target, box, back); } }, "Resend in 30s");
+    const resend = h("button", { class: "link small", type: "button", disabled: true, onclick: () => { clearInterval(timer); this.sendCode(target, box, back); } }, "Resend in " + wait + "s");
     const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); const v = code.value.trim();
         if (LIVE.auth){
           const { data, error } = await this.client().auth.verifyOtp(target.email ? { email: target.email, token: v, type: "email" } : { phone: target.phone, token: v, type: "sms" });

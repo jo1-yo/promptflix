@@ -5,7 +5,7 @@ const CONFIG = {
   supabaseKey: "sb_publishable_yDSnbcBAtqkt7CT9JD2ADQ_2aOKB6xq",          // publishable (anon) key
   googleClientId: "238383868330-l5l5nav4vb6gadjb1859fb7p7f1sh9hq.apps.googleusercontent.com",       // …apps.googleusercontent.com — Google's own button + account chooser (Google Identity Services).
                             // With Supabase set too, the Google token is verified server-side; alone it's a browser-only prototype.
-  emailCodes: false,        // live: show "sign in with an email code". Turn on after Supabase → Emails has {{ .Token }} and custom SMTP
+  emailCodes: true,         // live: show "sign in with an email code". Turn on after Supabase → Emails has {{ .Token }} and custom SMTP
   smsCodes: false,          // live: show "sign in with a phone code". Turn on after an SMS provider (Twilio Verify) is connected
   codeLength: 6,            // digits in the email / SMS code; must match Supabase → Authentication → Email / Phone → OTP length
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
