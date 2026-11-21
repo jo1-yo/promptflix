@@ -41,7 +41,7 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            You are reviewing a pull request for Promptflix, a static marketplace site (plain HTML/CSS/JS, no build step) deployed to production the moment it merges to main.
+            You are reviewing a pull request for Rolvo, a static marketplace site (plain HTML/CSS/JS, no build step) deployed to production the moment it merges to main.
             First read AGENTS.md (rules and traps) and the parts of README.md the diff touches. Then read the diff with `gh pr diff`.
 
             Report only problems that matter, most severe first:

@@ -1,7 +1,7 @@
--- Promptflix database setup.
+-- Rolvo database setup.
 -- Paste this whole file into Supabase → SQL Editor → Run. Safe to run once on a new project.
 
--- Admins (the Promptflix team) can read hire requests and creator emails.
+-- Admins (the Rolvo team) can read hire requests and creator emails.
 create table public.admins (user_id uuid primary key references auth.users on delete cascade);
 alter table public.admins enable row level security;
 

@@ -1,10 +1,10 @@
-/* Promptflix Market — money in and money out.
+/* Rolvo Market — money in and money out.
    In (pay): the client pays the order amount plus the card processing fee (FEES.card). Live: Stripe Payment Element; the server
    function (CONFIG.paymentsUrl → server/functions/payments) works out the amount and makes the PaymentIntent. The money sits in
    the platform's Stripe balance until a release. PayPal only appears if paypalClientId is set, and PayPal money can't be paid
    out through Stripe, so leave it off while creators are paid with Stripe Connect.
    Out (Payouts): each creator has a Stripe Connect Express account. Stripe's own pages collect their bank account or debit card
-   and ID; releases are transfers into that account; "Withdraw" is a payout from it. Promptflix never sees card or bank numbers.
+   and ID; releases are transfers into that account; "Withdraw" is a payout from it. Rolvo never sees card or bank numbers.
    Demo (no keys): the same screens over the local ledger, nothing charged or sent. */
 const loaded = {};
 const loadScript = src => loaded[src] ||= new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => { delete loaded[src]; fail(new Error("Couldn't load " + src)); }; document.head.append(s); });
@@ -70,9 +70,9 @@ function pay(o, amt, label, done){
   const seg = !CONFIG.paypalClientId ? null : h("div", { class: "seg pm", role: "tablist" }, ...[["card", "Card"], ["paypal", "PayPal"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(method === k), onclick: e => { method = k; for (const b of seg.children) b.setAttribute("aria-selected", String(b === e.currentTarget)); draw(); } }, payIcon(k), l)));
   openSheet([phead(label + " · " + money(amt), o.title),
     h("div", { class: "kv" }, h("dt", null, label), h("dd", null, money(amt)), h("dt", null, "Card processing"), h("dd", null, money(fee)), h("dt", null, "Total today"), h("dd", null, h("b", { style: { fontWeight: 500 } }, money(total))),
-      h("dt", null, "Paid to"), h("dd", null, "Promptflix escrow, not the creator"), h("dt", null, "Released"), h("dd", null, label === "Deposit" ? "to " + DB.nameOf(o.creatorId) + " when you pass the first cut; refunded if it fails" : "to " + DB.nameOf(o.creatorId) + " now, with the clean master")),
+      h("dt", null, "Paid to"), h("dd", null, "Rolvo escrow, not the creator"), h("dt", null, "Released"), h("dd", null, label === "Deposit" ? "to " + DB.nameOf(o.creatorId) + " when you pass the first cut; refunded if it fails" : "to " + DB.nameOf(o.creatorId) + " now, with the clean master")),
     ...(seg ? [seg] : []), body,
-    h("p", { class: "hint" }, "Card processing is the payment processor's fee, passed on at cost. Cards are handled by Stripe; Promptflix never sees your card number.")]);
+    h("p", { class: "hint" }, "Card processing is the payment processor's fee, passed on at cost. Cards are handled by Stripe; Rolvo never sees your card number.")]);
   draw();
 }
 

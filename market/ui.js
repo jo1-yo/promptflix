@@ -1,4 +1,4 @@
-/* Promptflix Market — shared UI: helpers, sign-in, header, and the order page used by both the merchant and creator sites.
+/* Rolvo Market — shared UI: helpers, sign-in, header, and the order page used by both the merchant and creator sites.
    Each site defines APP ("merchant" | "creator" | "admin") and its own render(). */
 const $ = s => document.querySelector(s);
 function h(tag, attrs, ...kids){
@@ -66,7 +66,7 @@ function mountHeader({ brand, sub, links, right, home }){
   if (!scrollBound){ scrollBound = true; const f = () => top.classList.toggle("solid", scrollY > 8 || r.path !== "/"); addEventListener("scroll", f, { passive: true }); addEventListener("hashchange", () => setTimeout(f, 0)); f(); }
   top.classList.toggle("solid", scrollY > 8 || r.path !== "/");
 }
-const footer = () => h("footer", { class: "wrap" }, h("span", null, "Promptflix Market · an escrowed marketplace for AI filmmakers"), h("span", { class: "row" }, h("a", { href: "../" , class: "link" }, "Promptflix"), h("a", { href: APP === "creator" ? "../" : "creator/", class: "link" }, APP === "creator" ? "For clients" : "For creators"), h("a", { href: APP === "admin" ? "./" : (APP === "creator" ? "../admin/" : "admin/"), class: "link" }, "Admin"), h("a", { href: legalBase() + "privacy/", class: "link" }, "Privacy"), h("a", { href: legalBase() + "terms/", class: "link" }, "Terms")));
+const footer = () => h("footer", { class: "wrap" }, h("span", null, "Rolvo Market · an escrowed marketplace for AI filmmakers"), h("span", { class: "row" }, h("a", { href: "../" , class: "link" }, "Rolvo"), h("a", { href: APP === "creator" ? "../" : "creator/", class: "link" }, APP === "creator" ? "For clients" : "For creators"), h("a", { href: APP === "admin" ? "./" : (APP === "creator" ? "../admin/" : "admin/"), class: "link" }, "Admin"), h("a", { href: legalBase() + "privacy/", class: "link" }, "Privacy"), h("a", { href: legalBase() + "terms/", class: "link" }, "Terms")));
 const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
@@ -161,7 +161,7 @@ function thread(o, u){
   return t;
 }
 function pinnedCard(o, u){
-  const a = actionsFor(o, u); const depSt = { none: "deposit not paid", held: "deposit held by Promptflix", released: "deposit released", refunded: "deposit refunded", forfeited: "deposit forfeited" }[o.escrow.deposit];
+  const a = actionsFor(o, u); const depSt = { none: "deposit not paid", held: "deposit held by Rolvo", released: "deposit released", refunded: "deposit refunded", forfeited: "deposit forfeited" }[o.escrow.deposit];
   return h("div", { class: "pinned" },
     h("div", { class: "ptop" }, h("div", { class: "ptitle" }, o.title), h("div", { class: "pprice" }, money(o.terms.price))),
     h("div", { class: "pfacts" }, h("span", null, h("b", null, o.terms.depositPct + "%"), " deposit"), h("span", null, h("b", null, o.terms.revisions - o.revisionsUsed), " revisions left"), h("span", null, h("b", null, o.terms.durationDays + "d"), o.deadline ? " · due " + when(o.deadline) : ""), h("span", null, depSt), o.escrow.balance === "released" ? h("span", { class: "ok" }, "balance paid") : null),
@@ -176,7 +176,7 @@ function actionsFor(o, u){
     case "negotiating": { const ok = o.terms.accepted[u.id]; const other = first(DB.nameOf(isC ? o.creatorId : o.clientId));
       r = ok ? { text: `Waiting for ${other} to accept the terms.`, btns: [{ label: "Counter-propose", onclick: () => proposeTerms(o, u) }] }
              : { text: `${first(DB.nameOf(o.terms.proposedBy))} proposed terms. Accept, or counter.`, btns: [{ label: "Accept terms", cls: "primary", onclick: () => { DB.acceptTerms(o.id, u.id); toast(DB.order(o.id).status === "agreed" ? "Contract generated." : "Accepted. Waiting for the other side."); render(); } }, { label: "Counter-propose", onclick: () => proposeTerms(o, u) }] }; break; }
-    case "agreed": r = isC ? { text: "Contract signed. Pay the deposit to open the order; it's held by Promptflix.", btns: [{ label: "Pay " + money(DB.deposit(o)), cls: "primary", onclick: () => pay(o, DB.deposit(o), "Deposit", pm => DB.payDeposit(o.id, pm)) }] } : { text: "Contract signed. Waiting for the client's deposit.", btns: [] }; break;
+    case "agreed": r = isC ? { text: "Contract signed. Pay the deposit to open the order; it's held by Rolvo.", btns: [{ label: "Pay " + money(DB.deposit(o)), cls: "primary", onclick: () => pay(o, DB.deposit(o), "Deposit", pm => DB.payDeposit(o.id, pm)) }] } : { text: "Contract signed. Waiting for the client's deposit.", btns: [] }; break;
     case "in_production": r = isK ? { text: `Deposit held. First cut due ${when(new Date(new Date(o.contractAt).getTime() + o.terms.trialDays * 864e5).toISOString())}.`, btns: [{ label: "Upload first cut", cls: "primary", onclick: () => uploadCut(o, "First cut") }] } : { text: `Deposit held. ${first(DB.nameOf(o.creatorId))} is making the first cut.`, btns: [] }; break;
     case "trial_review": r = isC ? { text: "First cut is in. Pass releases the deposit; fail refunds it.", btns: [{ label: "Review v1", cls: "primary", onclick: () => reviewSheet(o, u) }] } : { text: "Client is pre-reviewing v1.", btns: [] }; break;
     case "revising": { const n = o.terms.revisions - o.revisionsUsed;
@@ -219,7 +219,7 @@ function detailsSheet(o, u){
   const c = DB.creator(o.creatorId); const client = DB.user(o.clientId);
   const idx = o.status === "completed" ? 6 : o.status === "cancelled" ? -1 : FLOW.indexOf(o.status);
   const esc = (label, amt, st) => h("div", { class: "box" }, h("span", null, label), h("b", null, money(amt)), h("span", { class: "st" }, st));
-  const depSt = { none: "not paid", held: "held by Promptflix", released: "released to creator", refunded: "refunded to client", forfeited: "forfeited to creator" }[o.escrow.deposit];
+  const depSt = { none: "not paid", held: "held by Rolvo", released: "released to creator", refunded: "refunded to client", forfeited: "forfeited to creator" }[o.escrow.deposit];
   const balSt = { none: o.status === "final_due" ? "due now" : "due on final approval", released: "paid · master unlocked" }[o.escrow.balance];
   return [phead(o.title, (client.org || client.name) + "  ↔  " + c.name + "  ·  opened " + when(o.createdAt) + (o.deadline ? "  ·  due " + when(o.deadline) : "")),
     h("div", { class: "details" },

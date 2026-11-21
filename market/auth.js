@@ -1,4 +1,4 @@
-/* Promptflix Market — sign-in and sign-up in one flow: Google, phone or email.
+/* Rolvo Market — sign-in and sign-up in one flow: Google, phone or email.
    Phone and email use a 6-digit code. Live (CONFIG.supabaseUrl set): Supabase Auth sends the code and checks every sign-in.
    Google (CONFIG.googleClientId set): Google's own "Sign in with Google" button and account chooser hand back a signed ID token;
    with Supabase it's verified server-side (signInWithIdToken), without it the token is only checked in the browser (prototype).
@@ -27,7 +27,7 @@ const Cloud = {
   async enter(identity){
     const { data, error } = await Auth.client().rpc("market_enter", { p_app: APP, p_via: identity.provider || "email" });
     if (!error) return data;
-    if (error.code === "PGRST202" || error.code === "42883"){ console.warn("Promptflix: run market/server/market.sql in Supabase to store accounts."); return null; }   // schema not installed yet: sign-in still works
+    if (error.code === "PGRST202" || error.code === "42883"){ console.warn("Rolvo: run market/server/market.sql in Supabase to store accounts."); return null; }   // schema not installed yet: sign-in still works
     throw error;
   },
   /* Link the local user to its row and fill in anything the database already knows (a second device, a returning user). */
@@ -52,7 +52,7 @@ const Cloud = {
     const row = this.row(u), json = JSON.stringify(row); if (this.sent[u.cloudId] === json) return;
     const { data } = await sb.auth.getSession(); if (!data.session || data.session.user.id !== u.cloudId) return;
     const { error } = await sb.from("market_profiles").update(row).eq("id", u.cloudId);
-    if (error) console.warn("Promptflix: account not saved to the database.", error.message); else this.sent[u.cloudId] = json;
+    if (error) console.warn("Rolvo: account not saved to the database.", error.message); else this.sent[u.cloudId] = json;
   },
   signOut(){ const sb = LIVE.auth && Auth.client(); if (sb) sb.auth.signOut(); },
 };

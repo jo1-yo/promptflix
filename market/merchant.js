@@ -1,4 +1,4 @@
-/* Promptflix Market — merchant site. Public work and creators; contacting anyone requires an account + onboarding. */
+/* Rolvo Market — merchant site. Public work and creators; contacting anyone requires an account + onboarding. */
 const APP = "merchant";
 const FREEMAIL = /^(gmail|googlemail|outlook|hotmail|live|yahoo|icloud|me|proton|protonmail|qq|163|126|aol|gmx)\./i;
 let W = {};
@@ -14,7 +14,7 @@ function header(){
   const links = [["#/", "Home"], ["#/work", "Work"]]; if (u) links.push(["#/chats", "Messages", n]);
   const right = u ? [h("button", { class: "btn primary small", onclick: () => gate({ type: "find" }, () => go("#/find")) }, "Start a project"), h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))]
     : [h("button", { class: "btn quiet small", onclick: () => openSignIn() }, "Sign in"), h("button", { class: "btn primary small", onclick: () => gate({ type: "find" }, () => go("#/find")) }, "Start a project")];
-  mountHeader({ brand: "Promptflix", sub: "Market", links, right, home: "#/" });
+  mountHeader({ brand: "Rolvo", sub: "Market", links, right, home: "#/" });
 }
 function render(){
   header();
@@ -92,7 +92,7 @@ function filterForm(f, inline){
     h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Time zone"), radio("region", [["", "Anywhere"], ...REGIONS], f.region)),
     h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Category"), cb("cats", CATS.map(id => [id, TAXONOMY[id].name]), f.cats)),
     h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Style"), cb("styles", Object.entries(STYLES).map(([id, s]) => [id, s.name]), f.styles)),
-    h("div", { class: "row2" }, h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Typical turnaround"), radio("days", [["", "Any"], [7, "≤ 7 days"], [14, "≤ 14 days"]], f.days || "")), h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Availability"), radio("joined", [["", "Everyone"], [1, "On Promptflix now"]], f.joined || ""))),
+    h("div", { class: "row2" }, h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Typical turnaround"), radio("days", [["", "Any"], [7, "≤ 7 days"], [14, "≤ 14 days"]], f.days || "")), h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Availability"), radio("joined", [["", "Everyone"], [1, "On Rolvo now"]], f.joined || ""))),
     inline ? null : h("div", { class: "row between" }, h("button", { class: "btn quiet", type: "button", onclick: () => { go(F.url({ q: f.q, sort: f.sort, min: 0, max: 0, region: "", cats: [], styles: [], days: 0, joined: 0 })); closeSheet(); } }, "Clear all"), h("button", { class: "btn primary", type: "submit" }, "Show creators")));
   return form;
 }
@@ -106,7 +106,7 @@ function vCreators(m, q){
   f.cats.forEach(c => chips.push([TAXONOMY[c].name, () => drop({ cats: f.cats.filter(x => x !== c) })]));
   f.styles.forEach(s => chips.push([STYLES[s].name, () => drop({ styles: f.styles.filter(x => x !== s) })]));
   if (f.days) chips.push(["≤ " + f.days + " days", () => drop({ days: 0 })]);
-  if (f.joined) chips.push(["On Promptflix now", () => drop({ joined: 0 })]);
+  if (f.joined) chips.push(["On Rolvo now", () => drop({ joined: 0 })]);
   const pr = c => DB.priceRange(c).lo;
   const sorted = f.sort === "price" ? [...matches].sort((a, b) => pr(a.c) - pr(b.c)) : f.sort === "-price" ? [...matches].sort((a, b) => DB.priceRange(b.c).hi - DB.priceRange(a.c).hi) : f.sort === "films" ? [...matches].sort((a, b) => b.c.works.length - a.c.works.length) : matches;
   const sort = h("select", { class: "i sort", "aria-label": "Sort", onchange: e => go(F.url({ ...f, sort: e.target.value })) }, ...SORTS.map(([v, l]) => h("option", { value: v, selected: f.sort === v }, l)));
@@ -125,7 +125,7 @@ function vCreator(m, id){
     h("div", { class: "stack", style: { gap: "36px" } },
       h("div", { class: "stack", style: { gap: "14px" } }, h("span", { class: "eyebrow" }, ["@" + c.handle, c.where, c.tz].filter(Boolean).join(" · ")), h("h1", { class: "pname" }, c.name), h("p", { class: "muted", style: { fontSize: "17px", maxWidth: "56ch" } }, c.bg),
         h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t))),
-        c.real && !c.claimed ? h("div", { class: "unclaimed" }, h("span", null, h("b", null, "Not on Promptflix yet. "), `This profile was built from ${c.name}'s public work. Start a project and we'll send them your brief with an invite; the chat goes live when they claim the profile. `, h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, (c.source === "Portfolio" ? "Their site" : "Their " + c.source) + " ↗"))) : null),
+        c.real && !c.claimed ? h("div", { class: "unclaimed" }, h("span", null, h("b", null, "Not on Rolvo yet. "), `This profile was built from ${c.name}'s public work. Start a project and we'll send them your brief with an invite; the chat goes live when they claim the profile. `, h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, (c.source === "Portfolio" ? "Their site" : "Their " + c.source) + " ↗"))) : null),
       c.works.length ? h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c, hireCTA(c)))))
         : h("div", { class: "nofilm" }, h("span", null, "No films linked here yet."), h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, "See " + first(c.name) + "'s work on " + (c.source === "Portfolio" ? "their site" : c.source) + " ↗")),
       h("div", null, h("span", { class: "eyebrow" }, "Reviews · " + reviews.length), reviews.length ? reviews.map(rv => h("div", { class: "rev" }, h("span", { class: "s" }, "★".repeat(rv.stars) + "☆".repeat(5 - rv.stars)), h("span", null, rv.text), h("span", { class: "small dim" }, DB.nameOf(rv.from) + " · " + when(rv.at)))) : h("p", { class: "hint", style: { marginTop: "10px" } }, "No platform reviews yet."))),

@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --no-warnings
-// Promptflix repo checks. No dependencies, no network, no keys: `node scripts/check.mjs` (Node 22+).
+// Rolvo repo checks. No dependencies, no network, no keys: `node scripts/check.mjs` (Node 22+).
 // Runs locally and in CI on every PR. Each check prints what failed and why; exit code 1 on any failure.
 import { readFileSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";

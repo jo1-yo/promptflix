@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Promptflix</title>
+<title>Rolvo</title>
 <meta name="description" content="Swipe through AI-made videos. See one you love? Hire the creator for your brand.">
-<meta property="og:title" content="Promptflix">
+<meta property="og:title" content="Rolvo">
 <meta property="og:description" content="Swipe through AI-made videos. Hire the creator for your brand.">
 <meta name="theme-color" content="#0d0e11">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f3b34c'/%3E%3Cpath d='M12 9l12 7-12 7z' fill='%231d1406'/%3E%3C/svg%3E">
@@ -120,7 +120,7 @@ textarea.i{min-height:80px;resize:vertical}
 <body>
 <div id="app">
   <header class="top">
-    <div class="logo"><span class="mark" aria-hidden="true"></span>Promptflix</div>
+    <div class="logo"><span class="mark" aria-hidden="true"></span>Rolvo</div>
     <nav class="topnav" aria-label="Main">
       <button class="navbtn" data-tab="watch">Watch</button>
       <button class="navbtn" data-tab="me">Me</button>
@@ -218,7 +218,7 @@ function renderFeed(){
   const feed = $("#feed");
   for (const c of feed.querySelectorAll(".clip")) io.unobserve(c);
   if (!vids.length){
-    const [t, p, cta] = !sb ? ["Opening soon", "Promptflix is a feed of AI-made videos where brands hire the creators behind them.", h("button", {class:"btn primary", onclick:() => openHire(null)}, "Hire a creator")]
+    const [t, p, cta] = !sb ? ["Opening soon", "Rolvo is a feed of AI-made videos where brands hire the creators behind them.", h("button", {class:"btn primary", onclick:() => openHire(null)}, "Hire a creator")]
       : !S.ready ? ["Loading…", "Fetching the latest AI videos.", null]
       : ["No videos yet", "Made something with Sora, Veo, Kling or Runway? Post it. Brands hire from what they see here.", h("button", {class:"btn primary", onclick:() => setTab("me")}, "Post a video")];
     feed.replaceChildren(h("div", {class:"feed-empty"}, h("div", {class:"box"}, h("h2", null, t), h("p", null, p), cta)));
@@ -274,7 +274,7 @@ function openHire(creator){
       field("Budget (USD)", h("input", {class:"i", id:"b-budget", type:"number", min:"0", step:"50", inputmode:"numeric", placeholder:"Leave blank if unsure"})),
       field("Your email", h("input", {class:"i", id:"b-email", type:"email", required:true, maxlength:"120", value: S.session ? S.session.user.email : null, placeholder:"you@company.com"}))),
     h("button", {class:"btn primary", type:"submit"}, "Send request"),
-    h("p", {class:"hint"}, "No sign-up needed. Only the Promptflix team sees this, and we'll email you within 24 hours to make the intro."));
+    h("p", {class:"hint"}, "No sign-up needed. Only the Rolvo team sees this, and we'll email you within 24 hours to make the intro."));
   f.addEventListener("submit", async e => {
     e.preventDefault();
     if (!sb) { toast("Requests open soon. Please check back in a day or two."); return; }
