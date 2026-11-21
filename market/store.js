@@ -1,4 +1,4 @@
-/* Promptflix Market — data layer.
+/* Rolvo — data layer.
    Persists to localStorage (records) + IndexedDB (uploaded preview files) so the whole flow runs locally with no backend.
    Every method here maps 1:1 onto a table/RPC in the eventual Supabase schema; keep the shapes stable. */
 
@@ -79,7 +79,7 @@ const DB = {
     if (dupe && !(dupe.works || []).length) this.state.creators = this.state.creators.filter(x => x !== dupe);    // drop an empty application started with the same login
     c.claimed = true; c.email = identity.email || null; c.phone = identity.phone || null; c.providers = [identity.provider || "email"]; c.claimedAt = now(); c.lastLoginAt = now();
     (this.state.logins ||= []).push({ at: now(), uid: c.id, app: APP, provider: identity.provider || "email", mode: identity.mode || "demo", claim: true });
-    for (const o of this.state.orders.filter(o => o.creatorId === id && o.status === "negotiating")) this.sys(o.id, `${c.name} joined Promptflix and can reply now.`);
+    for (const o of this.state.orders.filter(o => o.creatorId === id && o.status === "negotiating")) this.sys(o.id, `${c.name} joined Rolvo and can reply now.`);
     this.state.sessions.creator = id; this.save(); return c; },
 
   /* matching */
@@ -120,7 +120,7 @@ const DB = {
       createdAt: now(), updatedAt: now(), deadline: null, contractAt: null, review: {} };
     this.state.orders.push(o);
     this.sys(o.id, `${this.nameOf(clientId)} opened a project with ${c.name}. Agree on terms in chat to start the order.`);
-    if (c.real && !c.claimed) this.sys(o.id, `${c.name} isn't on Promptflix yet. We've sent them your brief and an invite through ${c.source}; this chat goes live when they claim their profile.`);
+    if (c.real && !c.claimed) this.sys(o.id, `${c.name} isn't on Rolvo yet. We've sent them your brief and an invite through ${c.source}; this chat goes live when they claim their profile.`);
     this.save(); return o;
   },
   touch(o){ o.updatedAt = now(); },
@@ -157,7 +157,7 @@ const DB = {
     o.status = "in_production"; o.escrow.deposit = "held";
     this.payment(o, "deposit", this.deposit(o), pm);
     this.ledger({ orderId, type: "deposit_in", amount: this.deposit(o), from: o.clientId, to: "escrow", method: pm.method });
-    this.sys(orderId, `Deposit $${this.deposit(o)} received and held by Promptflix. ${this.nameOf(o.creatorId)} can start. First cut due in ${o.terms.trialDays} days.`);
+    this.sys(orderId, `Deposit $${this.deposit(o)} received and held by Rolvo. ${this.nameOf(o.creatorId)} can start. First cut due in ${o.terms.trialDays} days.`);
     this.touch(o); this.save();
   },
   deliver(orderId, { fileId, url, note }){
@@ -242,7 +242,7 @@ const DB = {
   inviteCreator(id){ const c = this.creator(id); if (c && c.real && !c.claimed && !c.invitedAt){ c.invitedAt = now(); this.save(); return true; } return false; },
   setVerified(uid, on){ const u = this.user(uid); if (u){ u.verified = !!on; u.verifiedBy = on ? "admin" : null; u.verifiedAt = on ? now() : null; this.save(); } },
   ensureAdmin(email){ email = (email || "").toLowerCase(); if (!CONFIG.adminEmails.map(x => x.toLowerCase()).includes(email)) return false;
-    if (!this.state.users.some(u => u.email === email)) { this.state.users.push({ id: rid("u"), role: "admin", name: "Promptflix team", email }); this.save(); } return true; },
+    if (!this.state.users.some(u => u.email === email)) { this.state.users.push({ id: rid("u"), role: "admin", name: "Rolvo team", email }); this.save(); } return true; },
   invite(id){ const d = this.state.discovered.find(x => x.id === id); if (d && d.status === "new"){ d.status = "invited"; d.invitedAt = now(); this.save(); } },
 };
 
@@ -257,7 +257,7 @@ const Files = {
 const STATUS = {
   negotiating: ["Negotiating", "Agree on price, deposit, revisions and timing in chat."],
   agreed: ["Contract ready", "Deposit due to open the order."],
-  in_production: ["In production", "Deposit held by Promptflix. First cut in progress."],
+  in_production: ["In production", "Deposit held by Rolvo. First cut in progress."],
   trial_review: ["Pre-review", "Client reviews the first cut. Pass releases the deposit."],
   revising: ["Revisions", "Creator revises; client approves the final cut."],
   final_due: ["Balance due", "Final approved. Balance unlocks the clean master."],

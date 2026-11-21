@@ -1,4 +1,4 @@
-/* Promptflix Market — sign-in and sign-up in one flow: Google, phone or email.
+/* Rolvo — sign-in and sign-up in one flow: Google, phone or email.
    Phone and email use a 6-digit code. Live (CONFIG.supabaseUrl set): Supabase Auth sends the code and checks every sign-in.
    Google (CONFIG.googleClientId set): Google's own "Sign in with Google" button and account chooser hand back a signed ID token;
    with Supabase it's verified server-side (signInWithIdToken), without it the token is only checked in the browser (prototype).

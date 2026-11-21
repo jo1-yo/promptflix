@@ -1,4 +1,4 @@
-/* Promptflix Market — checkout. Two ways to pay: card through Stripe, or PayPal. Money goes to Promptflix escrow, never to the creator directly.
+/* Rolvo — checkout. Two ways to pay: card through Stripe, or PayPal. Money goes to Rolvo escrow, never to the creator directly.
    Live: Stripe Payment Element + PayPal Buttons; amounts are turned into a PaymentIntent / PayPal order by the server function
    (CONFIG.paymentsUrl → supabase/functions/payments). Demo: same sheet, no processor, a simulated confirmation.
    Either way `done({ method, ref, mode })` records the payment in the ledger. */
@@ -29,7 +29,7 @@ function pay(o, amt, label, done){
           await loadScript("https://js.stripe.com/v3/");
           const { clientSecret } = await payApi({ action: "stripe_intent", orderId: o.id, kind: label.toLowerCase(), amount: amt, currency: "usd" });
           const stripe = Stripe(CONFIG.stripePk);
-          stripeEls = stripe.elements({ clientSecret, appearance: { theme: "night", variables: { colorPrimary: "#f2f0ea", colorBackground: "#141414", borderRadius: "10px", fontFamily: "Inter, system-ui, sans-serif" } } });
+          stripeEls = stripe.elements({ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#26251e", colorBackground: "#ffffff", colorText: "#26251e", borderRadius: "6px", fontFamily: "system-ui, sans-serif" } } });
           mount.replaceChildren(); stripeEls.create("payment", { layout: "tabs" }).mount(mount); btn.disabled = false;
           btn.onclick = async () => { busy(btn, true, "Processing…"); err.textContent = "";
             const { error, paymentIntent } = await stripe.confirmPayment({ elements: stripeEls, redirect: "if_required" });
@@ -48,7 +48,7 @@ function pay(o, amt, label, done){
         try {
           await loadScript(`https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(CONFIG.paypalClientId)}&currency=USD&intent=capture&components=buttons&disable-funding=card,credit,paylater,venmo`);
           mount.replaceChildren();
-          paypal.Buttons({ style: { layout: "vertical", color: "white", shape: "pill", label: "pay", height: 46 },
+          paypal.Buttons({ style: { layout: "vertical", color: "black", shape: "rect", label: "pay", height: 46 },
             createOrder: async () => (await payApi({ action: "paypal_create", orderId: o.id, kind: label.toLowerCase(), amount: amt, currency: "USD" })).id,
             onApprove: async d => { const r = await payApi({ action: "paypal_capture", paypalOrderId: d.orderID, orderId: o.id, kind: label.toLowerCase() });
               if (r.status === "COMPLETED") finish({ method: "paypal", ref: r.captureId || d.orderID, mode: "live" }); else err.textContent = "PayPal didn't complete the payment (" + r.status + ")."; },
@@ -62,8 +62,8 @@ function pay(o, amt, label, done){
   };
   const seg = h("div", { class: "seg pm", role: "tablist" }, ...[["card", "Card"], ["paypal", "PayPal"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(method === k), onclick: e => { method = k; for (const b of seg.children) b.setAttribute("aria-selected", String(b === e.currentTarget)); draw(); } }, payIcon(k), l)));
   openSheet([phead(label + " · " + money(amt), o.title),
-    h("div", { class: "kv" }, h("dt", null, "Paid to"), h("dd", null, "Promptflix escrow, not the creator"), h("dt", null, "Released"), h("dd", null, label === "Deposit" ? "to " + DB.nameOf(o.creatorId) + " when you pass the first cut; refunded if it fails" : "to " + DB.nameOf(o.creatorId) + " now, with the clean master")),
+    h("div", { class: "kv" }, h("dt", null, "Paid to"), h("dd", null, "Rolvo escrow, not the creator"), h("dt", null, "Released"), h("dd", null, label === "Deposit" ? "to " + DB.nameOf(o.creatorId) + " when you pass the first cut; refunded if it fails" : "to " + DB.nameOf(o.creatorId) + " now, with the clean master")),
     seg, body,
-    h("p", { class: "hint" }, "Cards are processed by Stripe and PayPal by PayPal. Promptflix never sees your card number.")]);
+    h("p", { class: "hint" }, "Cards are processed by Stripe and PayPal by PayPal. Rolvo never sees your card number.")]);
   draw();
 }

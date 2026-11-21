@@ -4,7 +4,7 @@ Instructions for AI coding agents (Claude Code, Codex, Cursor, Copilot…) and h
 
 ## What this is
 
-Promptflix: a marketplace for AI filmmakers. Static site on GitHub Pages, no build step. The marketplace is in `market/`. It is a working prototype: data lives in the browser (`localStorage` + IndexedDB) and payments and sign-in run in demo mode until keys are set in `market/config.js`.
+Rolvo (formerly Promptflix; the repo keeps the old name): a marketplace for AI filmmakers. Static site on GitHub Pages, no build step. The marketplace is in `market/`. It is a working prototype: data lives in the browser (`localStorage` + IndexedDB) and payments and sign-in run in demo mode until keys are set in `market/config.js`.
 
 ## Hard rules
 
@@ -38,7 +38,7 @@ Promptflix: a marketplace for AI filmmakers. Static site on GitHub Pages, no bui
 ## Style
 
 - UI copy: short, plain, English. No emoji, no exclamation marks, no marketing filler.
-- Visual: dark editorial (Instrument Serif headings, Inter text, ivory accent), Apple-minimal. Reuse the CSS variables in `:root` and existing classes before adding new ones; append new CSS in a labelled block at the end of `styles.css`.
+- Visual: Rolvo. Warm off-white canvas `#f7f7f4`, ink `#26251e`, TWK Lausanne throughout (`market/fonts/`), no serif, no accent colour (focus rings and markers are ink). Cards, sheets and windows are one frosted pane (`--frost` + backdrop blur, 16px radius, no border). Film, creator and category cards have no box at all: a rounded cover with its caption underneath, never text on the cover. No bordered box inside a card, sheet or window: use hairlines. Buttons are 7px, ink-filled primary, surface-filled secondary. Say a thing once: no title bars, labels or buttons that repeat what is already on screen. The questions window, search and onboarding share the `.win` / `.winp` styles. Reuse the CSS variables in `:root` and existing classes before adding new ones; append new CSS in a labelled block at the end of `styles.css`.
 - Keep functions small and close to where they're used. Comment the *why*, not the *what*.
 
 ## When you finish

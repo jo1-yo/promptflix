@@ -1,4 +1,4 @@
-/* Promptflix Market — seed data.
+/* Rolvo — seed data.
    Taxonomy, styles, brief lexicon, demo clients. Creators are in creators.js. Prices are USD. */
 
 // Big categories. `ask` is the follow-up question; `options` its answers; each option lists 4 styles to A/B.
@@ -31,7 +31,7 @@ const TAXONOMY = {
       { id:"fantasy", name:"Fantasy / 穿越", styles:["surreal","anime","cinematic","soap"] },
       { id:"suspense", name:"Suspense", styles:["noir","soap","found","cinematic"] },
     ] },
-  interactive: { name:"Interactive Film & Games", zh:"互动影游", blurb:"Branching stories, FMV, playable ads, cutscenes.",
+  interactive: { name:"Interactive Games", zh:"互动影游", blurb:"Branching stories, FMV, playable ads, cutscenes.",
     ask:"What format?",
     options:[
       { id:"branching", name:"Branching story", styles:["cinematic","anime","noir","surreal"] },
@@ -39,7 +39,7 @@ const TAXONOMY = {
       { id:"cutscene", name:"Game cutscene / trailer", styles:["cinematic","anime","surreal","hero"] },
       { id:"playable", name:"Playable ad", styles:["trend","explainer","anime","hero"] },
     ] },
-  reels: { name:"Reels & Shorts", zh:"短视频", blurb:"Vertical, 6–60 s, built for the feed.",
+  reels: { name:"Reels & UGC", zh:"短视频", blurb:"Vertical, 6–60 s, built for the feed.",
     ask:"Which platform first?",
     options:[
       { id:"tiktok", name:"TikTok", styles:["trend","ugc","stream","hook"] },
@@ -135,7 +135,7 @@ const USERS = [
   { id:"u_mia", role:"client", name:"Mia Chen", org:"Lumen Coffee", type:"dtc", email:"mia@lumen.coffee", onboarded:false },
   { id:"u_dev", role:"client", name:"Dev Raman", org:"Northstar", type:"startup", email:"dev@northstar.app", onboarded:true, verified:true,
     profile:{ role:"Head of Growth", website:"northstar.app", size:"11-50", type:"startup", industry:"Fintech SaaS", goal:"Launch film for our new invoicing product", budget:"2000-5000", cadence:"monthly", cat:"biz", opt:"software", styles:["story","demo"] } },
-  { id:"u_admin", role:"admin", name:"Promptflix team", email:"team@promptflix.demo" },
+  { id:"u_admin", role:"admin", name:"Rolvo team", email:"team@promptflix.demo" },
 ];
 
 const SAMPLE_CLIP = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"; // CC0 sample used by "Use a sample clip"
