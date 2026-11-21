@@ -18,7 +18,7 @@ const money = n => "$" + (Math.round(n * 100) % 100 ? n.toLocaleString("en-US", 
 const when = iso => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 6e4); return m < 1 ? "just now" : m < 60 ? m + "m" : m < 1440 ? Math.round(m / 60) + "h" : Math.round(m / 1440) + "d"; };
 const initials = n => /^\+?\d[\d\s]+$/.test(n || "") ? "#" : (n || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
-const first = n => (n || "").split(" ")[0];
+const first = n => { const w = (n || "").split(" "); return /^the$/i.test(w[0]) && w.length > 1 ? n : w[0]; };
 let toastT; function toast(m){ const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3400); }
 const route = () => { const [path, qs] = location.hash.replace(/^#/, "").split("?"); return { path: path || "/", parts: (path || "/").split("/").filter(Boolean), q: Object.fromEntries(new URLSearchParams(qs || "")) }; };
 const go = hash => { location.hash = hash; };
@@ -38,15 +38,18 @@ function cover(w, extra){
   img.onerror = () => { if (m.yt && !img.dataset.fb){ img.dataset.fb = 1; img.src = "https://i.ytimg.com/vi/" + m.yt + "/hqdefault.jpg"; } else img.replaceWith(art(w[2])); };
   return h("div", { class: "art cover vig" + (m.lb ? " lb" : "") + (extra ? " " + extra : "") }, img);
 }
-function avatar(u){ if (u.avatar) return h("div", { class: "avatar" }, h("img", { src: u.avatar, alt: "", referrerpolicy: "no-referrer" })); const [hue] = hueOf((u.styles || [])[0]); return h("div", { class: "avatar", style: { background: `linear-gradient(135deg,hsl(${hue} 55% 70%),hsl(${hue + 40} 45% 50%))` } }, initials(u.name || u.org || u.email || u.phone || "?")); }
+function avatar(u){ if (u.avatar) return h("div", { class: "avatar" }, h("img", { src: u.avatar, alt: "", referrerpolicy: "no-referrer" })); const [hue] = hueOf((u.styles || [])[0]); return h("div", { class: "avatar", style: { background: `hsl(${hue} 42% 82%)` } }, initials(u.name || u.org || u.email || u.phone || "?")); }
 const styleChip = (id, on) => h("span", { class: "chip sw" + (on ? " on" : "") }, h("i", { class: "dot", style: { background: `hsl(${hueOf(id)[0]} ${hueOf(id)[1]}% 60%)` } }), STYLES[id].name);
 const kmoney = n => n >= 1000 ? "$" + (n / 1000).toFixed(n % 1000 ? 1 : 0).replace(/\.0$/, "") + "k" : "$" + n;
 const rangeText = c => { const r = DB.priceRange(c); if (r.est) return "~" + kmoney(r.lo) + "–" + kmoney(r.hi).slice(1); return r.lo === r.hi ? money(r.lo) : money(r.lo) + "–" + money(r.hi); };
 const workSrc = async w => w[4] ? (w[4].startsWith("f_") ? URL.createObjectURL(await Files.get(w[4])) : w[4]) : SAMPLE_CLIP;
 
 /* sheet */
-function openSheet(kids, wide){ const p = $("#panel"); p.className = "panel" + (wide ? " wide" : ""); p.replaceChildren(...[kids].flat()); $("#sheet").hidden = false; p.scrollTop = 0; }
-function closeSheet(){ $("#sheet").hidden = true; if (typeof Auth !== "undefined") Auth.referrer(null); if (window.Voice) Voice.stop(); for (const v of document.querySelectorAll("#panel video")) v.pause(); }
+/* Windows ease in and out. Closing fades first and hides after; opening again in that moment cancels the hide. */
+let sheetT = null;
+function openSheet(kids, wide){ const p = $("#panel"); clearTimeout(sheetT); $("#sheet").classList.remove("closing"); p.className = "panel" + (wide ? " wide" : ""); p.replaceChildren(...[kids].flat()); $("#sheet").hidden = false; p.scrollTop = 0; }
+function closeSheet(){ const sh = $("#sheet"); if (!sh.hidden && !sh.classList.contains("closing")){ sh.classList.add("closing"); clearTimeout(sheetT); sheetT = setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 240); }
+  if (typeof Auth !== "undefined") Auth.referrer(null); if (window.Voice) Voice.stop(); for (const v of document.querySelectorAll("#panel video")){ v.pause(); v.removeAttribute("src"); v.load(); } for (const n of document.querySelectorAll("#panel iframe, #panel .hoverplay")) n.remove(); }
 const phead = (t, sub) => h("div", { class: "phead" }, h("div", null, h("h2", null, t), sub ? h("div", { class: "sub" }, sub) : null), h("button", { class: "close", type: "button", onclick: closeSheet, "aria-label": "Close" }, "×"));
 const field = (label, ctl, note) => h("label", { class: "f" }, h("span", null, label, note ? h("small", null, note) : null), ctl);
 
@@ -56,49 +59,68 @@ const requireAuth = then => { const u = me(); if (u) then(u); else openSignIn(th
 
 /* header + footer */
 let scrollBound = false;
-function mountHeader({ brand, sub, links, right, home }){
+function mountHeader({ brand, sub, links, right, home, pre, tabs }){
   const r = route();
   const isCur = href => href === home ? (r.path === "/" || r.path === home.slice(1)) : r.path.startsWith(href.slice(1));
-  const mk = ([href, label, n]) => h("a", { class: "navbtn", href, "aria-current": String(isCur(href)) }, label, n ? h("span", { class: "n" }, n) : null);
+  // a link with no href is a section that is not open yet: signed out it asks for sign-in, signed in it says it is coming
+  const mk = ([href, label, n]) => href ? h("a", { class: "navbtn", href, "aria-current": String(isCur(href)) }, label, n ? h("span", { class: "n" }, n) : null)
+    : h("button", { class: "navbtn", type: "button", onclick: () => { const soon = () => toast(label + " is coming soon."); me() ? soon() : openSignIn(() => { render(); soon(); }); } }, label);
   const top = $("#top");
-  top.replaceChildren(h("a", { class: "wordmark", href: home }, brand, sub ? h("span", null, sub) : null), h("nav", { class: "nav", "aria-label": "Main" }, ...links.map(mk)), h("div", { class: "topright" }, ...right));
-  $("#tabbar").replaceChildren(...links.map(mk));
+  top.replaceChildren(...[h("a", { class: "wordmark", href: home, "aria-label": brand + (sub ? " " + sub : "") }, h("img", { src: assetBase() + "media/rolvo-logo.png", alt: brand, width: "72", height: "22" }), sub ? h("span", null, sub) : null), pre ? h("div", { class: "navpre" }, ...pre) : null, h("nav", { class: "nav", "aria-label": "Main" }, ...links.map(mk)), h("div", { class: "topright" }, ...right)].filter(Boolean));
+  $("#tabbar").replaceChildren(...(tabs || links).map(mk));
   if (!scrollBound){ scrollBound = true; const f = () => top.classList.toggle("solid", scrollY > 8 || r.path !== "/"); addEventListener("scroll", f, { passive: true }); addEventListener("hashchange", () => setTimeout(f, 0)); f(); }
   top.classList.toggle("solid", scrollY > 8 || r.path !== "/");
 }
-const footer = () => h("footer", { class: "wrap" }, h("span", null, "Rolvo Market · an escrowed marketplace for AI filmmakers"), h("span", { class: "row" }, h("a", { href: "../" , class: "link" }, "Rolvo"), h("a", { href: APP === "creator" ? "../" : "creator/", class: "link" }, APP === "creator" ? "For clients" : "For creators"), h("a", { href: APP === "admin" ? "./" : (APP === "creator" ? "../admin/" : "admin/"), class: "link" }, "Admin"), h("a", { href: legalBase() + "privacy/", class: "link" }, "Privacy"), h("a", { href: legalBase() + "terms/", class: "link" }, "Terms")));
+const assetBase = () => APP === "merchant" ? "" : "../";
+/* Footer: who we are, where things live, and the standing credit line: the films are the creators' own. */
+function footer(){
+  const b = assetBase(); const col = (t, ...links) => h("div", { class: "fcol" }, h("b", null, t), ...links.filter(Boolean).map(([l, href]) => h("a", { href }, l)));
+  return h("footer", { class: "wrap" },
+    h("div", { class: "fgrid" },
+      h("div", { class: "fbrand" }, h("img", { src: b + "media/rolvo-logo.png", alt: "Rolvo", width: "72", height: "22" }), h("p", null, "Find the filmmaker behind the best AI video.")),
+      col("Clients", ["Find your match", b + "#/"], ["Creators", b + "#/creators"]),
+      col("Creators", ["Join Rolvo", b + "creator/#/apply"], ["Claim your profile", b + "creator/#/claim"], ["Rolvo Select", b + "../select/"]),
+      col("Company", ["API", b + "#/api"], ["Contact", "mailto:" + CONFIG.supportEmail], ["Privacy", b + "privacy/"], ["Terms", b + "terms/"], ["Admin", b + "admin/"])),
+    h("div", { class: "fbase" }, h("span", { class: "credit" }, "All films shown are the work of their creators and are embedded from their public posts. Rolvo claims no ownership of them."),
+      h("span", null, "© " + new Date().getFullYear() + " Rolvo")));
+}
 const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
 for (const o of ["https://www.youtube-nocookie.com", "https://i.ytimg.com", "https://player.vimeo.com", "https://video.twimg.com"]) document.head.append(Object.assign(document.createElement("link"), { rel: "preconnect", href: o }));
-/* Hover preview: while the pointer rests on a card, its film plays muted in place of the cover. Mouse only; touch keeps tap-to-open. */
-const PEEK = { el: null, t: 0 };
-function peekStop(){ clearTimeout(PEEK.t); if (PEEK.el){ PEEK.el.remove(); PEEK.el = null; } }
-function peekLayer(m, bw, bh){   // muted, looping film sized to cover a bw x bh box
-  const fw = Math.max(bw, bh * 16 / 9), fh = fw * 9 / 16;
-  const frame = m.mp4 ? h("video", { src: m.mp4, muted: true, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" })
-    : h("iframe", { src: m.yt ? `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${m.yt}&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`
-        : `https://player.vimeo.com/video/${m.vm}?autoplay=1&muted=1&loop=1&controls=0&title=0&byline=0&portrait=0`, allow: "autoplay; encrypted-media", referrerpolicy: "strict-origin-when-cross-origin", tabindex: "-1", "aria-hidden": "true", title: "" });
-  const layer = h("span", { class: "peek" + (m.mp4 ? " v" : "") }, frame), show = () => layer.classList.add("on");
-  if (m.mp4){ frame.muted = true; frame.addEventListener("playing", show, { once: true }); }
-  else { Object.assign(frame.style, { width: fw + "px", height: fh + "px" }); frame.addEventListener("load", show, { once: true }); setTimeout(show, 600); }   // shown when the player has loaded, or after 0.6 s at the latest
-  return layer;
-}
-const playable = w => { const m = w && w[5]; return m && (m.yt || m.vm || m.mp4) ? m : null; };
-function hoverPlay(card, w){
-  const m = playable(w); if (!m || !matchMedia("(hover: hover)").matches) return card;
-  card.addEventListener("mouseenter", () => { peekStop(); const r = card.getBoundingClientRect();   // starts loading the moment the pointer arrives
-    PEEK.el = peekLayer(m, r.width, r.height); const face = card.querySelector(".art"); if (face) face.after(PEEK.el); else card.prepend(PEEK.el); });
-  card.addEventListener("mouseleave", peekStop);
-  return card;
-}
-function liveCover(w, extra){   // a cover that plays its film on its own (onboarding style picks)
-  const box = cover(w, extra), m = playable(w); if (!m) return box;
-  setTimeout(() => { if (!box.isConnected) return; const r = box.getBoundingClientRect(); box.append(peekLayer(m, r.width, r.height)); }, 0);
+/* Muted in-place preview of a film. YouTube draws its title, logo, buttons and captions over the first seconds of every embed
+   and they cannot be switched off, so the frame stays behind the cover until the player reports it has been playing long
+   enough for them to fade (about three seconds). A film that refuses to embed reports an error and the cover simply stays.
+   The frame is also three times the box height, which keeps the top and bottom bars outside the visible third. */
+const YT_PLAYERS = new WeakMap(); let ytBound = false;
+function previewNode(m, fit){
+  if (!m || !(m.yt || m.vm || m.mp4)) return null;
+  const box = h("div", { class: "hoverplay" + (fit ? " fit" : ""), "aria-hidden": "true" }); const show = () => box.classList.add("on");
+  if (m.mp4){ const v = h("video", { src: m.mp4, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" }); v.muted = true; v.addEventListener("playing", show, { once: true }); box.append(v); return box; }
+  const f = h("iframe", { tabindex: "-1", allow: "autoplay; encrypted-media", referrerpolicy: "strict-origin-when-cross-origin",
+    src: m.yt ? `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${m.yt}&rel=0&disablekb=1&iv_load_policy=3&fs=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}` : `https://player.vimeo.com/video/${m.vm}?background=1&autoplay=1&muted=1&loop=1` });
+  box.append(f);
+  if (!m.yt){ f.addEventListener("load", () => setTimeout(show, 700), { once: true }); return box; }
+  const say = o => { try { f.contentWindow.postMessage(JSON.stringify(o), "*"); } catch {} };
+  if (!ytBound){ ytBound = true; addEventListener("message", e => { const fn = e.source && YT_PLAYERS.get(e.source); if (!fn) return; let d = e.data; if (typeof d === "string"){ try { d = JSON.parse(d); } catch { return; } } if (d) fn(d); }); }
+  let started = false;
+  f.addEventListener("load", () => { YT_PLAYERS.set(f.contentWindow, d => {
+      if (d.event === "onError") return box.remove();
+      const st = d.event === "onStateChange" ? d.info : d.info && d.info.playerState;
+      if (st === 1 && !started){ started = true; say({ event: "command", func: "unloadModule", args: ["captions"] }); setTimeout(show, 3200); } });
+    say({ event: "listening", id: 1, channel: "widget" }); }, { once: true });
   return box;
 }
-function tile(w, c, onclick){ return hoverPlay(tileEl(w, c, onclick), w); }
-function tileEl(w, c, onclick){ return h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))); }
+const canPreview = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* hover preview: while the pointer is on a card the film plays in place of its cover; leaving puts the cover back */
+function hoverPlay(el, w){
+  const m = w && w[5]; if (!m || !(m.yt || m.vm || m.mp4) || !matchMedia("(hover:hover)").matches || !canPreview()) return el;
+  let t = null, node = null;
+  el.addEventListener("mouseenter", () => { t = setTimeout(() => { const art = el.querySelector(".art"); if (!art) return; node = previewNode(m); art.append(node); }, 0); });   // starts loading the moment the pointer arrives
+  el.addEventListener("mouseleave", () => { clearTimeout(t); if (node){ node.remove(); node = null; } });
+  return el;
+}
+function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
 async function playWork(w, c, cta){
   const m = w[5] || {};
   let player;
@@ -107,7 +129,7 @@ async function playWork(w, c, cta){
   else player = h("video", { src: m.mp4 || await workSrc(w), poster: m.cover || "", controls: true, autoplay: true, playsinline: true });
   const meta = [c.name, TAXONOMY[w[1]].name, w[3] ? w[3] + "s" : null].filter(Boolean).join(" · ");
   const credit = m.link ? h("a", { class: "link small", href: m.link, target: "_blank", rel: "noopener" }, "Watch on " + m.on + (m.by && m.by !== c.name && m.by !== "@" + c.handle ? " · uploaded by " + m.by : "") + " ↗") : (w[4] ? null : h("span", { class: "small dim" }, "Demo uses a stock clip"));
-  openSheet([h("div", { class: "row between" }, h("div", null, h("h2", { style: { fontSize: "28px" } }, w[0]), h("div", { class: "muted small" }, meta)), h("button", { class: "close", onclick: closeSheet, "aria-label": "Close" }, "×")),
+  openSheet([h("div", { class: "row between" }, h("div", null, h("h2", { style: { fontSize: "24px" } }, w[0]), h("div", { class: "muted small" }, meta)), h("button", { class: "close", onclick: closeSheet, "aria-label": "Close" }, "×")),
     h("div", { class: "stage" + (m.yt || m.vm ? " embed" : "") }, player),
     h("div", { class: "row between", style: { flexWrap: "wrap", gap: "12px" } }, credit, cta ? h("div", { class: "row", style: { gap: "14px" } }, h("a", { class: "link", href: "#/creator/" + c.id, onclick: closeSheet }, "All of " + (c.real ? c.name : first(c.name)) + "'s work →"), cta) : null)], true);
 }
@@ -139,7 +161,7 @@ function vChats(root, id){
   root.append(h("div", { class: "chats" + (o ? " open" : "") }, threadList(list, o, u), o ? thread(o, u) : h("div", { class: "thread none" }, h("div", { class: "chat-empty" }, list.length ? h("span", null, "Pick a conversation.") : [h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, APP === "creator" ? "No projects yet." : "No conversations yet."), h("span", null, APP === "creator" ? "When a client starts a project with you, the chat opens here." : "Start a project with a creator and the chat opens here."), APP === "merchant" ? h("a", { class: "btn", href: "#/work" }, "Browse creators") : null]))));
 }
 function threadList(list, cur, u){
-  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null),
+  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : APP === "merchant" ? "Projects" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null),
     ...list.map(o => { const other = APP === "admin" ? DB.user(o.creatorId) : otherOf(o, u.id); const need = actionNeeded(o, u.id);
       return h("a", { class: "trow", href: "#/chat/" + o.id, "aria-current": String(cur && cur.id === o.id) }, avatar(other),
         h("div", { style: { minWidth: 0 } }, h("div", { class: "n" }, need ? h("i", { class: "dot" }) : null, APP === "admin" ? DB.nameOf(o.clientId) + " ↔ " + other.name : (other.org || other.name)), h("div", { class: "t" }, o.title + " · " + lastMsg(o))),
@@ -296,8 +318,7 @@ async function showPreview(o, d, clean){
 function bootShared(){
   $("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
-  document.body.append(h("div", { class: "devbar" }, h("button", { class: "btn", onclick: async () => { if (!confirm("Reset all demo data in this browser?")) return; await Files.clear(); DB.reset(); go("#/"); render(); } }, "RESET DEMO")));
+  if (!LIVE.auth || !LIVE.stripe || !LIVE.paypal) document.body.classList.add("demo-mode");
   DB.load(); addEventListener("hashchange", () => { scrollTo(0, 0); render(); }); render();
   Auth.boot();   // finishes a Google redirect in live mode
-  if (!LIVE.auth || !LIVE.stripe || !LIVE.paypal) document.body.classList.add("demo-mode");
 }

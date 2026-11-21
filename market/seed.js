@@ -31,7 +31,7 @@ const TAXONOMY = {
       { id:"fantasy", name:"Fantasy / 穿越", styles:["surreal","anime","cinematic","soap"] },
       { id:"suspense", name:"Suspense", styles:["noir","soap","found","cinematic"] },
     ] },
-  interactive: { name:"Interactive Film & Games", zh:"互动影游", blurb:"Branching stories, FMV, playable ads, cutscenes.",
+  interactive: { name:"Interactive Games", zh:"互动影游", blurb:"Branching stories, FMV, playable ads, cutscenes.",
     ask:"What format?",
     options:[
       { id:"branching", name:"Branching story", styles:["cinematic","anime","noir","surreal"] },
@@ -39,7 +39,7 @@ const TAXONOMY = {
       { id:"cutscene", name:"Game cutscene / trailer", styles:["cinematic","anime","surreal","hero"] },
       { id:"playable", name:"Playable ad", styles:["trend","explainer","anime","hero"] },
     ] },
-  reels: { name:"Reels & Shorts", zh:"短视频", blurb:"Vertical, 6–60 s, built for the feed.",
+  reels: { name:"Reels & UGC", zh:"短视频", blurb:"Vertical, 6–60 s, built for the feed.",
     ask:"Which platform first?",
     options:[
       { id:"tiktok", name:"TikTok", styles:["trend","ugc","stream","hook"] },
