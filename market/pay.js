@@ -36,7 +36,7 @@ function pay(o, amt, label, done){
           await loadScript("https://js.stripe.com/v3/");
           const { clientSecret } = await payApi({ action: "stripe_intent", orderId: o.id, kind: label.toLowerCase(), amount: amt, currency: "usd" });
           const stripe = Stripe(CONFIG.stripePk);
-          stripeEls = stripe.elements({ clientSecret, appearance: { theme: "night", variables: { colorPrimary: "#f2f0ea", colorBackground: "#141414", borderRadius: "10px", fontFamily: "Inter, system-ui, sans-serif" } } });
+          stripeEls = stripe.elements({ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#26251e", colorBackground: "#ffffff", colorText: "#26251e", borderRadius: "6px", fontFamily: "system-ui, sans-serif" } } });
           mount.replaceChildren(); stripeEls.create("payment", { layout: "tabs" }).mount(mount); btn.disabled = false;
           btn.onclick = async () => { busy(btn, true, "Processing…"); err.textContent = "";
             const { error, paymentIntent } = await stripe.confirmPayment({ elements: stripeEls, redirect: "if_required" });
@@ -55,7 +55,7 @@ function pay(o, amt, label, done){
         try {
           await loadScript(`https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(CONFIG.paypalClientId)}&currency=USD&intent=capture&components=buttons&disable-funding=card,credit,paylater,venmo`);
           mount.replaceChildren();
-          paypal.Buttons({ style: { layout: "vertical", color: "white", shape: "pill", label: "pay", height: 46 },
+          paypal.Buttons({ style: { layout: "vertical", color: "black", shape: "rect", label: "pay", height: 46 },
             createOrder: async () => (await payApi({ action: "paypal_create", orderId: o.id, kind: label.toLowerCase(), amount: amt, currency: "USD" })).id,
             onApprove: async d => { const r = await payApi({ action: "paypal_capture", paypalOrderId: d.orderID, orderId: o.id, kind: label.toLowerCase() });
               if (r.status === "COMPLETED") finish({ method: "paypal", ref: r.captureId || d.orderID, mode: "live" }); else err.textContent = "PayPal didn't complete the payment (" + r.status + ")."; },
