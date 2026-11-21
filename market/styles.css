@@ -539,3 +539,11 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--panel)}
 .workrow .thumb{position:relative;width:64px;height:40px;border-radius:3px;overflow:hidden;flex:none}
 .workrow .thumb .art{position:absolute;inset:0;width:auto;height:auto;border-radius:0}
 .workrow.pick{grid-template-columns:64px 1fr auto}
+
+/* v9 · sign-in sheet: one field (email or phone), country code appears when the field looks like a number */
+.who{display:grid;grid-template-columns:1fr;gap:10px}
+.who.withcc{grid-template-columns:132px 1fr}
+.who .cc[hidden]{display:none}
+.switch{font-size:14px;color:var(--muted);text-align:center;margin:4px 0 0}
+.switch .link{font-size:14px;color:var(--fg);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:520px){.who.withcc{grid-template-columns:104px 1fr}}

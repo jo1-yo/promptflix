@@ -85,38 +85,60 @@ const Auth = {
     Cloud.attach(account); closeSheet(); render(); if (p.then) p.then(u);
   },
 
-  /* opts: { onIdentity, methods: ["google","email","phone"], hint } */
+  /* opts: { onIdentity, methods: ["google","email","phone"], hint, signup }
+     Laid out like the big marketplaces: one field (email, or phone when it looks like a number) → Continue, then "or" Google,
+     and a Log in / Sign up switch at the bottom. Both run the same passwordless step: a new address gets an account. */
   open(then, copy, opts = {}){
     this.pending = { then, onIdentity: opts.onIdentity };
     // Live, a method shows only once it's switched on in config.js: email codes need Supabase's code template and our own SMTP,
     // phone codes need an SMS provider. Google needs nothing more.
     let methods = (opts.methods || ["google", "email", "phone"]).filter(m => !LIVE.auth || m === "google" || (m === "email" ? CONFIG.emailCodes : CONFIG.smsCodes));
     if (!methods.length) methods = ["google"];
-    const codes = methods.includes("email") || methods.includes("phone");
-    let tab = methods.includes("email") ? "email" : "phone";
+    const canEmail = methods.includes("email"), canPhone = methods.includes("phone"), codes = canEmail || canPhone;
+    const custom = !!(copy && copy.title);
+    let signup = !!opts.signup, typed = "";
     const box = h("div", { class: "auth" });
+    const head = h("div");
+    const looksPhone = v => canPhone && !/[a-z@]/i.test(v) && (v.match(/\d/g) || []).length >= 3;
     const draw = () => {
-      const email = h("input", { class: "i", type: "email", name: "email", required: true, autocomplete: "email", placeholder: APP === "creator" ? "you@studio.com" : "you@company.com" });
+      head.replaceChildren(phead(custom ? copy.title : signup ? "Create your Rolvo account" : "Log in to Rolvo",
+        custom ? copy.sub : signup ? "Hire AI filmmakers, or get hired. No password needed." : (APP === "merchant" ? "Contacting a creator needs an account." : null)));
+      const label = canEmail && canPhone ? "Email or phone number" : canEmail ? "Email" : "Phone number";
+      const who = h("input", { class: "i", type: canEmail && !canPhone ? "email" : "text", name: "username", required: true, value: typed,
+        autocomplete: canEmail ? "username email" : "tel", inputmode: canEmail ? "email" : "tel", autocapitalize: "off", spellcheck: "false",
+        placeholder: canEmail ? (APP === "creator" ? "you@studio.com" : "you@company.com") : "Phone number", "aria-label": label,
+        oninput: () => { typed = who.value; const p = looksPhone(who.value) && !who.value.trim().startsWith("+"); if (p !== !cc.hidden){ cc.hidden = !p; row.classList.toggle("withcc", p); } } });
       const cc = h("select", { class: "i cc", name: "cc", "aria-label": "Country code" }, ...COUNTRIES.map(([c, n]) => h("option", { value: c }, c + " " + n)));
-      const num = h("input", { class: "i", type: "tel", name: "phone", required: true, autocomplete: "tel-national", inputmode: "tel", placeholder: "Phone number" });
-      const f = h("form", { class: "form", onsubmit: e => { e.preventDefault();
-        const target = tab === "email" ? { email: email.value.trim().toLowerCase() } : { phone: cc.value + num.value.replace(/\D/g, "").replace(/^0+/, "") };
-        if (tab === "phone" && target.phone.length < cc.value.length + 6) return toast("That phone number looks too short.");
-        this.sendCode(target, box, draw); } },
-        methods.includes("email") && methods.includes("phone") ? h("div", { class: "seg", role: "tablist" }, ...[["email", "Email"], ["phone", "Phone"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(tab === k), onclick: () => { tab = k; draw(); } }, l))) : null,
-        tab === "email" ? field("Email", email) : field("Mobile number", h("div", { class: "tel" }, cc, num)),
-        h("button", { class: "btn primary big", type: "submit" }, "Continue"));
+      cc.hidden = !(canPhone && (!canEmail || (looksPhone(typed) && !typed.trim().startsWith("+"))));
+      const row = h("div", { class: "who" + (cc.hidden ? "" : " withcc") }, cc, who);
+      const f = h("form", { class: "form", novalidate: true, onsubmit: e => { e.preventDefault();
+        const v = who.value.trim();
+        if (canEmail && /@/.test(v)){
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return toast("That email doesn't look right.");
+          return this.sendCode({ email: v.toLowerCase() }, box, draw);
+        }
+        if (canPhone && looksPhone(v)){
+          const digits = v.replace(/\D/g, "");
+          const phone = v.startsWith("+") ? "+" + digits : cc.value + digits.replace(/^0+/, "");
+          if (phone.replace(/\D/g, "").length < 8) return toast("That phone number looks too short.");
+          return this.sendCode({ phone }, box, draw);
+        }
+        toast(canEmail && canPhone ? "Enter an email or a phone number." : canEmail ? "Enter your email." : "Enter your phone number."); } },
+        field(label, row), h("button", { class: "btn primary big", type: "submit" }, "Continue"));
+      const toggle = custom ? null : h("p", { class: "switch" }, signup ? "Already have an account? " : "Don't have a Rolvo account? ",
+        h("button", { class: "link", type: "button", onclick: () => { signup = !signup; draw(); } }, signup ? "Log in" : "Sign up"));
       box.replaceChildren(...[   // filter: replaceChildren would print "null" for the parts left out
-        methods.includes("google") ? (CONFIG.googleClientId ? this.gsiButton(box, draw) : h("button", { class: "btn big gbtn", type: "button", onclick: () => this.google(box, draw) }, googleIcon(), "Continue with Google")) : null,
-        methods.includes("google") && codes ? h("div", { class: "or" }, h("span", null, "or")) : null,
         codes ? f : null,
-        h("p", { class: "hint" }, opts.hint || "New here? The same step creates your account. No password."),
+        methods.includes("google") && codes ? h("div", { class: "or" }, h("span", null, "or")) : null,
+        methods.includes("google") ? (CONFIG.googleClientId ? this.gsiButton(box, draw) : h("button", { class: "btn big gbtn", type: "button", onclick: () => this.google(box, draw) }, googleIcon(), "Continue with Google")) : null,
+        opts.hint ? h("p", { class: "hint" }, opts.hint) : null,
+        toggle,
         h("p", { class: "hint legal" }, "By continuing you agree to the ", h("a", { href: legalBase() + "terms/", target: "_blank", class: "link" }, "Terms"), " and ", h("a", { href: legalBase() + "privacy/", target: "_blank", class: "link" }, "Privacy Policy"), "."),
         this.mode() === "demo" ? h("p", { class: "hint demo" }, "Demo mode: no email or SMS is sent" + (LIVE.google ? "" : " and Google isn't connected") + ". Codes appear on screen.") : null].filter(Boolean));
-      if (codes) setTimeout(() => (tab === "email" ? email : num).focus(), 30);
+      if (codes) setTimeout(() => who.focus(), 30);
     };
     draw();
-    openSheet([phead(copy && copy.title || "Sign in or create an account", copy && copy.sub || (APP === "merchant" ? "Contacting a creator needs an account. A few questions about you and the job come next." : null)), box]);
+    openSheet([head, box]);
   },
 
   async google(box, back){
@@ -177,12 +199,13 @@ const Auth = {
 
   async sendCode(target, box, back){
     const kind = target.email ? "email" : "phone"; let demoCode = null;
+    const LEN = LIVE.auth ? (CONFIG.codeLength || 6) : 6;   // must match Supabase → Authentication → OTP length
     if (LIVE.auth){
       const { error } = await this.client().auth.signInWithOtp(target.email ? { email: target.email, options: { shouldCreateUser: true } } : { phone: target.phone, options: { shouldCreateUser: true } });
-      if (error) return toast(error.message);
+      if (error) return toast(/signups? not allowed|disabled/i.test(error.message) ? "Sign-ups are closed right now." : /rate|too many|seconds/i.test(error.message) ? "Too many codes. Wait a minute and try again." : error.message);
     } else demoCode = String(Math.floor(100000 + Math.random() * 900000));
     let wait = 30, timer;
-    const code = h("input", { class: "i code", inputmode: "numeric", autocomplete: "one-time-code", maxlength: "6", pattern: "\\d{6}", required: true, placeholder: "••••••", oninput: e => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6); if (e.target.value.length === 6) f.requestSubmit(); } });
+    const code = h("input", { class: "i code", inputmode: "numeric", autocomplete: "one-time-code", maxlength: String(LEN), pattern: "\\d{" + LEN + "}", required: true, placeholder: "•".repeat(LEN), oninput: e => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, LEN); if (e.target.value.length === LEN) f.requestSubmit(); } });
     const resend = h("button", { class: "link small", type: "button", disabled: true, onclick: () => { clearInterval(timer); this.sendCode(target, box, back); } }, "Resend in 30s");
     const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); const v = code.value.trim();
         if (LIVE.auth){
@@ -192,7 +215,7 @@ const Auth = {
         }
         if (v !== demoCode) { code.value = ""; return toast("That code didn't work. Check it or resend."); }
         clearInterval(timer); this.finish({ ...target, provider: kind, mode: "demo" }); } },
-      h("p", { class: "muted" }, "Enter the 6-digit code we sent to ", h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, target.email || target.phone), "."),
+      h("p", { class: "muted" }, "Enter the " + LEN + "-digit code we sent to ", h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, target.email || target.phone), "."),
       code, h("button", { class: "btn primary big", type: "submit" }, "Verify"),
       h("div", { class: "row between" }, h("button", { class: "link small", type: "button", onclick: () => { clearInterval(timer); back(); } }, kind === "email" ? "Use a different email" : "Use a different number"), resend),
       demoCode ? h("p", { class: "hint demo" }, "Demo mode: your code is ", h("b", { class: "democode" }, demoCode), ".") : null);
