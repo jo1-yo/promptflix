@@ -91,16 +91,16 @@ function vApply(m){
     page.append(f); return;
   }
   if (W.step === 2){
-    head("Your work.", "At least one finished film. Each one is tagged with a category and style so the right clients see it.");
-    const list = h("div", { class: "worklist" }, ...u.works.map((w, i) => h("div", { class: "workrow" }, art(w[2]), h("div", null, w[0], h("small", null, TAXONOMY[w[1]].name + " · " + STYLES[w[2]].name + " · " + w[3] + "s")), h("button", { class: "btn quiet small", onclick: () => { u.works.splice(i, 1); DB.save(); render(); } }, "Remove"))));
-    let file = null;
-    const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); const fd = new FormData(f); const btn = f.querySelector("[type=submit]"); btn.disabled = true;
-      const src = file ? await Files.put(file) : (fd.get("url") || null);
-      u.works.push([fd.get("title").trim(), fd.get("cat"), fd.get("style"), +fd.get("secs") || 30, src]); DB.save(); render(); } },
-      h("div", { class: "row2" }, field("Title", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "Client · what it was" })), field("Length (seconds)", h("input", { class: "i", name: "secs", type: "number", min: "1", value: 30 }))),
+    head("Your work.", "Link at least one finished piece: a post on Instagram, LinkedIn, X or TikTok, a YouTube or Vimeo film, or your own site. No uploads.");
+    const list = h("div", { class: "worklist" }, ...u.works.map((w, i) => h("div", { class: "workrow pick" }, h("span", { class: "thumb" }, cover(w)), h("div", null, w[0], h("small", null, [w[5] && w[5].on, TAXONOMY[w[1]].name, STYLES[w[2]].name].filter(Boolean).join(" · "))), h("button", { class: "btn quiet small", onclick: () => { u.works.splice(i, 1); DB.save(); render(); } }, "Remove"))));
+    const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f); const m = workLink((fd.get("url") || "").trim());
+      if (!m) return toast("Paste a full link, starting with https://");
+      if (u.works.some(w => sameWork(w[5], m))) return toast("That link is already on your list.");
+      m.by = u.name; u.works.push([fd.get("title").trim(), fd.get("cat"), fd.get("style"), null, null, m]); DB.save(); render(); } },
+      field("Link to your work", h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "https://www.instagram.com/p/…" }), "Instagram, LinkedIn, X, TikTok, YouTube, Vimeo or any public page"),
+      field("Title", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "Client · what it was" })),
       h("div", { class: "row2" }, field("Category", h("select", { class: "i", name: "cat" }, ...(u.cats.length ? u.cats : CATS).map(id => h("option", { value: id }, TAXONOMY[id].name)))), field("Style", h("select", { class: "i", name: "style" }, ...(u.styles.length ? u.styles : Object.keys(STYLES)).map(id => h("option", { value: id }, STYLES[id].name))))),
-      h("div", { class: "row2" }, field("File", h("input", { type: "file", accept: "video/*", onchange: e => { file = e.target.files[0] || null; } }), "optional, stays in this browser"), field("or a link", h("input", { class: "i", name: "url", type: "url", placeholder: "https://…/film.mp4" }))),
-      h("div", { class: "row" }, h("button", { class: "btn", type: "submit" }, "Add film"), h("span", { class: "hint" }, "No file or link: the demo plays a stock clip.")));
+      h("div", null, h("button", { class: "btn", type: "submit" }, "Add link")));
     page.append(list, f, h("div", null, h("button", { class: "btn primary big", disabled: !u.works.length, onclick: () => { W.step = 3; render(); } }, "Continue")));
     return;
   }
@@ -108,7 +108,7 @@ function vApply(m){
     head("Pricing.", "Your starting price per film. Clients see a range built from this and every order you open here.");
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
       Object.assign(u, { ask: +fd.get("ask"), days: +fd.get("days"), live: true, rating: u.rating || 4.8, approvedAt: now() }); DB.save(); W = {}; toast("You're live. Clients can find you now."); go("#/chats"); } },
-      h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "50", step: "50", required: true, value: u.ask || "", placeholder: "1500" })), field("Typical turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", required: true, value: u.days }))),
+      h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", required: true, value: u.ask ?? "", placeholder: "0" }), "0 is fine"), field("Typical turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", required: true, value: u.days }))),
       h("div", { class: "notice" }, h("b", null, "Review. "), "A person on our team looks at every application before it goes live, usually within two days. In this demo you go live immediately."),
       h("div", null, h("button", { class: "btn primary big", type: "submit" }, "Submit application")));
     page.append(f);
@@ -131,7 +131,7 @@ function vProfile(s){
     h("div", { class: "row2" }, field("Name", h("input", { class: "i", name: "name", value: c.name, required: true })), field("Based in", h("input", { class: "i", name: "where", value: c.where }))),
     h("div", { class: "row2" }, field("Time zone", h("select", { class: "i", name: "tz" }, ...TZS.map(t => h("option", { value: t, selected: c.tz === t }, t)))), field("Region", h("select", { class: "i", name: "region" }, ...REGIONS.map(([v, l]) => h("option", { value: v, selected: c.region === v }, l))))),
     field("Background", h("textarea", { class: "i", name: "bg", value: c.bg, maxlength: "160" })),
-    h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "50", step: "50", value: c.ask })), field("Turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", value: c.days }))),
+    h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", value: c.ask ?? "" })), field("Turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", value: c.days }))),
     field("Categories", chipset("cats", CATS.map(id => [id, TAXONOMY[id].name]), c.cats)),
     field("Styles", chipset("styles", Object.entries(STYLES).map(([id, s]) => [id, s.name]), c.styles, 3), "up to 3"),
     field("Clients you work best with", chipset("fit", CLIENT_TYPES.map(t => [t.id, t.name]), c.fit)),
@@ -139,26 +139,35 @@ function vProfile(s){
     h("div", { class: "row between" }, h("button", { class: "btn primary", type: "submit" }, "Save"), h("button", { class: "btn quiet small", type: "button", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out")));
   s.append(h("div", { class: "page-title" }, h("h2", null, "Profile"), h("a", { class: "link", href: "#/creator-preview" }, "See it as clients do →")),
     h("div", { class: "stack", style: { gap: "40px" } },
-      h("div", null, h("span", { class: "eyebrow" }, "Price record"), h("div", { class: "stats", style: { marginTop: "14px" } }, h("div", { class: "stat" }, h("b", null, c.ask ? money(c.ask) : "Not set"), h("span", null, "my ask")), h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "shown range")), h("div", { class: "stat" }, h("b", null, c.closes.length), h("span", null, "closed")), h("div", { class: "stat" }, h("b", null, c.quotes.length), h("span", null, "open quotes")), h("div", { class: "stat" }, h("b", null, DB.breaksLeft(c.id)), h("span", null, "breaks left"))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Every order that reaches contract adds its price here, closed or not. Clients see the range, never the list.")),
-      h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), filmPicker(c), h("p", { class: "hint", style: { marginTop: "10px" } }, "Upload a file from the application flow: ", h("button", { class: "link", onclick: () => { W = { step: 2 }; c.live = false; DB.save(); go("#/apply"); } }, "edit work"), ". Your profile is hidden while you edit.")),
+      h("div", null, h("span", { class: "eyebrow" }, "Price record"), h("div", { class: "stats", style: { marginTop: "14px" } }, h("div", { class: "stat" }, h("b", null, Number.isFinite(c.ask) ? money(c.ask) : "Not set"), h("span", null, "my ask")), h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "shown range")), h("div", { class: "stat" }, h("b", null, c.closes.length), h("span", null, "closed")), h("div", { class: "stat" }, h("b", null, c.quotes.length), h("span", null, "open quotes")), h("div", { class: "stat" }, h("b", null, DB.breaksLeft(c.id)), h("span", null, "breaks left"))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Every order that reaches contract adds its price here, closed or not. Clients see the range, never the list.")),
+      h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), filmPicker(c), h("p", { class: "hint", style: { marginTop: "10px" } }, "Add or reorder links below.")),
       f));
 }
 /* ---------- choose which films clients see ---------- */
 // Shown films live in c.works (first = card cover); hidden ones wait in c.shelf, so every other view keeps reading c.works.
 function filmLink(url){ const y = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url), v = /vimeo\.com\/(?:video\/)?(\d{6,11})/.exec(url);
   return y ? { yt: y[1], cover: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg`, lb: true, link: "https://www.youtube.com/watch?v=" + y[1], on: "YouTube" } : v ? { vm: v[1], cover: "https://vumbnail.com/" + v[1] + ".jpg", link: "https://vimeo.com/" + v[1], on: "Vimeo" } : null; }
+// Any public post or page: YouTube/Vimeo play inline, everything else (Instagram, LinkedIn, X, TikTok, a site) opens at the source.
+const SITES = [[/(^|\.)instagram\.com$/, "Instagram"], [/(^|\.)linkedin\.com$/, "LinkedIn"], [/(^|\.)(x|twitter)\.com$/, "X"], [/(^|\.)tiktok\.com$/, "TikTok"], [/(^|\.)behance\.net$/, "Behance"], [/(^|\.)facebook\.com$/, "Facebook"], [/(^|\.)threads\.(net|com)$/, "Threads"], [/(^|\.)xiaohongshu\.com$/, "Xiaohongshu"], [/(^|\.)bilibili\.com$/, "Bilibili"], [/(^|\.)douyin\.com$/, "Douyin"]];
+function workLink(url){
+  const film = filmLink(url); if (film) return film;
+  let u; try { u = new URL(url); } catch { return null; } if (!/^https?:$/.test(u.protocol)) return null;
+  const host = u.hostname.replace(/^www\./, ""); const site = SITES.find(([re]) => re.test(host));
+  return { link: u.href, on: site ? site[1] : host };
+}
+const sameWork = (a, b) => a && b && (a.yt ? a.yt === b.yt : a.vm ? a.vm === b.vm : a.link === b.link);
 function filmPicker(c){
   c.shelf ||= [];
   const save = () => { DB.save(); render(); };
   const row = (w, shown, i) => h("div", { class: "workrow pick" }, h("span", { class: "thumb" }, cover(w)), h("div", null, w[0], h("small", null, shown ? (i === 0 ? "Card cover · shown" : "Shown") : "Hidden")),
     h("span", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } }, shown && i > 0 ? h("button", { class: "btn quiet small", onclick: () => { c.works.unshift(c.works.splice(i, 1)[0]); save(); } }, "Make cover") : null,
     h("button", { class: "btn quiet small", onclick: () => { if (shown) c.shelf.push(c.works.splice(i, 1)[0]); else c.works.push(c.shelf.splice(i, 1)[0]); save(); } }, shown ? "Hide" : "Show")));
-  const add = h("form", { class: "row", style: { gap: "8px", marginTop: "12px", flexWrap: "wrap" }, onsubmit: e => { e.preventDefault(); const fd = new FormData(add), m = filmLink(fd.get("url") || "");
-      if (!m) return toast("Paste a YouTube or Vimeo link.");
-      if ([...c.works, ...c.shelf].some(w => w[5] && (w[5].yt && w[5].yt === m.yt || w[5].vm && w[5].vm === m.vm))) return toast("That film is already on your list.");
+  const add = h("form", { class: "row", style: { gap: "8px", marginTop: "12px", flexWrap: "wrap" }, onsubmit: e => { e.preventDefault(); const fd = new FormData(add), m = workLink((fd.get("url") || "").trim());
+      if (!m) return toast("Paste a full link, starting with https://");
+      if ([...c.works, ...c.shelf].some(w => sameWork(w[5], m))) return toast("That link is already on your list.");
       m.by = c.name; c.works.push([fd.get("title").trim() || "Untitled", c.cats[0], c.styles[0], null, null, m]); save(); } },
-    h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "YouTube or Vimeo link", style: { flex: "2 1 220px" } }), h("input", { class: "i", name: "title", maxlength: "60", placeholder: "Title", style: { flex: "1 1 140px" } }), h("button", { class: "btn", type: "submit" }, "Add film"));
-  return h("div", { style: { marginTop: "22px" } }, h("span", { class: "eyebrow" }, "Choose your films"), h("p", { class: "hint", style: { margin: "8px 0 12px" } }, "Pick what clients see. The first film is your card cover."),
+    h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "Link: Instagram, LinkedIn, X, YouTube…", style: { flex: "2 1 220px" } }), h("input", { class: "i", name: "title", maxlength: "60", placeholder: "Title", style: { flex: "1 1 140px" } }), h("button", { class: "btn", type: "submit" }, "Add link"));
+  return h("div", { style: { marginTop: "22px" } }, h("span", { class: "eyebrow" }, "Choose your work"), h("p", { class: "hint", style: { margin: "8px 0 12px" } }, "Pick what clients see. The first one is your card cover."),
     h("div", { class: "worklist" }, ...c.works.map((w, i) => row(w, true, i)), ...c.shelf.map((w, i) => row(w, false, i))), add);
 }
 /* ---------- wallet ---------- */
