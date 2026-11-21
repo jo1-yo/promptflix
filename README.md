@@ -13,7 +13,8 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Piece | State | What's missing (details in [What's not done](#whats-not-done)) |
 | --- | --- | --- |
 | Client, creator and admin sites | ✅ Working (demo data) | Shared backend. Each browser has its own copy of the data |
-| Sign-in: email / phone codes | 🟡 Demo (code shown on screen) | Supabase project, SMTP, SMS provider |
+| Sign-in: email codes | ✅ Live (sent from a Gmail account as "Rolvo Market") | A sender on rolvo.market once the domain is active |
+| Sign-in: phone codes | 🟡 Demo (code shown on screen) | SMS provider |
 | Sign-in: Google | 🟡 Code done, waiting on keys | Client ID in `config.js`, then publish the Google app |
 | Payments in: card through Stripe (order amount + card fee) | 🟡 Code done, demo mode | Supabase function deployed, Stripe test keys, server-side order amounts |
 | Creator wallet: balance, payout method, withdrawals (Stripe Connect) | 🟡 Demo works; live code written, never run against Stripe | Stripe account with Connect enabled, function deployed, orders in the database |
@@ -190,7 +191,11 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
 **Email and phone codes (Supabase Auth)**
 
 1. Create a Supabase project. Set `supabaseUrl` and `supabaseKey` (the publishable key). Free projects pause after a week without traffic; use a paid plan once real users depend on it.
-2. Email: in Authentication → Email Templates, put `{{ .Token }}` in the magic-link template so users get a 6-digit code. Add custom SMTP before launch, because the built-in sender is rate-limited.
+2. Email (live now):
+   - **SMTP** (Authentication → Emails → SMTP Settings): the built-in sender only reaches your own team at 2 emails an hour, so custom SMTP is required. Today it's Gmail: host `smtp.gmail.com`, port 465, username and sender = the Gmail address, password = a Gmail app password (myaccount.google.com/apppasswords, needs 2-Step Verification), sender name `Rolvo Market`. Gmail allows about 500 emails a day. Supabase then caps auth email at 30 an hour; raise it in Authentication → Rate Limits.
+   - **Templates** (Authentication → Emails → Templates): new users get **Confirm sign up**, returning users get **Magic link**. Both show the code with `{{ .Token }}`; no link needed.
+   - **Code length**: Authentication → Sign In / Providers → Email → Email OTP Length is set to 6. It must equal `codeLength` in `config.js`; new projects may default to 8.
+   - Supabase allows one code per address every 60 seconds, so the sheet's Resend button waits 60 seconds when live.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
    Live, the email and phone tabs stay hidden until `emailCodes` / `smsCodes` are `true` in `config.js`. Supabase's built-in mailer only delivers to your own team, so email codes also need custom SMTP. Until then the sign-in sheet shows Google only.
 4. Add `https://imjane.top/promptflix/market/` to Authentication → URL Configuration → Redirect URLs.
@@ -258,7 +263,8 @@ In rough priority order. Each item says where the work goes.
 **2. Sign-in**
 - [ ] Paste the Google client ID into `googleClientId` and test Google's popup on localhost and imjane.top.
 - [ ] Google Cloud: publish the app; add home page, privacy and terms URLs; verify `imjane.top` in Search Console; submit brand verification.
-- [ ] Supabase Auth: Google provider (client ID + secret), email OTP template with `{{ .Token }}`, custom SMTP, SMS provider (Twilio or similar).
+- [ ] Supabase Auth: SMS provider (Twilio or similar). Google, the email code templates and custom SMTP are done.
+- [ ] Move email codes off Gmail to a sender on rolvo.market (e.g. Resend, `noreply@rolvo.market`) once the domain is active.
 
 **3. Payments**
 - [ ] Deploy `market/server/functions/payments`, set Stripe and PayPal **test** keys, add the Stripe webhook, run a full test order.
