@@ -8,7 +8,7 @@ const VIEWS = [[null, [["", "Overview"]]], ["Money", [["orders", "Orders"], ["pa
 function header(){
   const u = me();
   mountHeader({ brand: "Rolvo", sub: "Admin", links: [],
-    right: u && u.role === "admin" ? [h("a", { class: "btn quiet small", href: "../", target: "_blank" }, "Client site"), h("a", { class: "btn quiet small", href: "../creator/", target: "_blank" }, "Creator site"), h("button", { class: "btn quiet small", onclick: () => { DB.signOut(); go("#/"); render(); } }, "Sign out")] : [],
+    right: u && u.role === "admin" ? [h("a", { class: "btn quiet small", href: "../", target: "_blank" }, "Client site"), h("a", { class: "btn quiet small", href: "../creator/", target: "_blank" }, "Creator site"), h("button", { class: "btn quiet small", onclick: () => { DB.signOut(); Live.reset(); go("#/"); render(); } }, "Sign out")] : [],
     home: "#/" });
 }
 function adminSignIn(){
@@ -26,6 +26,7 @@ function render(){
       h("div", null, h("button", { class: "btn primary big", onclick: adminSignIn }, "Sign in"))));
     return;
   }
+  Live.load();
   if (v === "order" || v === "chat") { vChats(m, r.parts[1]); return; }
   const views = { "": vOverview, orders: vOrders, payments: vPayments, payouts: vPayouts, users: vUsers, creators: vCreators, discovery: vDiscovery, trust: vTrust, integrations: vIntegrations };
   if (!views[v]) return go("#/");
@@ -50,11 +51,48 @@ const A = {
   clientStatus: u => u.verified ? ["Verified", "ok"] : u.onboarded ? ["Needs review", "warn"] : ["Onboarding", "dim"],
   live: on => h("span", { class: "pill " + (on ? "live" : "demo") }, on ? "Live" : "Demo"),
 };
-const clients = () => DB.state.users.filter(u => u.role === "client");
+const clients = () => Live.on() ? (Live.rows || []).filter(u => u.role === "client") : DB.state.users.filter(u => u.role === "client");
 const joined = () => DB.state.creators.filter(c => c.claimed || !c.real);
 const wallets = () => joined().map(c => [c, DB.wallet(c.id)]);
 const activeOrders = () => DB.state.orders.filter(o => !["completed", "cancelled", "negotiating"].includes(o.status));
 const loginText = l => l.provider === "google" ? "Google" : l.provider === "phone" ? "an SMS code" : "an email code";
+
+/* ---------- live accounts ----------
+   Live (Supabase keys set), people and sign-ins come from the database: market_profiles and market_logins, which only an admin
+   can read in full (RLS, see server/market.sql). Orders, chats and money are still this browser's data until they move there. */
+const Live = {
+  rows: null, logins: null, error: null, loading: null, at: null,
+  on: () => LIVE.auth,
+  reset(){ this.rows = this.logins = this.error = this.loading = this.at = null; },
+  load(force){
+    if (!this.on()) return;
+    if (force) this.reset();
+    if (this.rows || this.loading || this.error) return;
+    this.loading = (async () => {
+      const sb = Auth.client();
+      const [p, l] = await Promise.all([
+        sb.from("market_profiles").select("id, role, email, phone, name, avatar_url, providers, org, onboarded, verified, profile, local_id, created_at, last_login_at").order("created_at", { ascending: false }).limit(2000),
+        sb.from("market_logins").select("user_id, app, provider, at").order("at", { ascending: false }).limit(500)]);
+      const err = p.error || l.error;
+      if (err) this.error = err.code === "42501" || /JWT|permission/i.test(err.message) ? "Your database session has ended. Sign out and sign in again to load accounts." : err.message;
+      else { this.rows = p.data.map(liveUser); this.logins = l.data.map(x => ({ uid: x.user_id, app: x.app, provider: x.provider, at: x.at })); this.at = new Date().toISOString(); }
+      this.loading = null; render();
+    })().catch(e => { this.error = e.message || "Couldn't reach the database."; this.loading = null; render(); });
+  },
+  byId(id){ return (this.rows || []).find(u => u.id === id); },
+  /* A strip above a table: where the rows come from, when they were loaded, and a refresh button. */
+  source(){
+    if (!this.on()) return null;
+    if (this.error) return h("p", { class: "notice warn", style: { margin: "0 0 18px" } }, h("b", null, "Couldn't load accounts. "), this.error);
+    return h("div", { class: "srcline" }, h("span", null, this.rows ? "From the database · " + this.rows.length + (this.rows.length === 1 ? " account" : " accounts") + " · loaded " + ago(this.at) : "Loading accounts from the database…"),
+      h("button", { class: "link small", type: "button", onclick: () => this.load(true) }, "Refresh"));
+  },
+};
+const liveUser = r => ({ id: r.id, cloud: true, role: r.role, email: r.email, phone: r.phone ? "+" + String(r.phone).replace(/^\+/, "") : null, name: r.name || "",
+  avatar: r.avatar_url, providers: r.providers || [], org: r.org, onboarded: r.onboarded, verified: r.verified, profile: r.profile || {}, localId: r.local_id,
+  createdAt: r.created_at, lastLoginAt: r.last_login_at });
+const whoIs = id => { const u = Live.byId(id); return u ? (u.name || u.org || u.email || u.phone || "Someone") : DB.nameOf(id); };
+const ordersOf = (u, key) => DB.state.orders.filter(o => o[key] === u.id || (u.localId && o[key] === u.localId));
 
 /* ---------- overview ---------- */
 function vOverview(s){
@@ -63,13 +101,14 @@ function vOverview(s){
   const held = A.sum(L.filter(t => t.to === "escrow"), t => t.amount) - A.sum(L.filter(t => t.from === "escrow"), t => t.amount);
   const fee = A.sum(L.filter(t => t.type === "commission"), t => t.amount);
   const W = wallets(), balances = A.sum(W, ([, w]) => w.available), withdrawn = A.sum(W, ([, w]) => w.withdrawn);
-  s.append(A.title("Overview", "This browser's data. Live, the money figures come from Stripe."),
+  s.append(A.title("Overview", Live.on() ? "People and sign-ins come from the database. Orders and money are still this browser's data." : "This browser's data. Live, the money figures come from Stripe."),
+    Live.source() || "",
     A.kpis([[money(inflow), "Paid in", P.length + (P.length === 1 ? " payment" : " payments")], [money(held), "In escrow"], [money(balances), "Creator balances", "released, not withdrawn"], [money(withdrawn), "Withdrawn"], [money(fee), "Commission", FEES.commission * 100 + "% of releases"], [activeOrders().length, "Active orders"]]));
 
   const cl = clients(), ord = DB.state.orders;
   const funnel = [["Signed up", cl.length], ["Finished onboarding", cl.filter(u => u.onboarded).length], ["Started a project", new Set(ord.map(o => o.clientId)).size], ["Paid a deposit", new Set(P.filter(p => p.kind === "deposit").map(p => p.uid)).size], ["Completed an order", new Set(ord.filter(o => o.status === "completed").map(o => o.clientId)).size]];
   const top = Math.max(1, funnel[0][1]);
-  const logins = DB.state.logins || [];
+  const logins = Live.on() ? Live.logins || [] : DB.state.logins || [];
   const byMethod = ["google", "email", "phone"].map(k => [k, logins.filter(l => l.provider === k).length]);
   const where = [["In escrow", held], ["Creator balances", balances], ["Withdrawn", withdrawn], ["Commission", fee]];
   const bar = (label, n, total, shown) => h("div", { class: "frow" }, h("span", null, label), h("i", null, h("em", { style: { width: Math.round(n / Math.max(1, total) * 100) + "%" } })), h("b", null, shown ?? n));
@@ -84,7 +123,7 @@ function vOverview(s){
     ...ord.filter(o => o.status === "cancelled" && !o.reviewedByAdmin).map(o => [o.updatedAt, h("a", { class: "link", href: "#/trust" }, `“${o.title}” ended early`)]),
   ].sort((a, b) => String(b[0]).localeCompare(String(a[0])));
   const feed = [
-    ...logins.map(l => [l.at, `${DB.nameOf(l.uid)} ${l.claim ? "claimed a profile with" : "signed in to the " + l.app + " site with"} ${loginText(l)}`]),
+    ...logins.map(l => [l.at, `${whoIs(l.uid)} ${l.claim ? "claimed a profile with" : "signed in to the " + (l.app === "merchant" ? "client" : l.app) + " site with"} ${loginText(l)}`]),
     ...P.map(p => [p.at, `${DB.nameOf(p.uid)} paid the ${p.kind} (${money(p.amount)}) by ${A.method(p.method)}`]),
     ...ord.map(o => [o.createdAt, `${DB.nameOf(o.clientId)} opened “${o.title}” with ${DB.nameOf(o.creatorId)}`]),
   ].sort((a, b) => String(b[0]).localeCompare(String(a[0]))).slice(0, 14);
@@ -152,14 +191,25 @@ function vUsers(s, q){
   const list = all.filter(u => (!q.s || group(u) === q.s) && (!term || [u.name, u.org, u.email, u.phone, (u.profile || {}).website].join(" ").toLowerCase().includes(term)))
     .sort((a, b) => String(b.lastLoginAt || b.createdAt || "").localeCompare(String(a.lastLoginAt || a.createdAt || "")));
   s.append(A.title("Clients", "Instant verification needs a proven work email on the company's own domain. Everyone else lands in review: check the company and website, then verify."),
+    Live.source() || "",
     h("div", { class: "toolrow" }, A.chips([["", "All", all.length], ["review", "Needs review", all.filter(u => group(u) === "review").length], ["verified", "Verified", all.filter(u => group(u) === "verified").length], ["onboarding", "Onboarding", all.filter(u => group(u) === "onboarding").length]], q.s, "#/users"), A.search(q.q, "#/users", "Search name, company, email, phone")),
     A.table([{ l: "Client" }, { l: "Sign-in" }, { l: "Via" }, { l: "Company" }, { l: "Status" }, { l: "Orders", right: 1 }, { l: "Last seen" }, { l: "" }],
       list.map(u => { const p = u.profile || {}; const [st, cls] = A.clientStatus(u); return h("tr", null,
         A.td(h("div", null, h("b", { style: { fontWeight: 500 } }, u.name || "—"), p.role ? h("small", { class: "dim", style: { display: "block" } }, p.role) : null)), A.td(A.login(u), { cls: "muted" }), A.td(A.providers(u), { cls: "muted" }),
         A.td(h("div", null, u.org || "—", p.website ? h("small", { class: "dim", style: { display: "block" } }, p.website + (p.workEmail ? " · " + p.workEmail : "")) : null)),
-        A.td(h("span", { class: cls }, st + (u.verifiedBy === "admin" ? " (manual)" : ""))), A.td(DB.state.orders.filter(o => o.clientId === u.id).length, { right: 1 }), A.td(u.lastLoginAt ? ago(u.lastLoginAt) : "—", { cls: "muted" }),
-        A.td(u.onboarded ? h("button", { class: "btn small" + (u.verified ? " quiet" : ""), onclick: () => { DB.setVerified(u.id, !u.verified); toast(u.verified ? "Verified " + (u.org || u.name) : "Verification removed"); render(); } }, u.verified ? "Revoke" : "Verify") : null)); }),
-      "No clients match."));
+        A.td(h("span", { class: cls }, st + (u.verifiedBy === "admin" ? " (manual)" : ""))), A.td(ordersOf(u, "clientId").length, { right: 1 }), A.td(u.lastLoginAt ? ago(u.lastLoginAt) : "—", { cls: "muted" }),
+        A.td(u.onboarded ? h("button", { class: "btn small" + (u.verified ? " quiet" : ""), onclick: () => setVerified(u) }, u.verified ? "Revoke" : "Verify") : null)); }),
+      Live.on() && !Live.rows ? "Loading…" : "No clients match."));
+}
+
+async function setVerified(u){
+  const on = !u.verified, label = u.org || u.name || u.email || "client";
+  if (u.cloud){   // market_set_verified checks the caller is an admin
+    const { error } = await Auth.client().rpc("market_set_verified", { p_user: u.id, p_on: on });
+    if (error) return toast("Couldn't save: " + error.message);
+    u.verified = on; if (u.localId && DB.user(u.localId)) DB.setVerified(u.localId, on);
+  } else DB.setVerified(u.id, on);
+  toast(on ? "Verified " + label : "Verification removed"); render();
 }
 
 /* ---------- creators ---------- */
@@ -170,6 +220,8 @@ function vCreators(s, q){
   const n = k => all.filter(c => group(c) === k).length;
   s.append(A.title("Creators", "On Rolvo = claimed a crawled profile or finished an application. Unclaimed profiles are built from public work; a client starting a project sends them an invite."),
     h("div", { class: "toolrow" }, A.chips([["", "All", all.length], ["joined", "On Rolvo", n("joined")], ["applying", "Applying", n("applying")], ["unclaimed", "Unclaimed", n("unclaimed")]], q.s, "#/creators"), A.search(q.q, "#/creators", "Search name or handle")),
+    ...creatorAccounts(term),
+    Live.on() ? h("span", { class: "eyebrow", style: { display: "block", margin: "30px 0 12px" } }, "Profiles on the site") : "",
     A.table([{ l: "Creator" }, { l: "Status" }, { l: "Sign-in" }, { l: "Works", right: 1 }, { l: "Orders", right: 1 }, { l: "Rates" }, { l: "" }],
       list.slice(0, 200).map(c => { const g = group(c); return h("tr", null,
         A.td(h("div", { class: "row", style: { gap: "10px", flexWrap: "nowrap" } }, h("span", { class: "thumb" }, cover(c.works[0])), h("div", null, h("b", { style: { fontWeight: 500 } }, c.name || "(no name yet)"), h("small", { class: "dim", style: { display: "block" } }, c.handle ? "@" + c.handle + (c.source ? " · " + c.source : "") : "new application")))),
@@ -177,6 +229,20 @@ function vCreators(s, q){
         A.td(c.claimed || !c.real ? A.login(c) : "—", { cls: "muted" }), A.td(c.works.length, { right: 1 }), A.td(DB.state.orders.filter(o => o.creatorId === c.id).length || "—", { right: 1 }), A.td(c.ask ? money(c.ask) + "+" : rangeText(c) + " est.", { cls: "muted" }),
         A.td(g === "unclaimed" && !c.invitedAt ? h("button", { class: "btn small", onclick: () => { DB.inviteCreator(c.id); toast("Invite queued for " + c.name); render(); } }, "Invite") : c.social ? h("a", { class: "link small", href: c.social, target: "_blank", rel: "noopener" }, c.source + " ↗") : null)); }),
       "No creators match."));
+}
+
+/* Live: every creator account in the database (sign-ups and claimed profiles), whatever this browser has seen. */
+function creatorAccounts(term){
+  if (!Live.on()) return [];
+  const rows = (Live.rows || []).filter(u => u.role === "creator" && (!term || [u.name, u.email, u.phone, u.profile.handle].join(" ").toLowerCase().includes(term)));
+  return [Live.source() || "", h("span", { class: "eyebrow", style: { display: "block", margin: "6px 0 12px" } }, "Creator accounts · " + rows.length),
+    A.table([{ l: "Creator" }, { l: "Sign-in" }, { l: "Via" }, { l: "Application" }, { l: "Orders", right: 1 }, { l: "Joined" }, { l: "Last seen" }],
+      rows.map(u => { const p = u.profile; return h("tr", null,
+        A.td(h("div", null, h("b", { style: { fontWeight: 500 } }, u.name || "(no name yet)"), p.handle ? h("small", { class: "dim", style: { display: "block" } }, "@" + p.handle + (p.source ? " · " + p.source : "")) : null)),
+        A.td(A.login(u), { cls: "muted" }), A.td(A.providers(u), { cls: "muted" }),
+        A.td(h("span", { class: u.onboarded ? "ok" : "warn" }, u.onboarded ? "Filled in" : "Not finished")), A.td(ordersOf(u, "creatorId").length || "—", { right: 1 }),
+        A.td(u.createdAt ? ago(u.createdAt) : "—", { cls: "muted" }), A.td(u.lastLoginAt ? ago(u.lastLoginAt) : "—", { cls: "muted" })); }),
+      Live.rows ? "No creator accounts yet." : "Loading…")];
 }
 
 /* ---------- discovery ---------- */
