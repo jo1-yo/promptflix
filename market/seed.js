@@ -23,7 +23,7 @@ const TAXONOMY = {
       { id:"doc", name:"Documentary-style", styles:["doc","cinematic","found","explainer"] },
       { id:"comedy", name:"Comedy", styles:["ugc","cinematic","anime","trend"] },
     ] },
-  duanju: { name:"Duanju", zh:"短剧", blurb:"Vertical micro-drama, 1–3 min episodes, hooks every 15 s.",
+  duanju: { name:"Short Drama", zh:"短剧", blurb:"Vertical micro-drama, 1–3 min episodes, hooks every 15 s.",
     ask:"Which genre?",
     options:[
       { id:"romance", name:"Romance / CEO", styles:["cinematic","soap","anime","surreal"] },

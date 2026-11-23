@@ -171,9 +171,9 @@ function filmWall(items){
 }
 /* Use cases, Pricing and Connect to your AI are named in the header but not open yet. Add an id here to open its page. */
 const OPEN_SECTIONS = [];
-const USE_CASES = [["biz", "Launch films and brand ads", "Product launches, campaign spots and brand films that look shot, not generated."], ["demo", "Product demo videos", "Screen-led walkthroughs where the product does the talking."], ["reels", "Reels and UGC", "Vertical films built for the feed, in volume, on a weekly rhythm."], ["film", "Short films and spec work", "Narrative shorts, festival pieces and proof-of-concept scenes."], ["duanju", "Duanju", "Vertical micro-drama in one to three minute episodes."], ["interactive", "Interactive games", "Branching stories, playable ads and cutscenes."], ["mv", "Music videos", "Full tracks, visualizers and lyric films cut to the song."], ["anim", "Animation and characters", "Mascots, 2D and 3D worlds, character-led stories."]];
+const USE_CASES = [["biz", "Launch films and brand ads", "Product launches, campaign spots and brand films that look shot, not generated."], ["demo", "Product demo videos", "Screen-led walkthroughs where the product does the talking."], ["reels", "Reels and UGC", "Vertical films built for the feed, in volume, on a weekly rhythm."], ["film", "Short films and spec work", "Narrative shorts, festival pieces and proof-of-concept scenes."], ["duanju", "Short drama", "Vertical micro-drama in one to three minute episodes."], ["interactive", "Interactive games", "Branching stories, playable ads and cutscenes."], ["mv", "Music videos", "Full tracks, visualizers and lyric films cut to the song."], ["anim", "Animation and characters", "Mascots, 2D and 3D worlds, character-led stories."]];
 /* home tags, in this order. "demo" is a style inside Business & Brand, shown as its own tag. */
-const HOME_TABS = [["biz", "Business & Brand"], ["demo", "Product Demo Videos"], ["film", "Film & Short Film"], ["reels", "Reels & UGC"], ["duanju", "Duanju"], ["interactive", "Interactive Games"], ["mv", "Music Video"], ["anim", "Animation & Character"]];
+const HOME_TABS = [["biz", "Business & Brand"], ["demo", "Product Demo Videos"], ["film", "Film & Short Film"], ["reels", "Reels & UGC"], ["duanju", "Short Drama"], ["interactive", "Interactive Games"], ["mv", "Music Video"], ["anim", "Animation & Character"]];
 const tabFilms = id => tastePool().filter(x => id === "demo" ? x.w[2] === "demo" : x.w[1] === id);
 function vHome(m, q){
   const u = me(); const canRec = !!u && !!(TASTE.get() || (u.profile || {}).cat);
@@ -359,48 +359,114 @@ function startProject(c){
     h("button", { class: "btn primary", type: "submit" }, "Open chat"));
   openSheet([phead("Start a project", "with " + c.name), f]);
 }
-/* ---------- match a reference: a film the client likes → films like it → the people who made them ----------
-   v1 reads nothing from the video. The client says what it is (kind and look) and the library is ranked on those two tags, the same
-   two every film here carries. The reference is shown back and carried into the project brief. An automatic read (frames → tags)
-   would only prefill the two answers below; everything after them stays as it is. */
+/* ---------- match a reference: a film the client likes → films that look like it → the people who made them ----------
+   The reference is read in the visitor's own browser. A small image model (CLIP, ~45 MB, cached after the first use) turns a few
+   frames of it into a fingerprint; embeds.js holds the same fingerprint for every film here (tools/embed.mjs). Films are ranked by
+   how close the two are. What it is (kind, look) is then guessed from the closest films and shown as chips the client can correct,
+   which nudges the order. Nothing is uploaded. Frames can be read from an uploaded file, a YouTube link or a direct video file link;
+   other sites don't let a browser read their video, so there the client answers the two questions by hand. */
 let MATCHFILE = null, MATCHCUR = null;   // an uploaded reference stays in this tab: { name, url }
+const TRANSFORMERS = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2";
+const workKey = w => w[5] && (w[5].yt || w[5].vm || w[5].mp4 || w[5].link);
+const READER = {
+  ready: null, lib: null, reads: {},
+  load(onProgress){   // model + library fingerprints, once per visit
+    return this.ready ||= (async () => {
+      if (typeof EMBEDS === "undefined") await new Promise((ok, no) => { const s = document.createElement("script"); s.src = assetBase() + "embeds.js"; s.onload = ok; s.onerror = () => no(new Error("embeds")); document.head.append(s); });
+      const raw = Uint8Array.from(atob(EMBEDS.data), c => c.charCodeAt(0)), d = EMBEDS.dim; const data = new Int8Array(raw.buffer);
+      this.lib = new Map(EMBEDS.keys.map((k, i) => { const v = data.subarray(i * d, (i + 1) * d); let n = 0; for (const x of v) n += x * x; return [k, { v, n: Math.sqrt(n) || 1 }]; }));
+      const T = await import(TRANSFORMERS);
+      const processor = await T.AutoProcessor.from_pretrained(EMBEDS.model);
+      const model = await T.CLIPVisionModelWithProjection.from_pretrained(EMBEDS.model, { dtype: EMBEDS.dtype, progress_callback: p => { if (p.status === "progress" && /onnx/.test(p.file || "")) onProgress(Math.round(p.progress)); } });
+      this.embed = async src => { const img = typeof src === "string" ? await T.RawImage.read(src) : await T.RawImage.fromBlob(src); const { image_embeds } = await model(await processor(img)); return Array.from(image_embeds.data); };
+    })().catch(e => { this.ready = null; throw e; });
+  },
+  /* frames of the reference: stills for YouTube, six moments of a file */
+  async frames(ref){
+    if (ref.yt) return ["hqdefault", "hq1", "hq2", "hq3"].map(n => `https://i.ytimg.com/vi/${ref.yt}/${n}.jpg`);
+    if (!ref.video) return null;
+    const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; if (!ref.local) v.crossOrigin = "anonymous"; v.src = ref.video;
+    await new Promise((ok, no) => { v.onloadedmetadata = ok; v.onerror = () => no(new Error("video")); setTimeout(() => no(new Error("video")), 15000); });
+    const dur = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 1, cv = document.createElement("canvas"), k = 320 / Math.max(v.videoWidth, v.videoHeight, 1);
+    cv.width = Math.max(1, Math.round(v.videoWidth * k)); cv.height = Math.max(1, Math.round(v.videoHeight * k)); const out = [];
+    for (const f of [0.08, 0.25, 0.42, 0.58, 0.75, 0.92]){
+      await new Promise(ok => { v.onseeked = ok; setTimeout(ok, 4000); v.currentTime = dur * f; });
+      cv.getContext("2d").drawImage(v, 0, 0, cv.width, cv.height); out.push(await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.85)));   // throws for a cross-site file that doesn't allow reading
+    }
+    return out.filter(Boolean);
+  },
+  /* one read per reference: { state: "reading" | "done" | "manual" | "failed", pct, vec, guess } */
+  read(key, ref, onChange){
+    if (this.reads[key]) return this.reads[key];
+    const r = this.reads[key] = { state: "reading", pct: null };
+    (async () => {
+      const load = this.load(p => { r.pct = p; onChange(false); });
+      const frames = await this.frames(ref).catch(() => null);
+      if (!frames || !frames.length){ r.state = "manual"; return onChange(true); }
+      await load; const vs = []; for (const f of frames){ try { vs.push(await this.embed(f)); } catch {} }
+      if (!vs.length){ r.state = "manual"; return onChange(true); }
+      const mean = vs[0].map((_, j) => vs.reduce((s, v) => s + v[j], 0) / vs.length); const n = Math.hypot(...mean) || 1;
+      r.vec = mean.map(x => x / n); r.guess = this.guess(r.vec, ref); r.state = "done"; onChange(true);
+    })().catch(() => { r.state = "failed"; onChange(true); });
+    return r;
+  },
+  sim(vec, w){ const e = this.lib && this.lib.get(workKey(w)); if (!e) return 0; let s = 0; for (let i = 0; i < vec.length; i++) s += vec[i] * e.v[i]; return s / e.n; },
+  /* what the reference is, voted by the ten films closest to it */
+  guess(vec, ref){
+    const near = tastePool().filter(x => workKey(x.w) !== (ref.yt || ref.video)).map(x => ({ x, s: this.sim(vec, x.w) })).sort((a, b) => b.s - a.s).slice(0, 10);
+    const tally = i => { const n = {}; for (const { x, s } of near) n[x.w[i]] = (n[x.w[i]] || 0) + s; return Object.entries(n).sort((a, b) => b[1] - a[1]); };
+    const cats = tally(1), looks = tally(2);
+    return { cat: cats.length ? cats[0][0] : "", styles: looks.filter(([, v], i) => i === 0 || (i === 1 && v >= looks[0][1] * 0.5)).map(([k]) => k) };
+  } };
 const MATCH = {
   parse(q){ return { u: q.u || "", cat: CATS.includes(q.cat) ? q.cat : "", styles: (q.styles || "").split(",").filter(s => STYLES[s]).slice(0, 2) }; },
   url(s){ const p = new URLSearchParams(); if (s.u) p.set("u", s.u); if (s.cat) p.set("cat", s.cat); if (s.styles.length) p.set("styles", s.styles.join(",")); const t = p.toString(); return "#/match" + (t ? "?" + t : ""); },
-  // look first, kind second; at most two films per creator so one person doesn't fill the page
-  rank(s){ const n = {}; const score = x => { const i = s.styles.indexOf(x.w[2]); return (i === 0 ? 5 : i > 0 ? 3 : 0) + (x.w[1] === s.cat ? 3 : 0); };
-    return tastePool().map(x => ({ x, s: score(x) })).filter(y => y.s > 0).sort((a, b) => b.s - a.s).map(y => y.x).filter(x => (n[x.c.id] = (n[x.c.id] || 0) + 1) <= 2).slice(0, 12); } };
+  // read: closeness of the picture leads and the chips nudge. not read: the chips are all there is. Two films per creator at most.
+  rank(s, vec, self){ const n = {}; const tags = x => { const i = s.styles.indexOf(x.w[2]); return (i === 0 ? 5 : i > 0 ? 3 : 0) + (x.w[1] === s.cat ? 3 : 0); };
+    const score = vec ? x => READER.sim(vec, x.w) + tags(x) * 0.004 : tags;
+    return tastePool().filter(x => workKey(x.w) !== self).map(x => ({ x, s: score(x) })).filter(y => y.s > 0).sort((a, b) => b.s - a.s).map(y => y.x).filter(x => (n[x.c.id] = (n[x.c.id] || 0) + 1) <= 2).slice(0, 12); } };
 function vMatch(m, q){
   const s = MATCH.parse(q); const film = s.u ? filmLink(s.u) : null; const has = !!(s.u || MATCHFILE);
   MATCHCUR = has ? { ...s, file: MATCHFILE && MATCHFILE.name } : null;
   const set = patch => tabGo(MATCH.url({ ...s, ...patch }));
   const dropFile = () => { if (MATCHFILE){ URL.revokeObjectURL(MATCHFILE.url); MATCHFILE = null; } };
   const link = h("input", { class: "i", type: "url", name: "u", "aria-label": "Link to a video", placeholder: "https://www.youtube.com/watch?v=…", value: s.u });
-  const file = h("input", { type: "file", accept: "video/*", hidden: true, onchange: e => { const f = e.target.files[0]; if (!f) return; dropFile(); MATCHFILE = { name: f.name, url: URL.createObjectURL(f) }; if (s.u) set({ u: "" }); else render(); } });
+  const file = h("input", { type: "file", accept: "video/*", hidden: true, onchange: e => { const f = e.target.files[0]; if (!f) return; dropFile(); MATCHFILE = { name: f.name, url: URL.createObjectURL(f) }; if (location.hash !== "#/match") go("#/match"); else render(); } });
   const form = h("form", { class: "matchin", onsubmit: e => { e.preventDefault(); const v = link.value.trim(); let ok = false; try { ok = /^https?:$/.test(new URL(v).protocol); } catch {}
-      if (!ok) return toast("Paste a full link, starting with https://"); dropFile(); if (v === s.u) render(); else set({ u: v }); } },
+      if (!ok) return toast("Paste a full link, starting with https://"); dropFile(); if (v === s.u) render(); else tabGo(MATCH.url({ u: v, cat: "", styles: [] })); } },
     link, h("button", { class: "btn primary", type: "submit" }, has ? "Change" : "Continue"), h("button", { class: "btn", type: "button", onclick: () => file.click() }, "Upload a file"), file);
   const refW = film ? ["Your reference", s.cat || CATS[0], s.styles[0] || Object.keys(STYLES)[0], null, null, { ...film, by: "You" }] : null;
   const ref = !has ? null : MATCHFILE ? h("video", { class: "matchvid", src: MATCHFILE.url, controls: true, muted: true, playsinline: true, preload: "metadata" })
     : film ? tile(refW, { name: film.on, id: "ref" }, () => playWork(refW, { name: "Your reference", id: "ref" }))
     : h("a", { class: "linkstage", href: s.u, target: "_blank", rel: "noopener" }, h("b", null, "Your reference"), h("small", null, s.u));
+  // read the reference; this page redraws when the read finishes, and only the status line moves while it runs
+  const key = MATCHFILE ? MATCHFILE.url : s.u; const here = location.hash;
+  const source = MATCHFILE ? { video: MATCHFILE.url, local: true } : film && film.yt ? { yt: film.yt } : /\.(mp4|webm|mov)(\?|#|$)/i.test(s.u) ? { video: s.u } : {};
+  const status = h("p", { class: "hint reading", role: "status" });
+  const say = r => { status.textContent = r.pct != null && r.pct < 100 ? "Reading your video… getting ready " + r.pct + "%" : "Reading your video…"; };
+  const rd = !has ? null : READER.read(key, source, done => { if (location.hash !== here) return; if (!done) return say(rd);
+    if (rd.state === "done" && !s.cat && !s.styles.length && (rd.guess.cat || rd.guess.styles.length)) return location.replace(MATCH.url({ ...s, ...rd.guess }));
+    KEEPY = scrollY; render(); });
+  if (rd && rd.state === "reading") say(rd);
+  const read = rd && rd.state === "done", busy = rd && rd.state === "reading";
   const chip = (on, label, onclick) => h("button", { class: "chip" + (on ? " on" : ""), type: "button", "aria-pressed": String(on), onclick }, label);
-  const looks = s.cat ? [...new Set(TAXONOMY[s.cat].options.flatMap(o => o.styles))] : Object.keys(STYLES);
+  const looks = s.cat ? [...new Set([...TAXONOMY[s.cat].options.flatMap(o => o.styles), ...s.styles])] : Object.keys(STYLES);
   const toggle = id => set({ styles: s.styles.includes(id) ? s.styles.filter(x => x !== id) : [...s.styles, id].slice(-2) });
-  const films = has && (s.cat || s.styles.length) ? MATCH.rank(s) : [];
-  const makers = films.length && me() ? DB.match({ cat: s.cat, styles: s.styles, strict: true }).filter(x => hasFace(x.c)).slice(0, 8) : [];
+  const films = has && !busy && (read || s.cat || s.styles.length) ? MATCH.rank(s, read ? rd.vec : null, film && film.yt) : [];
+  const makers = films.length && me() ? [...new Map(films.map(x => [x.c.id, { c: x.c, why: [] }])).values()].filter(x => hasFace(x.c)).slice(0, 8) : [];
   m.append(h("section", { class: "wrap section" },
-    h("div", { class: "stack", style: { gap: "12px", marginBottom: "32px" } }, h("h1", { class: "pname" }, "Match a reference"), h("p", { class: "lead" }, "Show us a video you like. We find films like it, and the people who made them.")),
-    h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, "1 · Your reference"), form, has ? null : h("p", { class: "hint" }, "A link to any video, or a file from your computer. A file stays in this browser."), ref ? h("div", { class: "matchref" }, ref) : null),
-    has ? h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, "2 · What is it?"),
+    h("div", { class: "stack", style: { gap: "12px", marginBottom: "32px" } }, h("h1", { class: "pname" }, "Match a reference"), h("p", { class: "lead" }, "Show us a video you like. We find films that look like it, and the people who made them.")),
+    h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, "1 · Your reference"), form, has ? null : h("p", { class: "hint" }, "A file from your computer, or a YouTube link. It is read in your browser and never uploaded."), ref ? h("div", { class: "matchref" }, ref) : null, busy ? status : null),
+    has && !busy ? h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, read ? "2 · We read it as" : "2 · What is it?"),
+      read ? null : h("p", { class: "hint" }, rd.state === "failed" ? "We couldn't read this one here. Tell us what it is." : "This site doesn't let a browser read its video. Tell us what it is, or upload the file."),
       h("div", { class: "chips" }, ...CATS.filter(id => DB.roster().some(c => c.cats.includes(id))).map(id => chip(s.cat === id, TAXONOMY[id].name, () => set({ cat: s.cat === id ? "" : id, styles: [] })))),
-      h("span", { class: "eyebrow", style: { marginTop: "10px" } }, "How does it look? Up to two."),
-      h("div", { class: "chips" }, ...looks.map(id => chip(s.styles.includes(id), STYLES[id].name, () => toggle(id))))) : null,
-    has && (s.cat || s.styles.length) ? h("div", { class: "mstep", id: "matched" }, h("span", { class: "eyebrow" }, "3 · Films like it"),
+      h("div", { class: "chips" }, ...looks.map(id => chip(s.styles.includes(id), STYLES[id].name, () => toggle(id)))),
+      read ? h("p", { class: "hint" }, "Change these if we got it wrong.") : null) : null,
+    films.length || (has && !busy && (s.cat || s.styles.length)) ? h("div", { class: "mstep", id: "matched" }, h("span", { class: "eyebrow" }, "3 · Films like it"),
       films.length ? gallery(films) : h("div", { class: "empty" }, h("b", null, "Nothing close yet."), h("span", null, "Try another look.")),
-      films.length ? h("p", { class: "hint" }, "Open a film to start a project with the person who made it. Your reference goes into the brief.") : null) : null,
-    makers.length ? h("div", { class: "mstep" }, h("div", { class: "sec-head", style: { marginBottom: "0" } }, h("h2", null, "Creators who make this"), h("a", { class: "link", href: "#/creators?cats=" + s.cat }, "All creators →")), cgrid(makers))
-      : films.length && !me() ? h("div", null, h("button", { class: "btn", onclick: () => openSignIn(() => render(), CREATORS_SIGNIN) }, "Sign in to see who makes this")) : null));
+      films.length ? h("p", { class: "hint" }, (read ? "Ordered by how close each film looks to yours. " : "") + "Open a film to start a project with the person who made it. Your reference goes into the brief.") : null) : null,
+    makers.length ? h("div", { class: "mstep" }, h("div", { class: "sec-head", style: { marginBottom: "0" } }, h("h2", null, "Who made them")), cgrid(makers))
+      : films.length && !me() ? h("div", null, h("button", { class: "btn", onclick: () => openSignIn(() => render(), CREATORS_SIGNIN) }, "Sign in to see who made them")) : null));
 }
 /* ---------- onboarding ---------- */
 const VQ1 = { name: "What's your name?", role: "What's your role there?", company: "Which company is this for?", website: "What's the company website?", type: "What kind of company is it?", size: "Roughly how big is the team?" };

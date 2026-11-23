@@ -83,7 +83,7 @@ function vApply(m){
     page.append(f); return;
   }
   if (W.step === 1){
-    head("What you make.", "This is how clients find you. Be narrow; a duanju director and a SaaS launch director are different listings.");
+    head("What you make.", "This is how clients find you. Be narrow; a short-drama director and a SaaS launch director are different listings.");
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f); const cats = fd.getAll("cats"), styles = fd.getAll("styles");
       if (!cats.length || !styles.length) return toast("Pick at least one category and one style."); Object.assign(u, { cats, styles, fit: fd.getAll("fit") }); DB.save(); W.step = 2; render(); } },
       field("Categories", chipset("cats", CATS.map(id => [id, TAXONOMY[id].name]), u.cats)),
