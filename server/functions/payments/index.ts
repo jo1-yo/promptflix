@@ -19,7 +19,7 @@
 //
 // Env: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, PAYPAL_CLIENT_ID, PAYPAL_SECRET, PAYPAL_ENV=sandbox|live,
 //      ALLOWED_ORIGIN (your site), SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (set by Supabase), ORDERS_IN_DB=true once market_orders is populated.
-//      COMMISSION_PCT (default 1), CARD_FEE_PCT (default 2.9), CARD_FEE_FIXED (default 0.30) — keep in step with FEES in market/store.js.
+//      COMMISSION_PCT (default 1), CARD_FEE_PCT (default 2.9), CARD_FEE_FIXED (default 0.30) — keep in step with FEES in store.js.
 //
 // Money safety: amounts and releases must come from the order record, not the browser. Until ORDERS_IN_DB=true this function
 // trusts the client amount, so it refuses live keys (sk_live_ / PAYPAL_ENV=live) and only runs in test/sandbox mode.

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rolvo Admin</title>
+<meta name="description" content="Escrow ledger, creator discovery, disputes.">
+<meta name="theme-color" content="#f7f7f4">
+<meta name="referrer" content="no-referrer"><!-- X video CDN refuses cross-site referers; YouTube iframes set their own policy -->
+<link rel="icon" type="image/png" href="../media/rolvo-mark.png">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<div id="app">
+  <header class="top" id="top"></header>
+  <main id="main"></main>
+  <nav class="tabbar" id="tabbar" aria-label="Main"></nav>
+</div>
+<div class="sheet" id="sheet" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+<div id="toast" hidden></div>
+<script src="../seed.js"></script>
+<script src="../creators.js"></script>
+<script src="../config.js"></script>
+<script src="../store.js"></script>
+<script src="../ui.js"></script>
+<script src="../auth.js"></script>
+<script src="../pay.js"></script>
+<script src="../voice.js"></script>
+<script src="../admin.js"></script>
+</body>
+</html>

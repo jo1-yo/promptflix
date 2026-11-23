@@ -207,7 +207,7 @@ function vTrust(s){
 /* ---------- integrations ---------- */
 function vIntegrations(s){
   const row = (name, on, what, todo) => h("div", { class: "integ" }, h("div", { class: "row between" }, h("b", null, name), A.live(on)), h("p", null, what), on ? null : h("p", { class: "hint" }, todo));
-  s.append(A.title("Integrations", "Empty keys in market/config.js keep a piece in demo mode. Every flow still runs end to end; demo codes and payments never leave the browser."),
+  s.append(A.title("Integrations", "Empty keys in config.js keep a piece in demo mode. Every flow still runs end to end; demo codes and payments never leave the browser."),
     h("div", { class: "integs" },
       row("Sign-in · Google", LIVE.google, "Google's own button and account chooser. With Supabase keys too, each Google sign-in is verified on the server; with only a client ID it's checked in the browser (fine for a prototype, not for money).", "Google Cloud → APIs & Services → Credentials → OAuth client ID (Web). Add http://localhost, http://localhost:8131 and https://imjane.top as authorized JavaScript origins, then paste the ID into googleClientId. In Supabase → Authentication → Providers → Google, add the same client ID."),
       row("Sign-in · Email code", LIVE.auth, "Supabase sends a 6-digit code. Its email template must include {{ .Token }}.", "Same Supabase keys. Add custom SMTP before launch; the built-in sender is rate-limited."),
