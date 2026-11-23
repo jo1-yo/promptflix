@@ -19,6 +19,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Payments in: card through Stripe (order amount + card fee) | 🟡 Code done, demo mode | Supabase function deployed, Stripe test keys, server-side order amounts |
 | Creator wallet: balance, payout method, withdrawals (Stripe Connect) | 🟡 Demo works; live code written, never run against Stripe | Stripe account with Connect enabled, function deployed, orders in the database |
 | Escrow, revisions, contract breaks | ✅ Working (browser ledger) | Real money movement and creator payouts |
+| Match a reference (client `#/match`) | ✅ Live. Reads an uploaded file or a YouTube link in the browser | Other sites' videos can't be read; category guess is rough; phone speed untested |
 | Real creators (87) | ✅ Live, unclaimed | Outreach. Invites are a status flag, no email is sent |
 | Privacy policy and terms | ✅ Live (draft) | Legal review |
 | Repo checks on every PR | ✅ GitHub Actions | — |
@@ -34,7 +35,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | [`market/creator/`](market/creator/) · [`market/admin/`](market/admin/) | HTML shells for the other two sites. They load the same scripts as `market/`. |
 | [`market/privacy/`](market/privacy/) · [`market/terms/`](market/terms/) | Privacy policy and terms (needed for Google sign-in branding). |
 | [`market/server/`](market/server/) | Payments Edge Function (Deno) and SQL for Supabase. Not deployed. |
-| [`market/tools/`](market/tools/) | Python pipeline that builds `market/creators.js` from research data. |
+| [`market/tools/`](market/tools/) | Python pipeline that builds `market/creators.js` from research data, and `embed.mjs`, which builds `market/embeds.js` (film fingerprints for Match a reference). |
 | [`select/`](select/) | Rolvo Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
 | [`index.html`](index.html) · [`schema.sql`](schema.sql) | The original feed app (swipe through AI videos, send a hire request) and its Supabase schema. |
 | [`scripts/check.mjs`](scripts/check.mjs) | Repo checks, run locally and in CI. |
@@ -49,6 +50,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 - Routing: hash router (`#/creators`, `#/chat/:id`, …). `route()` and `go()` in `ui.js`.
 - Styling: one stylesheet, [`market/styles.css`](market/styles.css). Warm light look after the Cursor study in Tasta: off-white canvas, dark ink, white cards, one orange marker. CSS custom properties in `:root`. Mobile-first, works down to 375 px.
 - Fonts: Inter (400, 500, 600) from Google Fonts. Icons: inline SVG.
+- Match a reference is the one page that loads outside code: [transformers.js](https://github.com/huggingface/transformers.js) 4.3.2 from jsDelivr and the image model `Xenova/mobileclip_s0` (about 45 MB, cached by the browser) from Hugging Face, both fetched only when a visitor gives a reference. The site itself still has no npm and no build step.
 - Browser APIs: `localStorage`, IndexedDB (uploaded preview files), Web Speech API (voice answers in onboarding), `crypto.subtle` (sign-in nonce).
 
 **Data (today)**
@@ -124,7 +126,20 @@ Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escr
 7. **Review the first cut** (watermarked with the client's name, no download, blurred when the window loses focus). Passing releases the deposit to the creator; failing refunds it.
 8. **Revise up to the agreed count**, approve the final, **pay the balance**, get the clean master, and both sides leave reviews.
 
-**What a creator does:** claims a profile built from their public work, or applies in 4 steps; sets rates, time zone, styles and tools; accepts or counters terms; delivers cuts; tracks payouts. Until a creator sets rates, the site shows a category estimate marked `~`, never a made-up quote.
+**Match a reference** (`#/match`, button on the home page, no account needed). The client gives a video they like and gets films that look like it.
+
+- **What can be read:** a file from their computer (six frames across its length), a YouTube link (the cover and three mid-film stills), or a direct `.mp4` / `.webm` / `.mov` link. Instagram, TikTok, Vimeo and most other sites don't let a browser read their video; there the client picks the kind and look by hand and films are ranked on those two tags.
+- **How it ranks:** the frames go through a small CLIP image model in the visitor's browser and become one fingerprint. [`market/embeds.js`](market/embeds.js) holds the same fingerprint for every film in the library. Films are ordered by how close the two are, two per creator at most. Nothing is uploaded.
+- **"We read it as":** kind and look are voted by the ten closest films and shown as chips the client can change; changing them nudges the order slightly. The guess leans toward Business & Brand because most of the library is.
+- **Then:** opening a matched film and starting a project puts the reference link and tags into the brief.
+- **Keep it in step:** run `market/tools/embed.mjs` after `creators.js` changes (see the comment at the top of that file). A film with no fingerprint is ranked last. The model must stay `fp32` on both sides; its 8-bit version gives unusable vectors.
+
+**What a creator does:** claims a profile built from their public work, or signs up and applies in 4 steps (who you are and tools, what you make, links to work, pricing); accepts or counters terms; delivers cuts; tracks payouts.
+
+- Work links are optional at sign-up and can be added later from Profile. A creator with no film is not listed in the market until one is added.
+- Pricing is a starting level (Free, Under $1k, $1k to $3k, $3k to $8k, $8k and up) with sample films beside each, plus an exact number that may be 0. The samples come from category estimates, not prices anyone quoted.
+- **Typical delivery time** runs from Same day to A month or more. It means paid deposit to first cut, not how fast they reply.
+- **Work** (`#/work`) lets creators and applicants browse other creators' films by category. Until a creator sets rates, the site shows a category estimate marked `~`, never a made-up quote.
 
 **Admin views:** Overview (money, funnel, sign-ins and payments by method, needs attention, activity) · Orders · Payments · Clients (one-click Verify / Revoke) · Creators · Discovery (crawled profiles and invites) · Trust (early endings, failed pre-reviews, break limits) · Integrations (which pieces are live or demo).
 
@@ -156,6 +171,8 @@ In demo mode no email or SMS is sent: the 6-digit code appears on screen.
 | `mia@lumen.coffee` | Email code | Client who still has onboarding to do |
 | A real creator | Creator site → **Claim profile** → search a name → any login | Their crawled profile becomes an account with an inbox |
 | `team@rolvo.demo` | Admin site, email code or Google | The admin backend. Other addresses are refused |
+
+Live (Supabase keys set in `config.js`, as on imjane.top) there are no demo accounts and no on-screen codes: codes arrive by email. Admin opens only for an address in `adminEmails`, and any other address is refused before a code is sent.
 
 ## Configuration
 
@@ -260,6 +277,12 @@ In rough priority order. Each item says where the work goes.
 - [ ] Realtime chat (Supabase Realtime) instead of re-rendering on local changes.
 - [ ] Admin rights from a server-side role, not `CONFIG.adminEmails` (anyone can read and edit that list in the browser).
 
+**1b. Matching and the creator side of the market**
+- [ ] Client briefs that creators can see and answer. Needs a `briefs` table first (data is per browser today), a weekly cap on outreach, and new copy for the creator landing page, which says clients don't post jobs.
+- [ ] Better reading of a reference: a server function that sends frames to a vision model and returns kind, look and a one-line description. Today's in-browser model only compares how frames look.
+- [ ] Read references from Instagram, TikTok and Vimeo (needs a server to fetch a still).
+- [ ] Test Match a reference on phones; the first use downloads about 45 MB.
+
 **2. Sign-in**
 - [ ] Paste the Google client ID into `googleClientId` and test Google's popup on localhost and imjane.top.
 - [ ] Google Cloud: publish the app; add home page, privacy and terms URLs; verify `imjane.top` in Search Console; submit brand verification.
@@ -331,9 +354,10 @@ Until a secret exists, both Claude jobs skip themselves with a notice, and PRs s
 | `market/merchant.js` · `creator.js` · `admin.js` | The three sites |
 | `market/voice.js` | "Talk it through" voice answers for onboarding (Web Speech API) |
 | `market/seed.js` · `creators.js` | Taxonomy, styles and demo clients · generated creator data (don't edit by hand) |
+| `market/embeds.js` | Generated image fingerprints of every film, loaded only by Match a reference (don't edit by hand) |
 | `market/privacy/` · `terms/` | Legal pages (contact from `supportEmail`) |
 | `market/server/` | Payments Edge Function and SQL |
-| `market/tools/` | Pipeline that rebuilds `creators.js` |
+| `market/tools/` | Pipeline that rebuilds `creators.js`; `embed.mjs` rebuilds `embeds.js` |
 | `scripts/check.mjs` | Repo checks |
 
 ---
