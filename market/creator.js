@@ -196,8 +196,6 @@ function vProfile(s){
 }
 /* ---------- choose which films clients see ---------- */
 // Shown films live in c.works (first = card cover); hidden ones wait in c.shelf, so every other view keeps reading c.works.
-function filmLink(url){ const y = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url), v = /vimeo\.com\/(?:video\/)?(\d{6,11})/.exec(url);
-  return y ? { yt: y[1], cover: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg`, lb: true, link: "https://www.youtube.com/watch?v=" + y[1], on: "YouTube" } : v ? { vm: v[1], cover: "https://vumbnail.com/" + v[1] + ".jpg", link: "https://vimeo.com/" + v[1], on: "Vimeo" } : null; }
 // Any public post or page: YouTube/Vimeo play inline, everything else (Instagram, LinkedIn, X, TikTok, a site) opens at the source.
 const SITES = [[/(^|\.)instagram\.com$/, "Instagram"], [/(^|\.)linkedin\.com$/, "LinkedIn"], [/(^|\.)(x|twitter)\.com$/, "X"], [/(^|\.)tiktok\.com$/, "TikTok"], [/(^|\.)behance\.net$/, "Behance"], [/(^|\.)facebook\.com$/, "Facebook"], [/(^|\.)threads\.(net|com)$/, "Threads"], [/(^|\.)xiaohongshu\.com$/, "Xiaohongshu"], [/(^|\.)bilibili\.com$/, "Bilibili"], [/(^|\.)douyin\.com$/, "Douyin"]];
 function workLink(url){

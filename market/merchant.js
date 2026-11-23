@@ -42,6 +42,7 @@ function render(){
   else if (v === "creator") vCreator(m, r.parts[1]);
   else if (v === "recommended") return go("#/");
   else if (v === "search") vSearch(m, r.q);
+  else if (v === "match") vMatch(m, r.q || {});
   else if (v === "api") vApi(m);
   else if (OPEN_SECTIONS.includes(v) && v === "use-cases") vUseCases(m);
   else if (OPEN_SECTIONS.includes(v) && v === "pricing") vPricing(m);
@@ -183,7 +184,8 @@ function vHome(m, q){
       h("h1", null, "The best AI video talent, all in one place."),
       h("p", { class: "lead" }, "Explore outstanding work, hire proven creators, and bring your next project to life.")),
     h("div", { class: "row cta" }, h("button", { class: "btn primary big", onclick: () => TASTE.get() ? openRecommended() : openTaste() }, "Hire a filmmaker"),
-      h("button", { class: "btn big", onclick: () => $("#films").scrollIntoView({ block: "start", behavior: canPreview() ? "smooth" : "auto" }) }, "Browse works"))));
+      h("button", { class: "btn big", onclick: () => $("#films").scrollIntoView({ block: "start", behavior: canPreview() ? "smooth" : "auto" }) }, "Browse works"),
+      h("a", { class: "btn big", href: "#/match" }, "Match a reference"))));
   const tabBtn = (id, label, onclick) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick }, label);
   const films = tab && tab !== "rec" ? tabFilms(tab) : null;
   m.append(h("section", { class: "wrap section tight", id: "films" },
@@ -340,8 +342,10 @@ function whoStep(c){
   openSheet([phead("Who is this for?", c.name + " sees this before accepting. You can skip it."), f]);
 }
 function startProject(c){
-  const u = me(); const p = u.profile || {};
+  const u = me(); const p = { ...(u.profile || {}) };
   if (!u.onboarded && !whoSkipped) return whoStep(c);
+  if (MATCHCUR && route().parts[0] === "match"){ const r = MATCHCUR;   // started from a matched film: the reference and its tags go into the brief
+    p.brief = "Reference: " + (r.u || r.file + " (I'll send the file in chat)") + "\n" + (p.brief || p.goal || ""); if (r.cat) p.cat = r.cat; if (r.styles.length) p.styles = r.styles; }
   const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
     const o = DB.createOrder({ clientId: u.id, creatorId: c.id, title: fd.get("title").trim(), brief: fd.get("brief").trim(), cat: fd.get("cat") || null, opt: p.opt || null, style: fd.get("style") || null, price: Number(fd.get("price")) || c.ask });
     AFTER.set(null); closeSheet(); go("#/chat/" + o.id); } },
@@ -354,6 +358,49 @@ function startProject(c){
     h("p", { class: "hint" }, "Opens a chat with the order pinned on top. Nothing is paid until you both accept terms."),
     h("button", { class: "btn primary", type: "submit" }, "Open chat"));
   openSheet([phead("Start a project", "with " + c.name), f]);
+}
+/* ---------- match a reference: a film the client likes → films like it → the people who made them ----------
+   v1 reads nothing from the video. The client says what it is (kind and look) and the library is ranked on those two tags, the same
+   two every film here carries. The reference is shown back and carried into the project brief. An automatic read (frames → tags)
+   would only prefill the two answers below; everything after them stays as it is. */
+let MATCHFILE = null, MATCHCUR = null;   // an uploaded reference stays in this tab: { name, url }
+const MATCH = {
+  parse(q){ return { u: q.u || "", cat: CATS.includes(q.cat) ? q.cat : "", styles: (q.styles || "").split(",").filter(s => STYLES[s]).slice(0, 2) }; },
+  url(s){ const p = new URLSearchParams(); if (s.u) p.set("u", s.u); if (s.cat) p.set("cat", s.cat); if (s.styles.length) p.set("styles", s.styles.join(",")); const t = p.toString(); return "#/match" + (t ? "?" + t : ""); },
+  // look first, kind second; at most two films per creator so one person doesn't fill the page
+  rank(s){ const n = {}; const score = x => { const i = s.styles.indexOf(x.w[2]); return (i === 0 ? 5 : i > 0 ? 3 : 0) + (x.w[1] === s.cat ? 3 : 0); };
+    return tastePool().map(x => ({ x, s: score(x) })).filter(y => y.s > 0).sort((a, b) => b.s - a.s).map(y => y.x).filter(x => (n[x.c.id] = (n[x.c.id] || 0) + 1) <= 2).slice(0, 12); } };
+function vMatch(m, q){
+  const s = MATCH.parse(q); const film = s.u ? filmLink(s.u) : null; const has = !!(s.u || MATCHFILE);
+  MATCHCUR = has ? { ...s, file: MATCHFILE && MATCHFILE.name } : null;
+  const set = patch => tabGo(MATCH.url({ ...s, ...patch }));
+  const dropFile = () => { if (MATCHFILE){ URL.revokeObjectURL(MATCHFILE.url); MATCHFILE = null; } };
+  const link = h("input", { class: "i", type: "url", name: "u", "aria-label": "Link to a video", placeholder: "https://www.youtube.com/watch?v=…", value: s.u });
+  const file = h("input", { type: "file", accept: "video/*", hidden: true, onchange: e => { const f = e.target.files[0]; if (!f) return; dropFile(); MATCHFILE = { name: f.name, url: URL.createObjectURL(f) }; if (s.u) set({ u: "" }); else render(); } });
+  const form = h("form", { class: "matchin", onsubmit: e => { e.preventDefault(); const v = link.value.trim(); let ok = false; try { ok = /^https?:$/.test(new URL(v).protocol); } catch {}
+      if (!ok) return toast("Paste a full link, starting with https://"); dropFile(); if (v === s.u) render(); else set({ u: v }); } },
+    link, h("button", { class: "btn primary", type: "submit" }, has ? "Change" : "Continue"), h("button", { class: "btn", type: "button", onclick: () => file.click() }, "Upload a file"), file);
+  const refW = film ? ["Your reference", s.cat || CATS[0], s.styles[0] || Object.keys(STYLES)[0], null, null, { ...film, by: "You" }] : null;
+  const ref = !has ? null : MATCHFILE ? h("video", { class: "matchvid", src: MATCHFILE.url, controls: true, muted: true, playsinline: true, preload: "metadata" })
+    : film ? tile(refW, { name: film.on, id: "ref" }, () => playWork(refW, { name: "Your reference", id: "ref" }))
+    : h("a", { class: "linkstage", href: s.u, target: "_blank", rel: "noopener" }, h("b", null, "Your reference"), h("small", null, s.u));
+  const chip = (on, label, onclick) => h("button", { class: "chip" + (on ? " on" : ""), type: "button", "aria-pressed": String(on), onclick }, label);
+  const looks = s.cat ? [...new Set(TAXONOMY[s.cat].options.flatMap(o => o.styles))] : Object.keys(STYLES);
+  const toggle = id => set({ styles: s.styles.includes(id) ? s.styles.filter(x => x !== id) : [...s.styles, id].slice(-2) });
+  const films = has && (s.cat || s.styles.length) ? MATCH.rank(s) : [];
+  const makers = films.length && me() ? DB.match({ cat: s.cat, styles: s.styles, strict: true }).filter(x => hasFace(x.c)).slice(0, 8) : [];
+  m.append(h("section", { class: "wrap section" },
+    h("div", { class: "stack", style: { gap: "12px", marginBottom: "32px" } }, h("h1", { class: "pname" }, "Match a reference"), h("p", { class: "lead" }, "Show us a video you like. We find films like it, and the people who made them.")),
+    h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, "1 · Your reference"), form, has ? null : h("p", { class: "hint" }, "A link to any video, or a file from your computer. A file stays in this browser."), ref ? h("div", { class: "matchref" }, ref) : null),
+    has ? h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, "2 · What is it?"),
+      h("div", { class: "chips" }, ...CATS.filter(id => DB.roster().some(c => c.cats.includes(id))).map(id => chip(s.cat === id, TAXONOMY[id].name, () => set({ cat: s.cat === id ? "" : id, styles: [] })))),
+      h("span", { class: "eyebrow", style: { marginTop: "10px" } }, "How does it look? Up to two."),
+      h("div", { class: "chips" }, ...looks.map(id => chip(s.styles.includes(id), STYLES[id].name, () => toggle(id))))) : null,
+    has && (s.cat || s.styles.length) ? h("div", { class: "mstep", id: "matched" }, h("span", { class: "eyebrow" }, "3 · Films like it"),
+      films.length ? gallery(films) : h("div", { class: "empty" }, h("b", null, "Nothing close yet."), h("span", null, "Try another look.")),
+      films.length ? h("p", { class: "hint" }, "Open a film to start a project with the person who made it. Your reference goes into the brief.") : null) : null,
+    makers.length ? h("div", { class: "mstep" }, h("div", { class: "sec-head", style: { marginBottom: "0" } }, h("h2", null, "Creators who make this"), h("a", { class: "link", href: "#/creators?cats=" + s.cat }, "All creators →")), cgrid(makers))
+      : films.length && !me() ? h("div", null, h("button", { class: "btn", onclick: () => openSignIn(() => render(), CREATORS_SIGNIN) }, "Sign in to see who makes this")) : null));
 }
 /* ---------- onboarding ---------- */
 const VQ1 = { name: "What's your name?", role: "What's your role there?", company: "Which company is this for?", website: "What's the company website?", type: "What kind of company is it?", size: "Roughly how big is the team?" };
