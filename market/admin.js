@@ -12,8 +12,8 @@ function header(){
     home: "#/" });
 }
 function adminSignIn(){
-  Auth.open(null, { title: "Admin sign-in", sub: "Only addresses on the admin list get in." }, { methods: ["google", "email"],
-    hint: LIVE.auth ? "" : "Demo admin: " + CONFIG.adminEmails[0],
+  Auth.open(null, { title: "Admin sign-in", sub: "Only addresses on the admin list get in." }, { methods: ["google", "email"], allow: email => CONFIG.adminEmails.includes(email) || "That address isn't on the admin list. Use your own admin email.",
+    hint: LIVE.auth ? "Sign in with your own admin email. The code arrives by email, or use Google." : "Demo admin: " + CONFIG.adminEmails[0],
     onIdentity: id => { if (!id.email || !DB.ensureAdmin(id.email)) return toast("That account isn't on the admin list.");
       const u = DB.signIn(id); if (!u) return toast("That account isn't on the admin list."); closeSheet(); render(); } });
 }

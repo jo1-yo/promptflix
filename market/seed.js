@@ -126,7 +126,7 @@ const CLIENT_TYPES = [
 
 const REGIONS = [["americas","Americas"],["emea","Europe, Africa & Middle East"],["apac","Asia-Pacific"]];
 const TZS = ["UTC-8","UTC-7","UTC-6","UTC-5","UTC-3","UTC+0","UTC+1","UTC+2","UTC+3","UTC+4","UTC+5:30","UTC+7","UTC+8","UTC+9","UTC+10","UTC+12"];
-const TOOLS = ["Sora","Veo","Kling","Runway","Hailuo","Seedance","Midjourney","Martini","Blender","After Effects","Unreal"];
+const TOOLS = ["Sora","Veo","Kling","Runway","Hailuo","Seedance","Midjourney","ElevenLabs","Higgsfield","Martini","Blender","After Effects","Unreal"];
 
 // Creators and DISCOVERED live in creators.js (real people from the Notion list; regenerate, don't hand-edit).
 

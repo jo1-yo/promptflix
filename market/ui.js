@@ -41,6 +41,7 @@ function cover(w, extra){
 function avatar(u){ if (u.avatar) return h("div", { class: "avatar" }, h("img", { src: u.avatar, alt: "", referrerpolicy: "no-referrer" })); const [hue] = hueOf((u.styles || [])[0]); return h("div", { class: "avatar", style: { background: `hsl(${hue} 42% 82%)` } }, initials(u.name || u.org || u.email || u.phone || "?")); }
 const styleChip = (id, on) => h("span", { class: "chip sw" + (on ? " on" : "") }, h("i", { class: "dot", style: { background: `hsl(${hueOf(id)[0]} ${hueOf(id)[1]}% 60%)` } }), STYLES[id].name);
 const kmoney = n => n >= 1000 ? "$" + (n / 1000).toFixed(n % 1000 ? 1 : 0).replace(/\.0$/, "") + "k" : "$" + n;
+const daysText = d => d ? d + "d" : "Same day";
 const rangeText = c => { const r = DB.priceRange(c); if (r.est) return "~" + kmoney(r.lo) + "–" + kmoney(r.hi).slice(1); return r.lo === r.hi ? money(r.lo) : money(r.lo) + "–" + money(r.hi); };
 const workSrc = async w => w[4] ? (w[4].startsWith("f_") ? URL.createObjectURL(await Files.get(w[4])) : w[4]) : SAMPLE_CLIP;
 

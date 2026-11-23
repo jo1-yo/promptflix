@@ -5,16 +5,18 @@ const CATS = Object.keys(TAXONOMY);
 
 function header(){
   const u = me(); const live = u && u.live; const n = pendingCount(u && u.id);
-  const links = live ? [["#/chats", "Inbox", n], ["#/profile", "Profile"], ["#/payouts", "Wallet"]] : [["#/", "Home"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]];
+  const links = live ? [["#/chats", "Inbox", n], ["#/work", "Work"], ["#/profile", "Profile"], ["#/payouts", "Wallet"]] : u ? [["#/", "Home"], ["#/work", "Work"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]] : [["#/", "Home"], ["#/claim", "Claim profile"]];
+  const next = u2 => go(u2.live ? "#/chats" : "#/apply");
   const right = u ? [live ? h("a", { class: "btn quiet small", href: "#/creator-preview" }, "View public profile") : null, h("a", { href: "#/profile", "aria-label": "Profile" }, avatar(u))]
-    : [h("button", { class: "btn quiet small", onclick: () => openSignIn(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Sign in"), h("button", { class: "btn primary small", onclick: () => requireAuth(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Apply")];
+    : [h("button", { class: "btn quiet small", onclick: () => openSignIn(next) }, "Log in"), h("button", { class: "btn primary small", onclick: () => Auth.open(next, null, { signup: true }) }, "Sign up")];
   mountHeader({ brand: "Rolvo", sub: "For creators", links, right, home: live ? "#/chats" : "#/" });
 }
 function render(){
   header();
   const r = route(); const m = $("#main"); m.replaceChildren(); const v = r.parts[0]; const u = me();
   if (!v) { if (u && u.live) return go("#/chats"); vLanding(m); }
-  else if (v === "apply") vApply(m);
+  else if (v === "apply") { if (!u) { vLanding(m); Auth.open(() => render(), null, { signup: true }); } else vApply(m); }
+  else if (v === "work") { if (!u) return requireAuth(() => render()); vWork(m, r.q || {}); }
   else if (v === "claim") vClaim(m, r.q || {});
   else if (v === "inbox" || v === "orders") return go("#/chats");
   else if (v === "chats") { if (!u) return requireAuth(() => render()); if (!u.live) return go("#/apply"); vChats(m, null); }
@@ -24,7 +26,7 @@ function render(){
   else if (v === "payouts") dash(m, "payouts", vPayouts);
   else if (v === "creator-preview") vPreview(m);
   else return go("#/");
-  if (!["apply", "chats", "chat"].includes(v)) m.append(footer());
+  if (!(v === "apply" && u) && !["chats", "chat"].includes(v)) m.append(footer());
 }
 
 function vLanding(m){
@@ -91,7 +93,7 @@ function vApply(m){
     page.append(f); return;
   }
   if (W.step === 2){
-    head("Your work.", "Link at least one finished piece: a post on Instagram, LinkedIn, X or TikTok, a YouTube or Vimeo film, or your own site. No uploads.");
+    head("Your work.", "Optional. Link a finished piece now, or add it later from your profile: a post on Instagram, LinkedIn, X or TikTok, a YouTube or Vimeo film, or your own site.");
     const list = h("div", { class: "worklist" }, ...u.works.map((w, i) => h("div", { class: "workrow pick" }, h("span", { class: "thumb" }, cover(w)), h("div", null, w[0], h("small", null, [w[5] && w[5].on, TAXONOMY[w[1]].name, STYLES[w[2]].name].filter(Boolean).join(" · "))), h("button", { class: "btn quiet small", onclick: () => { u.works.splice(i, 1); DB.save(); render(); } }, "Remove"))));
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f); const m = workLink((fd.get("url") || "").trim());
       if (!m) return toast("Paste a full link, starting with https://");
@@ -101,25 +103,73 @@ function vApply(m){
       field("Title", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "Client · what it was" })),
       h("div", { class: "row2" }, field("Category", h("select", { class: "i", name: "cat" }, ...(u.cats.length ? u.cats : CATS).map(id => h("option", { value: id }, TAXONOMY[id].name)))), field("Style", h("select", { class: "i", name: "style" }, ...(u.styles.length ? u.styles : Object.keys(STYLES)).map(id => h("option", { value: id }, STYLES[id].name))))),
       h("div", null, h("button", { class: "btn", type: "submit" }, "Add link")));
-    page.append(list, f, h("div", null, h("button", { class: "btn primary big", disabled: !u.works.length, onclick: () => { W.step = 3; render(); } }, "Continue")));
+    page.append(list, f, h("div", null, h("button", { class: "btn primary big", onclick: () => { W.step = 3; render(); } }, u.works.length ? "Continue" : "Skip for now")), u.works.length ? null : h("p", { class: "hint" }, "Clients find people through their films, so a profile with no work is not shown in the market until you add one."));
     return;
   }
   if (W.step === 3){
-    head("Pricing.", "Your starting price per film. Clients see a range built from this and every order you open here.");
+    head("Pricing.", "Pick where your films start. You can change it any time, and every project is still agreed in chat.");
+    let tier = PRICE_TIERS.findLast(t => (u.ask ?? -1) >= t.ask) || null;
+    const ask = h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", required: true, value: u.ask ?? "", placeholder: "0" });
+    const samples = h("div");
+    const tiers = h("div", { class: "tiers", role: "radiogroup", "aria-label": "Starting price" });
+    const draw = () => {
+      tiers.replaceChildren(...PRICE_TIERS.map(t => h("button", { type: "button", class: "tierbtn", role: "radio", "aria-checked": String(tier === t), onclick: () => { tier = t; ask.value = t.ask; draw(); } }, h("b", null, t.label), h("span", null, t.note))));
+      const ex = tier ? tierSamples(tier, u) : [];
+      samples.replaceChildren(...(!tier ? [] : ex.length
+        ? [h("span", { class: "eyebrow" }, "Work around " + tier.label), h("div", { class: "works", style: { marginTop: "12px" } }, ...ex.map(x => tile(x.w, x.c, () => playWork(x.w, x.c)))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Films by people whose estimated range for this kind of work covers this level. Estimates by category, not prices they quoted.")]
+        : [h("p", { class: "hint" }, tier.ask === 0 ? "Free work is for building a first portfolio. Raise it as soon as one client says yes." : "No sample films at this level yet.")]));
+    };
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
-      Object.assign(u, { ask: +fd.get("ask"), days: +fd.get("days"), live: true, rating: u.rating || 4.8, approvedAt: now() }); DB.save(); W = {}; toast("You're live. Clients can find you now."); go("#/chats"); } },
-      h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", required: true, value: u.ask ?? "", placeholder: "0" }), "0 is fine"), field("Typical turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", required: true, value: u.days }))),
+      if (fd.get("ask") === "" || fd.get("days") == null) return toast("Pick a starting price and a delivery time.");
+      Object.assign(u, { ask: +fd.get("ask"), days: +fd.get("days"), live: true, rating: u.rating || 4.8, approvedAt: now() }); DB.save(); W = {}; toast(u.works.length ? "You're live. Clients can find you now." : "You're in. Add a film to show up in the market."); go("#/chats"); } },
+      field("Starting price", tiers), samples,
+      h("div", { class: "row2" }, field("Exact starting price (USD)", ask, "0 is fine"), h("div")),
+      field("Typical delivery time", daysPicker(u.days), "from paid deposit to first cut"),
+      h("p", { class: "hint" }, "This is how long a film takes you, not how fast you reply to messages. Same day is fine for quick edits and short reels."),
       h("div", { class: "notice" }, h("b", null, "Review. "), "A person on our team looks at every application before it goes live, usually within two days. In this demo you go live immediately."),
       h("div", null, h("button", { class: "btn primary big", type: "submit" }, "Submit application")));
+    draw();
     page.append(f);
   }
+}
+
+/* Starting-price levels. `ask` is what gets saved; samples come from creators whose estimated range covers the level's middle. */
+const PRICE_TIERS = [
+  { ask: 0, label: "Free", note: "Building a portfolio", mid: null },
+  { ask: 300, label: "Under $1k", note: "Short reels, quick edits", mid: 650 },
+  { ask: 1000, label: "$1k to $3k", note: "Product and social films", mid: 2000 },
+  { ask: 3000, label: "$3k to $8k", note: "Launch films, brand ads", mid: 5500 },
+  { ask: 8000, label: "$8k and up", note: "Campaigns, long form", mid: 10000 },
+];
+function tierSamples(t, u){
+  if (t.mid == null) return [];
+  const pool = DB.filmed().filter(c => c.id !== u.id && c.est && c.est[0] <= t.mid && c.est[1] >= t.mid);
+  const mine = pool.filter(c => c.cats.some(x => (u.cats || []).includes(x)));   // same kind of work first
+  return [...mine, ...pool.filter(c => !mine.includes(c))].slice(0, 3).map(c => ({ w: c.works[0], c }));
+}
+const DAY_OPTS = [[0, "Same day"], [2, "1 to 2 days"], [5, "3 to 5 days"], [7, "About a week"], [14, "Two weeks"], [30, "A month or more"]];
+function daysPicker(cur){
+  const pick = DAY_OPTS.reduce((best, o) => Math.abs(o[0] - cur) < Math.abs(best[0] - cur) ? o : best, DAY_OPTS[3])[0];
+  return h("div", { class: "chips" }, ...DAY_OPTS.map(([v, l]) => h("label", { class: "chip" + (v === pick ? " on" : "") }, h("input", { type: "radio", name: "days", value: v, checked: v === pick, style: { display: "none" }, onchange: e => { for (const x of e.target.closest(".chips").children) x.classList.toggle("on", x.contains(e.target)); } }), l)));
+}
+
+/* ---------- other creators' work: open to every signed-in creator, applicants included ---------- */
+function vWork(m, q){
+  const u = me(); const tab = CATS.includes(q.cat) ? q.cat : "";
+  const all = DB.filmed().filter(c => c.id !== u.id).flatMap(c => c.works.map(w => ({ w, c })));
+  const films = (tab ? all.filter(x => x.w[1] === tab) : DB.filmed().filter(c => c.id !== u.id).map(c => ({ w: c.works[0], c }))).slice(0, 60);
+  const tabBtn = (id, label) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick: () => go("#/work" + (id ? "?cat=" + id : "")) }, label);
+  m.append(h("section", { class: "wrap section" },
+    h("div", { class: "stack", style: { gap: "12px", marginBottom: "24px" } }, h("h1", { class: "pname" }, "Work on Rolvo"), h("p", { class: "muted" }, "What clients see when they browse. Watch how other filmmakers present their films.")),
+    h("div", { class: "filters", role: "tablist", "aria-label": "Category" }, tabBtn("", "All"), ...CATS.map(id => tabBtn(id, TAXONOMY[id].name))),
+    films.length ? h("div", { class: "works" }, ...films.map(x => tile(x.w, x.c, () => playWork(x.w, x.c)))) : h("p", { class: "soonnote" }, "Coming soon")));
 }
 
 /* ---------- dashboard ---------- */
 function dash(m, active, body){
   const u = me(); if (!u) return requireAuth(() => render()); if (!u.live) return go("#/apply");
   const n = pendingCount(u.id);
-  const rail = h("nav", { class: "rail" }, ...[["chats", "Inbox", n], ["profile", "Profile"], ["payouts", "Wallet"]].map(([k, l, c]) => h("a", { href: "#/" + k, "aria-current": String(k === active) }, l, c ? h("span", { class: "n" }, c) : null)));
+  const rail = h("nav", { class: "rail" }, ...[["chats", "Inbox", n], ["work", "Work"], ["profile", "Profile"], ["payouts", "Wallet"]].map(([k, l, c]) => h("a", { href: "#/" + k, "aria-current": String(k === active) }, l, c ? h("span", { class: "n" }, c) : null)));
   const s = h("div"); body(s);
   m.append(h("div", { class: "wrap dash" }, rail, s));
 }
@@ -131,7 +181,8 @@ function vProfile(s){
     h("div", { class: "row2" }, field("Name", h("input", { class: "i", name: "name", value: c.name, required: true })), field("Based in", h("input", { class: "i", name: "where", value: c.where }))),
     h("div", { class: "row2" }, field("Time zone", h("select", { class: "i", name: "tz" }, ...TZS.map(t => h("option", { value: t, selected: c.tz === t }, t)))), field("Region", h("select", { class: "i", name: "region" }, ...REGIONS.map(([v, l]) => h("option", { value: v, selected: c.region === v }, l))))),
     field("Background", h("textarea", { class: "i", name: "bg", value: c.bg, maxlength: "160" })),
-    h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", value: c.ask ?? "" })), field("Turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", value: c.days }))),
+    h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", value: c.ask ?? "" })), h("div")),
+    field("Typical delivery time", daysPicker(c.days), "from paid deposit to first cut"),
     field("Categories", chipset("cats", CATS.map(id => [id, TAXONOMY[id].name]), c.cats)),
     field("Styles", chipset("styles", Object.entries(STYLES).map(([id, s]) => [id, s.name]), c.styles, 3), "up to 3"),
     field("Clients you work best with", chipset("fit", CLIENT_TYPES.map(t => [t.id, t.name]), c.fit)),
@@ -237,7 +288,7 @@ function vPreview(m){
   const c = me(); if (!c) return requireAuth(() => render());
   m.append(h("section", { class: "wrap section" }, h("div", { class: "notice", style: { marginBottom: "28px" } }, h("b", null, "Preview. "), "This is your profile as clients see it on the main site. ", h("a", { class: "link", href: "../#/creator/" + c.id }, "Open there →")),
     h("div", { class: "profile" }, h("div", { class: "stack", style: { gap: "28px" } }, h("div", { class: "stack", style: { gap: "14px" } }, h("span", { class: "eyebrow" }, "@" + c.handle + " · " + c.where), h("h1", { class: "pname" }, c.name), h("p", { class: "muted", style: { fontSize: "17px", maxWidth: "56ch" } }, c.bg), h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t)))), h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c))))),
-      h("aside", { class: "side" }, h("div", { class: "card" }, h("div", { class: "stats" }, h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "typical")), h("div", { class: "stat" }, h("b", null, c.days + "d"), h("span", null, "turnaround")), h("div", { class: "stat" }, h("b", null, c.rating ? "★ " + c.rating.toFixed(1) : "New"), h("span", null, c.done + " done"))), h("button", { class: "btn primary big", disabled: true }, "Start a project"))))));
+      h("aside", { class: "side" }, h("div", { class: "card" }, h("div", { class: "stats" }, h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "typical")), h("div", { class: "stat" }, h("b", null, daysText(c.days)), h("span", null, "delivery")), h("div", { class: "stat" }, h("b", null, c.rating ? "★ " + c.rating.toFixed(1) : "New"), h("span", null, c.done + " done"))), h("button", { class: "btn primary big", disabled: true }, "Start a project"))))));
 }
 
 bootShared();
