@@ -41,6 +41,10 @@ function cover(w, extra){
 function avatar(u){ if (u.avatar) return h("div", { class: "avatar" }, h("img", { src: u.avatar, alt: "", referrerpolicy: "no-referrer" })); const [hue] = hueOf((u.styles || [])[0]); return h("div", { class: "avatar", style: { background: `hsl(${hue} 42% 82%)` } }, initials(u.name || u.org || u.email || u.phone || "?")); }
 const styleChip = (id, on) => h("span", { class: "chip sw" + (on ? " on" : "") }, h("i", { class: "dot", style: { background: `hsl(${hueOf(id)[0]} ${hueOf(id)[1]}% 60%)` } }), STYLES[id].name);
 const kmoney = n => n >= 1000 ? "$" + (n / 1000).toFixed(n % 1000 ? 1 : 0).replace(/\.0$/, "") + "k" : "$" + n;
+/* A YouTube or Vimeo link becomes something that plays in place. */
+function filmLink(url){ const y = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url), v = /vimeo\.com\/(?:video\/)?(\d{6,11})/.exec(url);
+  return y ? { yt: y[1], cover: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg`, lb: true, link: "https://www.youtube.com/watch?v=" + y[1], on: "YouTube" } : v ? { vm: v[1], cover: "https://vumbnail.com/" + v[1] + ".jpg", link: "https://vimeo.com/" + v[1], on: "Vimeo" } : null; }
+const daysText = d => d ? d + "d" : "Same day";
 const rangeText = c => { const r = DB.priceRange(c); if (r.est) return "~" + kmoney(r.lo) + "–" + kmoney(r.hi).slice(1); return r.lo === r.hi ? money(r.lo) : money(r.lo) + "–" + money(r.hi); };
 const workSrc = async w => w[4] ? (w[4].startsWith("f_") ? URL.createObjectURL(await Files.get(w[4])) : w[4]) : SAMPLE_CLIP;
 
@@ -119,12 +123,13 @@ function hoverPlay(el, w){
   el.addEventListener("mouseleave", () => { clearTimeout(t); if (node){ node.remove(); node = null; } });
   return el;
 }
-function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), w[5] ? null : h("span", { class: "tag" }, STYLES[w[2]].name), w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
+function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), !w[5] ? h("span", { class: "tag" }, STYLES[w[2]].name) : !(w[5].yt || w[5].vm || w[5].mp4 || w[5].cover) && w[5].on ? h("span", { class: "tag" }, w[5].on) : null, w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
 async function playWork(w, c, cta){
   const m = w[5] || {};
   let player;
   if (m.yt) player = h("iframe", { src: `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&rel=0&playsinline=1`, allow: "autoplay; encrypted-media; picture-in-picture; fullscreen", allowfullscreen: true, referrerpolicy: "strict-origin-when-cross-origin", title: w[0] });
   else if (m.vm) player = h("iframe", { src: `https://player.vimeo.com/video/${m.vm}?autoplay=1`, allow: "autoplay; fullscreen; picture-in-picture", allowfullscreen: true, referrerpolicy: "strict-origin-when-cross-origin", title: w[0] });
+  else if (m.link && !m.mp4) player = h("a", { class: "linkstage", href: m.link, target: "_blank", rel: "noopener" }, h("span", { class: "eyebrow" }, m.on), h("b", null, "View on " + m.on + " ↗"), h("small", null, m.link.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)));
   else player = h("video", { src: m.mp4 || await workSrc(w), poster: m.cover || "", controls: true, autoplay: true, playsinline: true });
   const meta = [c.name, TAXONOMY[w[1]].name, w[3] ? w[3] + "s" : null].filter(Boolean).join(" · ");
   const credit = m.link ? h("a", { class: "link small", href: m.link, target: "_blank", rel: "noopener" }, "Watch on " + m.on + (m.by && m.by !== c.name && m.by !== "@" + c.handle ? " · uploaded by " + m.by : "") + " ↗") : (w[4] ? null : h("span", { class: "small dim" }, "Demo uses a stock clip"));

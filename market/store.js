@@ -128,7 +128,7 @@ const DB = {
     const c = this.creator(creatorId);
     const r = this.priceRange(c); price = price || c.ask || Math.round((r.lo + r.hi) / 2 / 100) * 100;
     const o = { id: rid("ord"), clientId, creatorId, title, brief, cat, opt, style, price,
-      terms: { price, depositPct: 30, revisions: 3, durationDays: c.days, trialDays: Math.max(2, Math.round(c.days * 0.4)), proposedBy: clientId, accepted: { [clientId]: true } },
+      terms: { price, depositPct: 30, revisions: 3, durationDays: Math.max(1, c.days), trialDays: Math.max(c.days ? 2 : 1, Math.round(c.days * 0.4)), proposedBy: clientId, accepted: { [clientId]: true } },
       status: "negotiating", revisionsUsed: 0, deliveries: [], escrow: { deposit: "none", balance: "none" },
       createdAt: now(), updatedAt: now(), deadline: null, contractAt: null, review: {} };
     this.state.orders.push(o);

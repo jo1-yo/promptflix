@@ -115,6 +115,7 @@ const Auth = {
         const v = who.value.trim();
         if (canEmail && /@/.test(v)){
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return toast("That email doesn't look right.");
+          const ok = opts.allow ? opts.allow(v.toLowerCase()) : true; if (ok !== true) return toast(ok);
           return this.sendCode({ email: v.toLowerCase() }, box, draw);
         }
         if (canPhone && looksPhone(v)){

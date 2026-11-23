@@ -5,16 +5,18 @@ const CATS = Object.keys(TAXONOMY);
 
 function header(){
   const u = me(); const live = u && u.live; const n = pendingCount(u && u.id);
-  const links = live ? [["#/chats", "Inbox", n], ["#/profile", "Profile"], ["#/payouts", "Wallet"]] : [["#/", "Home"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]];
+  const links = live ? [["#/chats", "Inbox", n], ["#/work", "Work"], ["#/profile", "Profile"], ["#/payouts", "Wallet"]] : u ? [["#/", "Home"], ["#/work", "Work"], ["#/claim", "Claim profile"], ["#/apply", "Apply"]] : [["#/", "Home"], ["#/claim", "Claim profile"]];
+  const next = u2 => go(u2.live ? "#/chats" : "#/apply");
   const right = u ? [live ? h("a", { class: "btn quiet small", href: "#/creator-preview" }, "View public profile") : null, h("a", { href: "#/profile", "aria-label": "Profile" }, avatar(u))]
-    : [h("button", { class: "btn quiet small", onclick: () => openSignIn(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Sign in"), h("button", { class: "btn primary small", onclick: () => requireAuth(u2 => go(u2.live ? "#/chats" : "#/apply")) }, "Apply")];
+    : [h("button", { class: "btn quiet small", onclick: () => openSignIn(next) }, "Log in"), h("button", { class: "btn primary small", onclick: () => Auth.open(next, null, { signup: true }) }, "Sign up")];
   mountHeader({ brand: "Rolvo", sub: "For creators", links, right, home: live ? "#/chats" : "#/" });
 }
 function render(){
   header();
   const r = route(); const m = $("#main"); m.replaceChildren(); const v = r.parts[0]; const u = me();
   if (!v) { if (u && u.live) return go("#/chats"); vLanding(m); }
-  else if (v === "apply") vApply(m);
+  else if (v === "apply") { if (!u) { vLanding(m); Auth.open(() => render(), null, { signup: true }); } else vApply(m); }
+  else if (v === "work") { if (!u) return requireAuth(() => render()); vWork(m, r.q || {}); }
   else if (v === "claim") vClaim(m, r.q || {});
   else if (v === "inbox" || v === "orders") return go("#/chats");
   else if (v === "chats") { if (!u) return requireAuth(() => render()); if (!u.live) return go("#/apply"); vChats(m, null); }
@@ -24,7 +26,7 @@ function render(){
   else if (v === "payouts") dash(m, "payouts", vPayouts);
   else if (v === "creator-preview") vPreview(m);
   else return go("#/");
-  if (!["apply", "chats", "chat"].includes(v)) m.append(footer());
+  if (!(v === "apply" && u) && !["chats", "chat"].includes(v)) m.append(footer());
 }
 
 function vLanding(m){
@@ -81,7 +83,7 @@ function vApply(m){
     page.append(f); return;
   }
   if (W.step === 1){
-    head("What you make.", "This is how clients find you. Be narrow; a duanju director and a SaaS launch director are different listings.");
+    head("What you make.", "This is how clients find you. Be narrow; a short-drama director and a SaaS launch director are different listings.");
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f); const cats = fd.getAll("cats"), styles = fd.getAll("styles");
       if (!cats.length || !styles.length) return toast("Pick at least one category and one style."); Object.assign(u, { cats, styles, fit: fd.getAll("fit") }); DB.save(); W.step = 2; render(); } },
       field("Categories", chipset("cats", CATS.map(id => [id, TAXONOMY[id].name]), u.cats)),
@@ -91,35 +93,83 @@ function vApply(m){
     page.append(f); return;
   }
   if (W.step === 2){
-    head("Your work.", "At least one finished film. Each one is tagged with a category and style so the right clients see it.");
-    const list = h("div", { class: "worklist" }, ...u.works.map((w, i) => h("div", { class: "workrow" }, art(w[2]), h("div", null, w[0], h("small", null, TAXONOMY[w[1]].name + " · " + STYLES[w[2]].name + " · " + w[3] + "s")), h("button", { class: "btn quiet small", onclick: () => { u.works.splice(i, 1); DB.save(); render(); } }, "Remove"))));
-    let file = null;
-    const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); const fd = new FormData(f); const btn = f.querySelector("[type=submit]"); btn.disabled = true;
-      const src = file ? await Files.put(file) : (fd.get("url") || null);
-      u.works.push([fd.get("title").trim(), fd.get("cat"), fd.get("style"), +fd.get("secs") || 30, src]); DB.save(); render(); } },
-      h("div", { class: "row2" }, field("Title", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "Client · what it was" })), field("Length (seconds)", h("input", { class: "i", name: "secs", type: "number", min: "1", value: 30 }))),
+    head("Your work.", "Optional. Link a finished piece now, or add it later from your profile: a post on Instagram, LinkedIn, X or TikTok, a YouTube or Vimeo film, or your own site.");
+    const list = h("div", { class: "worklist" }, ...u.works.map((w, i) => h("div", { class: "workrow pick" }, h("span", { class: "thumb" }, cover(w)), h("div", null, w[0], h("small", null, [w[5] && w[5].on, TAXONOMY[w[1]].name, STYLES[w[2]].name].filter(Boolean).join(" · "))), h("button", { class: "btn quiet small", onclick: () => { u.works.splice(i, 1); DB.save(); render(); } }, "Remove"))));
+    const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f); const m = workLink((fd.get("url") || "").trim());
+      if (!m) return toast("Paste a full link, starting with https://");
+      if (u.works.some(w => sameWork(w[5], m))) return toast("That link is already on your list.");
+      m.by = u.name; u.works.push([fd.get("title").trim(), fd.get("cat"), fd.get("style"), null, null, m]); DB.save(); render(); } },
+      field("Link to your work", h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "https://www.instagram.com/p/…" }), "Instagram, LinkedIn, X, TikTok, YouTube, Vimeo or any public page"),
+      field("Title", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "Client · what it was" })),
       h("div", { class: "row2" }, field("Category", h("select", { class: "i", name: "cat" }, ...(u.cats.length ? u.cats : CATS).map(id => h("option", { value: id }, TAXONOMY[id].name)))), field("Style", h("select", { class: "i", name: "style" }, ...(u.styles.length ? u.styles : Object.keys(STYLES)).map(id => h("option", { value: id }, STYLES[id].name))))),
-      h("div", { class: "row2" }, field("File", h("input", { type: "file", accept: "video/*", onchange: e => { file = e.target.files[0] || null; } }), "optional, stays in this browser"), field("or a link", h("input", { class: "i", name: "url", type: "url", placeholder: "https://…/film.mp4" }))),
-      h("div", { class: "row" }, h("button", { class: "btn", type: "submit" }, "Add film"), h("span", { class: "hint" }, "No file or link: the demo plays a stock clip.")));
-    page.append(list, f, h("div", null, h("button", { class: "btn primary big", disabled: !u.works.length, onclick: () => { W.step = 3; render(); } }, "Continue")));
+      h("div", null, h("button", { class: "btn", type: "submit" }, "Add link")));
+    page.append(list, f, h("div", null, h("button", { class: "btn primary big", onclick: () => { W.step = 3; render(); } }, u.works.length ? "Continue" : "Skip for now")), u.works.length ? null : h("p", { class: "hint" }, "Clients find people through their films, so a profile with no work is not shown in the market until you add one."));
     return;
   }
   if (W.step === 3){
-    head("Pricing.", "Your starting price per film. Clients see a range built from this and every order you open here.");
+    head("Pricing.", "Pick where your films start. You can change it any time, and every project is still agreed in chat.");
+    let tier = PRICE_TIERS.findLast(t => (u.ask ?? -1) >= t.ask) || null;
+    const ask = h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", required: true, value: u.ask ?? "", placeholder: "0" });
+    const samples = h("div");
+    const tiers = h("div", { class: "tiers", role: "radiogroup", "aria-label": "Starting price" });
+    const draw = () => {
+      tiers.replaceChildren(...PRICE_TIERS.map(t => h("button", { type: "button", class: "tierbtn", role: "radio", "aria-checked": String(tier === t), onclick: () => { tier = t; ask.value = t.ask; draw(); } }, h("b", null, t.label), h("span", null, t.note))));
+      const ex = tier ? tierSamples(tier, u) : [];
+      samples.replaceChildren(...(!tier ? [] : ex.length
+        ? [h("span", { class: "eyebrow" }, "Work around " + tier.label), h("div", { class: "works", style: { marginTop: "12px" } }, ...ex.map(x => tile(x.w, x.c, () => playWork(x.w, x.c)))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Films by people whose estimated range for this kind of work covers this level. Estimates by category, not prices they quoted.")]
+        : [h("p", { class: "hint" }, tier.ask === 0 ? "Free work is for building a first portfolio. Raise it as soon as one client says yes." : "No sample films at this level yet.")]));
+    };
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
-      Object.assign(u, { ask: +fd.get("ask"), days: +fd.get("days"), live: true, rating: u.rating || 4.8, approvedAt: now() }); DB.save(); W = {}; toast("You're live. Clients can find you now."); go("#/chats"); } },
-      h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "50", step: "50", required: true, value: u.ask || "", placeholder: "1500" })), field("Typical turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", required: true, value: u.days }))),
+      if (fd.get("ask") === "" || fd.get("days") == null) return toast("Pick a starting price and a delivery time.");
+      Object.assign(u, { ask: +fd.get("ask"), days: +fd.get("days"), live: true, rating: u.rating || 4.8, approvedAt: now() }); DB.save(); W = {}; toast(u.works.length ? "You're live. Clients can find you now." : "You're in. Add a film to show up in the market."); go("#/chats"); } },
+      field("Starting price", tiers), samples,
+      h("div", { class: "row2" }, field("Exact starting price (USD)", ask, "0 is fine"), h("div")),
+      field("Typical delivery time", daysPicker(u.days), "from paid deposit to first cut"),
+      h("p", { class: "hint" }, "This is how long a film takes you, not how fast you reply to messages. Same day is fine for quick edits and short reels."),
       h("div", { class: "notice" }, h("b", null, "Review. "), "A person on our team looks at every application before it goes live, usually within two days. In this demo you go live immediately."),
       h("div", null, h("button", { class: "btn primary big", type: "submit" }, "Submit application")));
+    draw();
     page.append(f);
   }
+}
+
+/* Starting-price levels. `ask` is what gets saved; samples come from creators whose estimated range covers the level's middle. */
+const PRICE_TIERS = [
+  { ask: 0, label: "Free", note: "Building a portfolio", mid: null },
+  { ask: 300, label: "Under $1k", note: "Short reels, quick edits", mid: 650 },
+  { ask: 1000, label: "$1k to $3k", note: "Product and social films", mid: 2000 },
+  { ask: 3000, label: "$3k to $8k", note: "Launch films, brand ads", mid: 5500 },
+  { ask: 8000, label: "$8k and up", note: "Campaigns, long form", mid: 10000 },
+];
+function tierSamples(t, u){
+  if (t.mid == null) return [];
+  const pool = DB.filmed().filter(c => c.id !== u.id && c.est && c.est[0] <= t.mid && c.est[1] >= t.mid);
+  const mine = pool.filter(c => c.cats.some(x => (u.cats || []).includes(x)));   // same kind of work first
+  return [...mine, ...pool.filter(c => !mine.includes(c))].slice(0, 3).map(c => ({ w: c.works[0], c }));
+}
+const DAY_OPTS = [[0, "Same day"], [2, "1 to 2 days"], [5, "3 to 5 days"], [7, "About a week"], [14, "Two weeks"], [30, "A month or more"]];
+function daysPicker(cur){
+  const pick = DAY_OPTS.reduce((best, o) => Math.abs(o[0] - cur) < Math.abs(best[0] - cur) ? o : best, DAY_OPTS[3])[0];
+  return h("div", { class: "chips" }, ...DAY_OPTS.map(([v, l]) => h("label", { class: "chip" + (v === pick ? " on" : "") }, h("input", { type: "radio", name: "days", value: v, checked: v === pick, style: { display: "none" }, onchange: e => { for (const x of e.target.closest(".chips").children) x.classList.toggle("on", x.contains(e.target)); } }), l)));
+}
+
+/* ---------- other creators' work: open to every signed-in creator, applicants included ---------- */
+function vWork(m, q){
+  const u = me(); const tab = CATS.includes(q.cat) ? q.cat : "";
+  const all = DB.filmed().filter(c => c.id !== u.id).flatMap(c => c.works.map(w => ({ w, c })));
+  const films = (tab ? all.filter(x => x.w[1] === tab) : DB.filmed().filter(c => c.id !== u.id).map(c => ({ w: c.works[0], c }))).slice(0, 60);
+  const tabBtn = (id, label) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick: () => go("#/work" + (id ? "?cat=" + id : "")) }, label);
+  m.append(h("section", { class: "wrap section" },
+    h("div", { class: "stack", style: { gap: "12px", marginBottom: "24px" } }, h("h1", { class: "pname" }, "Work on Rolvo"), h("p", { class: "muted" }, "What clients see when they browse. Watch how other filmmakers present their films.")),
+    h("div", { class: "filters", role: "tablist", "aria-label": "Category" }, tabBtn("", "All"), ...CATS.map(id => tabBtn(id, TAXONOMY[id].name))),
+    films.length ? h("div", { class: "works" }, ...films.map(x => tile(x.w, x.c, () => playWork(x.w, x.c)))) : h("p", { class: "soonnote" }, "Coming soon")));
 }
 
 /* ---------- dashboard ---------- */
 function dash(m, active, body){
   const u = me(); if (!u) return requireAuth(() => render()); if (!u.live) return go("#/apply");
   const n = pendingCount(u.id);
-  const rail = h("nav", { class: "rail" }, ...[["chats", "Inbox", n], ["profile", "Profile"], ["payouts", "Wallet"]].map(([k, l, c]) => h("a", { href: "#/" + k, "aria-current": String(k === active) }, l, c ? h("span", { class: "n" }, c) : null)));
+  const rail = h("nav", { class: "rail" }, ...[["chats", "Inbox", n], ["work", "Work"], ["profile", "Profile"], ["payouts", "Wallet"]].map(([k, l, c]) => h("a", { href: "#/" + k, "aria-current": String(k === active) }, l, c ? h("span", { class: "n" }, c) : null)));
   const s = h("div"); body(s);
   m.append(h("div", { class: "wrap dash" }, rail, s));
 }
@@ -131,7 +181,8 @@ function vProfile(s){
     h("div", { class: "row2" }, field("Name", h("input", { class: "i", name: "name", value: c.name, required: true })), field("Based in", h("input", { class: "i", name: "where", value: c.where }))),
     h("div", { class: "row2" }, field("Time zone", h("select", { class: "i", name: "tz" }, ...TZS.map(t => h("option", { value: t, selected: c.tz === t }, t)))), field("Region", h("select", { class: "i", name: "region" }, ...REGIONS.map(([v, l]) => h("option", { value: v, selected: c.region === v }, l))))),
     field("Background", h("textarea", { class: "i", name: "bg", value: c.bg, maxlength: "160" })),
-    h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "50", step: "50", value: c.ask })), field("Turnaround (days)", h("input", { class: "i", name: "days", type: "number", min: "1", value: c.days }))),
+    h("div", { class: "row2" }, field("Starting price (USD)", h("input", { class: "i", name: "ask", type: "number", min: "0", step: "1", value: c.ask ?? "" })), h("div")),
+    field("Typical delivery time", daysPicker(c.days), "from paid deposit to first cut"),
     field("Categories", chipset("cats", CATS.map(id => [id, TAXONOMY[id].name]), c.cats)),
     field("Styles", chipset("styles", Object.entries(STYLES).map(([id, s]) => [id, s.name]), c.styles, 3), "up to 3"),
     field("Clients you work best with", chipset("fit", CLIENT_TYPES.map(t => [t.id, t.name]), c.fit)),
@@ -139,26 +190,33 @@ function vProfile(s){
     h("div", { class: "row between" }, h("button", { class: "btn primary", type: "submit" }, "Save"), h("button", { class: "btn quiet small", type: "button", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out")));
   s.append(h("div", { class: "page-title" }, h("h2", null, "Profile"), h("a", { class: "link", href: "#/creator-preview" }, "See it as clients do →")),
     h("div", { class: "stack", style: { gap: "40px" } },
-      h("div", null, h("span", { class: "eyebrow" }, "Price record"), h("div", { class: "stats", style: { marginTop: "14px" } }, h("div", { class: "stat" }, h("b", null, c.ask ? money(c.ask) : "Not set"), h("span", null, "my ask")), h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "shown range")), h("div", { class: "stat" }, h("b", null, c.closes.length), h("span", null, "closed")), h("div", { class: "stat" }, h("b", null, c.quotes.length), h("span", null, "open quotes")), h("div", { class: "stat" }, h("b", null, DB.breaksLeft(c.id)), h("span", null, "breaks left"))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Every order that reaches contract adds its price here, closed or not. Clients see the range, never the list.")),
-      h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), filmPicker(c), h("p", { class: "hint", style: { marginTop: "10px" } }, "Upload a file from the application flow: ", h("button", { class: "link", onclick: () => { W = { step: 2 }; c.live = false; DB.save(); go("#/apply"); } }, "edit work"), ". Your profile is hidden while you edit.")),
+      h("div", null, h("span", { class: "eyebrow" }, "Price record"), h("div", { class: "stats", style: { marginTop: "14px" } }, h("div", { class: "stat" }, h("b", null, Number.isFinite(c.ask) ? money(c.ask) : "Not set"), h("span", null, "my ask")), h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "shown range")), h("div", { class: "stat" }, h("b", null, c.closes.length), h("span", null, "closed")), h("div", { class: "stat" }, h("b", null, c.quotes.length), h("span", null, "open quotes")), h("div", { class: "stat" }, h("b", null, DB.breaksLeft(c.id)), h("span", null, "breaks left"))), h("p", { class: "hint", style: { marginTop: "10px" } }, "Every order that reaches contract adds its price here, closed or not. Clients see the range, never the list.")),
+      h("div", null, h("span", { class: "eyebrow" }, "Work · " + c.works.length), h("div", { class: "works", style: { marginTop: "14px" } }, ...c.works.map(w => tile(w, c, () => playWork(w, c)))), filmPicker(c), h("p", { class: "hint", style: { marginTop: "10px" } }, "Add or reorder links below.")),
       f));
 }
 /* ---------- choose which films clients see ---------- */
 // Shown films live in c.works (first = card cover); hidden ones wait in c.shelf, so every other view keeps reading c.works.
-function filmLink(url){ const y = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url), v = /vimeo\.com\/(?:video\/)?(\d{6,11})/.exec(url);
-  return y ? { yt: y[1], cover: `https://i.ytimg.com/vi/${y[1]}/hqdefault.jpg`, lb: true, link: "https://www.youtube.com/watch?v=" + y[1], on: "YouTube" } : v ? { vm: v[1], cover: "https://vumbnail.com/" + v[1] + ".jpg", link: "https://vimeo.com/" + v[1], on: "Vimeo" } : null; }
+// Any public post or page: YouTube/Vimeo play inline, everything else (Instagram, LinkedIn, X, TikTok, a site) opens at the source.
+const SITES = [[/(^|\.)instagram\.com$/, "Instagram"], [/(^|\.)linkedin\.com$/, "LinkedIn"], [/(^|\.)(x|twitter)\.com$/, "X"], [/(^|\.)tiktok\.com$/, "TikTok"], [/(^|\.)behance\.net$/, "Behance"], [/(^|\.)facebook\.com$/, "Facebook"], [/(^|\.)threads\.(net|com)$/, "Threads"], [/(^|\.)xiaohongshu\.com$/, "Xiaohongshu"], [/(^|\.)bilibili\.com$/, "Bilibili"], [/(^|\.)douyin\.com$/, "Douyin"]];
+function workLink(url){
+  const film = filmLink(url); if (film) return film;
+  let u; try { u = new URL(url); } catch { return null; } if (!/^https?:$/.test(u.protocol)) return null;
+  const host = u.hostname.replace(/^www\./, ""); const site = SITES.find(([re]) => re.test(host));
+  return { link: u.href, on: site ? site[1] : host };
+}
+const sameWork = (a, b) => a && b && (a.yt ? a.yt === b.yt : a.vm ? a.vm === b.vm : a.link === b.link);
 function filmPicker(c){
   c.shelf ||= [];
   const save = () => { DB.save(); render(); };
   const row = (w, shown, i) => h("div", { class: "workrow pick" }, h("span", { class: "thumb" }, cover(w)), h("div", null, w[0], h("small", null, shown ? (i === 0 ? "Card cover · shown" : "Shown") : "Hidden")),
     h("span", { class: "row", style: { gap: "6px", flexWrap: "nowrap" } }, shown && i > 0 ? h("button", { class: "btn quiet small", onclick: () => { c.works.unshift(c.works.splice(i, 1)[0]); save(); } }, "Make cover") : null,
     h("button", { class: "btn quiet small", onclick: () => { if (shown) c.shelf.push(c.works.splice(i, 1)[0]); else c.works.push(c.shelf.splice(i, 1)[0]); save(); } }, shown ? "Hide" : "Show")));
-  const add = h("form", { class: "row", style: { gap: "8px", marginTop: "12px", flexWrap: "wrap" }, onsubmit: e => { e.preventDefault(); const fd = new FormData(add), m = filmLink(fd.get("url") || "");
-      if (!m) return toast("Paste a YouTube or Vimeo link.");
-      if ([...c.works, ...c.shelf].some(w => w[5] && (w[5].yt && w[5].yt === m.yt || w[5].vm && w[5].vm === m.vm))) return toast("That film is already on your list.");
+  const add = h("form", { class: "row", style: { gap: "8px", marginTop: "12px", flexWrap: "wrap" }, onsubmit: e => { e.preventDefault(); const fd = new FormData(add), m = workLink((fd.get("url") || "").trim());
+      if (!m) return toast("Paste a full link, starting with https://");
+      if ([...c.works, ...c.shelf].some(w => sameWork(w[5], m))) return toast("That link is already on your list.");
       m.by = c.name; c.works.push([fd.get("title").trim() || "Untitled", c.cats[0], c.styles[0], null, null, m]); save(); } },
-    h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "YouTube or Vimeo link", style: { flex: "2 1 220px" } }), h("input", { class: "i", name: "title", maxlength: "60", placeholder: "Title", style: { flex: "1 1 140px" } }), h("button", { class: "btn", type: "submit" }, "Add film"));
-  return h("div", { style: { marginTop: "22px" } }, h("span", { class: "eyebrow" }, "Choose your films"), h("p", { class: "hint", style: { margin: "8px 0 12px" } }, "Pick what clients see. The first film is your card cover."),
+    h("input", { class: "i", name: "url", type: "url", required: true, placeholder: "Link: Instagram, LinkedIn, X, YouTube…", style: { flex: "2 1 220px" } }), h("input", { class: "i", name: "title", maxlength: "60", placeholder: "Title", style: { flex: "1 1 140px" } }), h("button", { class: "btn", type: "submit" }, "Add link"));
+  return h("div", { style: { marginTop: "22px" } }, h("span", { class: "eyebrow" }, "Choose your work"), h("p", { class: "hint", style: { margin: "8px 0 12px" } }, "Pick what clients see. The first one is your card cover."),
     h("div", { class: "worklist" }, ...c.works.map((w, i) => row(w, true, i)), ...c.shelf.map((w, i) => row(w, false, i))), add);
 }
 /* ---------- wallet ---------- */
@@ -228,7 +286,7 @@ function vPreview(m){
   const c = me(); if (!c) return requireAuth(() => render());
   m.append(h("section", { class: "wrap section" }, h("div", { class: "notice", style: { marginBottom: "28px" } }, h("b", null, "Preview. "), "This is your profile as clients see it on the main site. ", h("a", { class: "link", href: "../#/creator/" + c.id }, "Open there →")),
     h("div", { class: "profile" }, h("div", { class: "stack", style: { gap: "28px" } }, h("div", { class: "stack", style: { gap: "14px" } }, h("span", { class: "eyebrow" }, "@" + c.handle + " · " + c.where), h("h1", { class: "pname" }, c.name), h("p", { class: "muted", style: { fontSize: "17px", maxWidth: "56ch" } }, c.bg), h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t)))), h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c))))),
-      h("aside", { class: "side" }, h("div", { class: "card" }, h("div", { class: "stats" }, h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "typical")), h("div", { class: "stat" }, h("b", null, c.days + "d"), h("span", null, "turnaround")), h("div", { class: "stat" }, h("b", null, c.rating ? "★ " + c.rating.toFixed(1) : "New"), h("span", null, c.done + " done"))), h("button", { class: "btn primary big", disabled: true }, "Start a project"))))));
+      h("aside", { class: "side" }, h("div", { class: "card" }, h("div", { class: "stats" }, h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, "typical")), h("div", { class: "stat" }, h("b", null, daysText(c.days)), h("span", null, "delivery")), h("div", { class: "stat" }, h("b", null, c.rating ? "★ " + c.rating.toFixed(1) : "New"), h("span", null, c.done + " done"))), h("button", { class: "btn primary big", disabled: true }, "Start a project"))))));
 }
 
 bootShared();
