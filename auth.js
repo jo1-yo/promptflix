@@ -19,11 +19,14 @@ const loadGsi = (src, ready) => new Promise((ok, fail) => {
 
 /* Cloud — the account record in Supabase (table market_profiles, see server/market.sql). The browser store stays the working
    copy for the prototype; this keeps the signed-in account's row current so sign-ups, sign-ins and onboarding answers are in the
-   database. Orders and chats are not synced yet. Does nothing in demo mode. */
+   database. Orders and chats are not synced yet. Does nothing in demo mode.
+   One login has one row and can be on both sides: the client side keeps org / onboarded / profile / local_id, the creator side
+   keeps creator_onboarded / creator_profile / creator_local_id. A database that hasn't had the newer market.sql run has no
+   creator_* columns (`legacy`): there a creator still uses the shared columns, and an account stays on one side. */
 const CREATOR_FIELDS = ["handle", "where", "bg", "tools", "cats", "styles", "fit", "ask", "days", "tz", "region", "works", "source"];
 const Cloud = {
-  sent: {}, timer: null,
-  /* market_enter sets the side on first sign-in (never admin), refuses the wrong side, logs the sign-in, returns the row. */
+  sent: {}, timer: null, legacy: false,
+  /* market_enter adds this site's side to the account (never admin), logs the sign-in, returns the row. */
   async enter(identity){
     const { data, error } = await Auth.client().rpc("market_enter", { p_app: APP, p_via: identity.provider || "email" });
     if (!error) return data;
@@ -33,26 +36,33 @@ const Cloud = {
   /* Link the local user to its row and fill in anything the database already knows (a second device, a returning user). */
   attach(row){
     const u = DB.me(); if (!row || !u) return;
-    u.cloudId = row.id; const p = row.profile || {};
+    this.legacy = row.creator_profile === undefined;
+    u.cloudId = row.id; const p = (u.cats && !this.legacy ? row.creator_profile : row.profile) || {};
     if (row.name && !u.name) u.name = row.name;
     if (row.avatar_url && !u.avatar) u.avatar = row.avatar_url;
-    if (row.verified && !u.verified){ u.verified = true; u.verifiedBy = "admin"; }
+    if (row.verified && !u.verified && !u.cats){ u.verified = true; u.verifiedBy = "admin"; }   // company verification belongs to the client side
     if (u.cats){ for (const k of CREATOR_FIELDS) if (p[k] != null && (u[k] == null || u[k] === "" || (Array.isArray(u[k]) && !u[k].length))) u[k] = p[k]; }
     else { if (row.org && !u.org) u.org = row.org; u.profile = { ...p, ...(u.profile || {}) }; if (row.onboarded) u.onboarded = true; }
     DB.save();
   },
   row(u){
-    const base = { name: u.name || null, avatar_url: u.avatar || null, local_id: u.id };
-    if (u.cats) return { ...base, onboarded: !!(u.handle && u.cats.length), profile: Object.fromEntries(CREATOR_FIELDS.filter(k => u[k] != null).map(k => [k, u[k]])) };
-    return { ...base, org: u.org || null, onboarded: !!u.onboarded, profile: u.profile || {} };
+    const base = { name: u.name || null, avatar_url: u.avatar || null };
+    if (u.cats){ const done = !!(u.handle && u.cats.length), profile = Object.fromEntries(CREATOR_FIELDS.filter(k => u[k] != null).map(k => [k, u[k]]));
+      return this.legacy ? { ...base, local_id: u.id, onboarded: done, profile } : { ...base, creator_local_id: u.id, creator_onboarded: done, creator_profile: profile }; }
+    return { ...base, local_id: u.id, org: u.org || null, onboarded: !!u.onboarded, profile: u.profile || {} };
   },
   queue(){ if (!LIVE.auth) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.push(), 800); },
   async push(){
     const u = DB.me(), sb = Auth.client(); if (!u || !u.cloudId || !sb) return;
-    const row = this.row(u), json = JSON.stringify(row); if (this.sent[u.cloudId] === json) return;
     const { data } = await sb.auth.getSession(); if (!data.session || data.session.user.id !== u.cloudId) return;
-    const { error } = await sb.from("market_profiles").update(row).eq("id", u.cloudId);
-    if (error) console.warn("Rolvo: account not saved to the database.", error.message); else this.sent[u.cloudId] = json;
+    const key = u.cloudId + ":" + APP;   // the same row is written from both sites, each with its own columns
+    let row = this.row(u), json = JSON.stringify(row); if (this.sent[key] === json) return;
+    let { error } = await sb.from("market_profiles").update(row).eq("id", u.cloudId);
+    if (error && !this.legacy && u.cats && (error.code === "42703" || error.code === "PGRST204" || error.code === "42501" || /creator_/.test(error.message || ""))){
+      this.legacy = true; row = this.row(u); json = JSON.stringify(row);   // the database has no creator_* columns yet
+      ({ error } = await sb.from("market_profiles").update(row).eq("id", u.cloudId));
+    }
+    if (error) console.warn("Rolvo: account not saved to the database.", error.message); else this.sent[key] = json;
   },
   signOut(){ const sb = LIVE.auth && Auth.client(); if (sb) sb.auth.signOut(); },
 };
@@ -72,16 +82,18 @@ const Auth = {
     this.finish({ email: u.email, phone: u.phone || null, provider: "google", name: md.full_name || md.name, avatar: md.avatar_url, mode: "live" });
   },
   async finish(identity){
-    const wrongSide = APP === "admin" ? "That account isn't on the admin list." : APP === "merchant" ? "That's a creator account. Sign in on the creator site." : "That's a client account. Sign in on the main site.";
+    // An admin login stays off the public sites. The two "other side" messages are only reached on a database that still keeps an account to one side.
+    const wrongSide = (was) => APP === "admin" ? "That account isn't on the admin list." : was === "admin" ? "That's the admin login. Use another email or phone here."
+      : APP === "merchant" ? "That's a creator account. Sign in on the creator site." : "That's a client account. Sign in on the main site.";
     let account = null;
     if (LIVE.auth && identity.mode === "live"){   // the database decides which side this account is on and records the sign-in
       try { account = await Cloud.enter(identity); }
-      catch (e) { await this.client().auth.signOut(); return toast(/wrong_side/.test(e.message || "") ? wrongSide : "Couldn't open your account. " + (e.message || "")); }
+      catch (e) { await this.client().auth.signOut(); const m = /wrong_side:(\w+)/.exec(e.message || ""); return toast(m ? wrongSide(m[1]) : "Couldn't open your account. " + (e.message || "")); }
     }
     const p = this.pending || {}; this.pending = null;
     if (p.onIdentity){ p.onIdentity(identity); return Cloud.attach(account); }
     const u = DB.signIn(identity);
-    if (!u) return toast(wrongSide);
+    if (!u) return toast(wrongSide("admin"));
     Cloud.attach(account); closeSheet(); render(); if (p.then) p.then(u);
   },
 
