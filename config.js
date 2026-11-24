@@ -11,7 +11,7 @@ const CONFIG = {
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
-  adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com"],   // live, also set role = 'admin' in market_profiles (see market.sql)
+  adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com", "kh3443@barnard.edu"],   // live, also set role = 'admin' in market_profiles (see market.sql)
   // Featured creators, by handle from creators.js. They are listed first: home film wall, Creators page (Best match)
   // and every search they match. Order here = order on the site. A creator with no film or cover image still shows nowhere.
   featured: [

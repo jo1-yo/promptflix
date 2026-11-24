@@ -82,7 +82,7 @@ const Auth = {
     this.finish({ email: u.email, phone: u.phone || null, provider: "google", name: md.full_name || md.name, avatar: md.avatar_url, mode: "live" });
   },
   async finish(identity){
-    // An admin login stays off the public sites. The two "other side" messages are only reached on a database that still keeps an account to one side.
+    // Any email or phone can sign in on the public sites; only the admin console checks a list. The "admin login" and "other side" messages are only reached on a database running an older market.sql.
     const wrongSide = (was) => APP === "admin" ? "That account isn't on the admin list." : was === "admin" ? "That's the admin login. Use another email or phone here."
       : APP === "merchant" ? "That's a creator account. Sign in on the creator site." : "That's a client account. Sign in on the main site.";
     let account = null;
