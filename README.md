@@ -2,8 +2,8 @@
 
 A marketplace for AI filmmakers. Clients find the person who made a film they liked, pay into escrow, review watermarked cuts and release payment on approval.
 
-- **Live:** https://imjane.top/promptflix/ · [creator site](https://imjane.top/promptflix/creator/) · [admin](https://imjane.top/promptflix/admin/) (GitHub Pages from `main`, no build step; every push to `main` deploys)
-- **Addresses:** the market is the root of this repo. The old `/market/…` links forward to the new ones. Every path in the code is relative, so moving to `rolvo.market` later needs no code change, only DNS, the Pages custom domain and the allowed URLs in Google and Supabase.
+- **Live:** https://rolvo.market/ · [creator site](https://rolvo.market/creator/) · [admin](https://rolvo.market/admin/) (GitHub Pages from `main`, no build step; every push to `main` deploys)
+- **Addresses:** the market is the root of this repo and is served at `rolvo.market` (the `CNAME` file; domain and DNS are at Cloudflare). The old `imjane.top/promptflix/` address and the old `/market/…` links forward here. Every path in the code is relative, so the address lives only in DNS, the Pages custom domain and the allowed URLs in Google and Supabase.
 - **For coding agents:** read [`AGENTS.md`](AGENTS.md) first. It lists the rules and the traps.
 
 ## Status at a glance
@@ -171,7 +171,7 @@ In demo mode no email or SMS is sent: the 6-digit code appears on screen.
 | A real creator | Creator site → **Claim profile** → search a name → any login | Their crawled profile becomes an account with an inbox |
 | `team@rolvo.demo` | Admin site, email code or Google | The admin backend. Other addresses are refused |
 
-Live (Supabase keys set in `config.js`, as on imjane.top) there are no demo accounts and no on-screen codes: codes arrive by email. Admin opens only for an address in `adminEmails`, and any other address is refused before a code is sent.
+Live (Supabase keys set in `config.js`, as on rolvo.market) there are no demo accounts and no on-screen codes: codes arrive by email. Admin opens only for an address in `adminEmails`, and any other address is refused before a code is sent.
 
 ## Configuration
 
@@ -196,11 +196,11 @@ Every integration is optional and independent. Fill [`config.js`](config.js) one
 Sign-in uses Google's own "Continue with Google" button. Clicking it opens Google's account chooser on accounts.google.com, which returns an ID token signed by Google.
 
 1. Google Cloud Console → **Google Auth Platform** → Clients → Create client → **Web application**.
-2. Authorized JavaScript origins: `http://localhost`, `http://localhost:8131` and `https://imjane.top`. No redirect URI is needed. Copy the client ID (the secret is only for Supabase, step 5).
+2. Authorized JavaScript origins: `http://localhost`, `http://localhost:8131` and `https://rolvo.market` and `https://www.rolvo.market`. No redirect URI is needed. Copy the client ID (the secret is only for Supabase, step 5).
 3. Paste the client ID into `googleClientId`. The button now works, but the token is only checked in the browser. That's fine for a prototype; it isn't proof of identity for orders or money.
 4. **Audience:** while the app is in Testing, only listed test users can sign in. Click **Publish app** to open it to everyone. It only asks for name, email and picture (non-sensitive scopes), so Google doesn't need to review it.
-5. **Branding:** set the home page `https://imjane.top/promptflix/`, privacy policy `https://imjane.top/promptflix/privacy/`, terms `https://imjane.top/promptflix/terms/`, and authorized domain `imjane.top` (verify it in Google Search Console). Brand verification then shows the Rolvo name and logo on Google's screen.
-6. **Server-checked sessions:** with `supabaseUrl` and `supabaseKey` also set, each Google token goes to Supabase (`signInWithIdToken`), which checks Google's signature, our client ID and a one-time nonce before opening a session. In Supabase → Authentication → Sign In / Providers → Google, enable it and paste the same client ID and its secret. Google's screen then names imjane.top, not supabase.co.
+5. **Branding:** set the home page `https://rolvo.market/`, privacy policy `https://rolvo.market/privacy/`, terms `https://rolvo.market/terms/`, and authorized domain `rolvo.market` (verify it in Google Search Console). Brand verification then shows the Rolvo name and logo on Google's screen.
+6. **Server-checked sessions:** with `supabaseUrl` and `supabaseKey` also set, each Google token goes to Supabase (`signInWithIdToken`), which checks Google's signature, our client ID and a one-time nonce before opening a session. In Supabase → Authentication → Sign In / Providers → Google, enable it and paste the same client ID and its secret. Google's screen then names rolvo.market, not supabase.co.
 
 Google sign-in is free and doesn't use Google Cloud credits or need billing.
 
@@ -214,7 +214,7 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
    - Supabase allows one code per address every 60 seconds, so the sheet's Resend button waits 60 seconds when live.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
    Live, the email and phone tabs stay hidden until `emailCodes` / `smsCodes` are `true` in `config.js`. Supabase's built-in mailer only delivers to your own team, so email codes also need custom SMTP. Until then the sign-in sheet shows Google only.
-4. Add `https://imjane.top/promptflix/` to Authentication → URL Configuration → Redirect URLs.
+4. Add `https://rolvo.market/` to Authentication → URL Configuration → Redirect URLs.
 
 **Accounts in the database**
 
@@ -252,7 +252,7 @@ Card numbers never touch Rolvo: Stripe's Payment Element and PayPal's buttons co
 2. Deploy the function:
    ```bash
    supabase functions deploy payments --no-verify-jwt
-   supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_WEBHOOK_SECRET=whsec_... ALLOWED_ORIGIN=https://imjane.top
+   supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_WEBHOOK_SECRET=whsec_... ALLOWED_ORIGIN=https://rolvo.market
    ```
 3. In config.js set `stripePk` (`pk_test_...`) and `paymentsUrl` (`https://<ref>.supabase.co/functions/v1/payments`). Supabase sign-in must be live too: payouts identify the creator by their session.
 4. In Stripe → Developers → Webhooks, point `payment_intent.succeeded` at the same URL.
@@ -283,8 +283,8 @@ In rough priority order. Each item says where the work goes.
 - [ ] Test Match a reference on phones; the first use downloads about 45 MB.
 
 **2. Sign-in**
-- [ ] Paste the Google client ID into `googleClientId` and test Google's popup on localhost and imjane.top.
-- [ ] Google Cloud: publish the app; add home page, privacy and terms URLs; verify `imjane.top` in Search Console; submit brand verification.
+- [ ] Paste the Google client ID into `googleClientId` and test Google's popup on localhost and rolvo.market.
+- [ ] Google Cloud: publish the app; add home page, privacy and terms URLs; verify `rolvo.market` in Search Console; submit brand verification.
 - [ ] Supabase Auth: SMS provider (Twilio or similar). Google, the email code templates and custom SMTP are done.
 - [ ] Move email codes off Gmail to a sender on rolvo.market (e.g. Resend, `noreply@rolvo.market`) once the domain is active.
 
@@ -312,7 +312,7 @@ In rough priority order. Each item says where the work goes.
 - [ ] Brief reader and matching use a keyword list (`LEXICON` in `seed.js`, `DB.readBrief` / `DB.match`). Replace with an LLM.
 - [ ] Voice onboarding asks scripted questions through the Web Speech API (Chrome / Safari only). Replace with a real voice agent.
 - [ ] Analytics, error reporting.
-- [ ] Own domain: `rolvo.market` is bought at IONOS and waiting for approval. Then: DNS to GitHub Pages, a `CNAME` file here, and the new origin added in Google Cloud and Supabase (today the site is under imjane.top/promptflix).
+- [x] Own domain: `rolvo.market`, registered at Cloudflare. DNS points to GitHub Pages and the `CNAME` file is in this repo. The origin also has to be listed in Google Cloud and Supabase.
 - [ ] Legal review of privacy and terms. They're a first draft.
 
 ## Pull requests
