@@ -51,7 +51,7 @@ jobs:
                - escrow, payment and order-status changes outside store.js, or amounts/commission computed wrongly;
                - a live integration without a demo path that works when config.js keys are empty.
             2. Security: secrets in any file (config.js is public), trusting the browser for money or admin rights in new server code, XSS from innerHTML with user data.
-            3. Rule breaks from AGENTS.md: new build tools or npm deps, unpinned CDN scripts, hand edits to market/creators.js, invented prices/ratings for unclaimed creators, faked provider UI.
+            3. Rule breaks from AGENTS.md: new build tools or npm deps, unpinned CDN scripts, hand edits to creators.js, invented prices/ratings for unclaimed creators, faked provider UI.
             4. UI regressions you can see from the code: layout that breaks below 400px wide, removed accessibility attributes.
             5. README.md not updated when setup, config keys or "What's not done" changed.
 

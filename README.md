@@ -2,8 +2,8 @@
 
 A marketplace for AI filmmakers. Clients find the person who made a film they liked, pay into escrow, review watermarked cuts and release payment on approval.
 
-- **Live:** https://imjane.top/promptflix/ (GitHub Pages from `main`, no build step; every push to `main` deploys)
-- **Market:** https://imjane.top/promptflix/market/ · [creator site](https://imjane.top/promptflix/market/creator/) · [admin](https://imjane.top/promptflix/market/admin/)
+- **Live:** https://imjane.top/promptflix/ · [creator site](https://imjane.top/promptflix/creator/) · [admin](https://imjane.top/promptflix/admin/) (GitHub Pages from `main`, no build step; every push to `main` deploys)
+- **Addresses:** the market is the root of this repo. The old `/market/…` links forward to the new ones. Every path in the code is relative, so moving to `rolvo.market` later needs no code change, only DNS, the Pages custom domain and the allowed URLs in Google and Supabase.
 - **For coding agents:** read [`AGENTS.md`](AGENTS.md) first. It lists the rules and the traps.
 
 ## Status at a glance
@@ -25,19 +25,18 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Repo checks on every PR | ✅ GitHub Actions | — |
 | Claude PR review + `@claude` | 🟡 Workflows in place | Repo secret `ANTHROPIC_API_KEY` (see [Pull requests](#pull-requests)) |
 | Select showcase (`select/`) | ✅ Live | — |
-| Feed app (`index.html`) | ⛔ Offline | Its Supabase project is gone; schema needs to be run on a new one |
 
 ## Repo map
 
 | Path | What it is |
 | --- | --- |
-| [`market/`](market/) | **The marketplace.** Client site, creator site and admin. |
-| [`market/creator/`](market/creator/) · [`market/admin/`](market/admin/) | HTML shells for the other two sites. They load the same scripts as `market/`. |
-| [`market/privacy/`](market/privacy/) · [`market/terms/`](market/terms/) | Privacy policy and terms (needed for Google sign-in branding). |
-| [`market/server/`](market/server/) | Payments Edge Function (Deno) and SQL for Supabase. Not deployed. |
-| [`market/tools/`](market/tools/) | Python pipeline that builds `market/creators.js` from research data, and `embed.mjs`, which builds `market/embeds.js` (film fingerprints for Match a reference). |
+| repo root (`index.html`, `*.js`, `styles.css`) | **The marketplace.** The client site, and the scripts all three sites share. |
+| [`creator/`](creator/) · [`admin/`](admin/) | HTML shells for the other two sites. They load the same scripts as the client site. |
+| [`market/`](market/) | Forwarding pages only, so links to the old `/market/…` addresses keep working. |
+| [`privacy/`](privacy/) · [`terms/`](terms/) | Privacy policy and terms (needed for Google sign-in branding). |
+| [`server/`](server/) | Payments Edge Function (Deno) and SQL for Supabase. Not deployed. |
+| [`tools/`](tools/) | Python pipeline that builds `creators.js` from research data, and `embed.mjs`, which builds `embeds.js` (film fingerprints for Match a reference). |
 | [`select/`](select/) | Rolvo Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
-| [`index.html`](index.html) · [`schema.sql`](schema.sql) | The original feed app (swipe through AI videos, send a hire request) and its Supabase schema. |
 | [`scripts/check.mjs`](scripts/check.mjs) | Repo checks, run locally and in CI. |
 | [`.github/workflows/`](.github/workflows/) | CI: `check` (required), `claude-review`, `claude` (`@claude` mentions). |
 
@@ -48,42 +47,42 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 - Classic `<script>` tags (not ES modules), loaded in a fixed order. All files share one global scope.
 - Rendering: a small `h(tag, attrs, ...children)` DOM helper in `ui.js`. Each site has a `render()` that rebuilds the main view from state.
 - Routing: hash router (`#/creators`, `#/chat/:id`, …). `route()` and `go()` in `ui.js`.
-- Styling: one stylesheet, [`market/styles.css`](market/styles.css). Warm light look after the Cursor study in Tasta: off-white canvas, dark ink, white cards, one orange marker. CSS custom properties in `:root`. Mobile-first, works down to 375 px.
+- Styling: one stylesheet, [`styles.css`](styles.css). Warm light look after the Cursor study in Tasta: off-white canvas, dark ink, white cards, one orange marker. CSS custom properties in `:root`. Mobile-first, works down to 375 px.
 - Fonts: Inter (400, 500, 600) from Google Fonts. Icons: inline SVG.
 - Match a reference is the one page that loads outside code: [transformers.js](https://github.com/huggingface/transformers.js) 4.3.2 from jsDelivr and the image model `Xenova/mobileclip_s0` (about 45 MB, cached by the browser) from Hugging Face, both fetched only when a visitor gives a reference. The site itself still has no npm and no build step.
 - Browser APIs: `localStorage`, IndexedDB (uploaded preview files), Web Speech API (voice answers in onboarding), `crypto.subtle` (sign-in nonce).
 
 **Data (today)**
-- [`market/store.js`](market/store.js) is the whole data layer: a `DB` object over one JSON blob in `localStorage` (key `pfm.v3`), plus `Files` over IndexedDB (`pfm-files`) for uploaded cuts.
+- [`store.js`](store.js) is the whole data layer: a `DB` object over one JSON blob in `localStorage` (key `pfm.v3`), plus `Files` over IndexedDB (`pfm-files`) for uploaded cuts.
 - Every `DB` method is meant to map onto one Supabase table or RPC later. Keep method names and record shapes stable.
-- Seed data: [`seed.js`](market/seed.js) (taxonomy, styles, brief keywords, demo clients) and generated [`creators.js`](market/creators.js).
+- Seed data: [`seed.js`](seed.js) (taxonomy, styles, brief keywords, demo clients) and generated [`creators.js`](creators.js).
 
-**Auth** ([`market/auth.js`](market/auth.js))
+**Auth** ([`auth.js`](auth.js))
 - One sheet for sign-in and sign-up. Google, phone (SMS code) or email (email code). No passwords.
 - Google: Google Identity Services (`accounts.google.com/gsi/client`). Google renders its own button and account chooser and returns a signed ID token bound to a one-time nonce. With Supabase configured, the token is verified server-side with `supabase.auth.signInWithIdToken`.
 - Email and phone: Supabase Auth OTP (`signInWithOtp`, `verifyOtp`).
 - Demo mode (no keys): codes are generated and shown on screen.
 - Sessions are kept per site (`merchant`, `creator`, `admin`), so one browser can play both sides of a deal.
 
-**Payments** ([`market/pay.js`](market/pay.js), [`market/server/functions/payments/index.ts`](market/server/functions/payments/index.ts))
+**Payments** ([`pay.js`](pay.js), [`server/functions/payments/index.ts`](server/functions/payments/index.ts))
 - Stripe Payment Element (cards) and PayPal JS SDK Buttons (PayPal balance only; PayPal's own card option is turned off so all cards go through Stripe).
 - Server: one Supabase Edge Function (Deno, no dependencies) that creates Stripe PaymentIntents, creates and captures PayPal orders, verifies the Stripe webhook signature (HMAC SHA-256), and records payments in `market_payments`.
 - Card numbers never touch Rolvo.
 
-**Backend (planned):** Supabase. Postgres with row-level security, Auth, Storage, Edge Functions. Schema so far: [`market/server/market.sql`](market/server/market.sql) (accounts, sign-in log, orders, payments).
+**Backend (planned):** Supabase. Postgres with row-level security, Auth, Storage, Edge Functions. Schema so far: [`server/market.sql`](server/market.sql) (accounts, sign-in log, orders, payments).
 
 **Media**
 - Creator films are embedded from where the creator posted them: YouTube (`youtube-nocookie.com`), Vimeo, or MP4 files from X (`video.twimg.com`).
 - Covers: YouTube `maxresdefault`, falling back to `hqdefault` (letterboxed, cropped in CSS).
 - X's video CDN refuses requests with a cross-site referrer, so every page sets `<meta name="referrer" content="no-referrer">`. YouTube and Vimeo iframes set their own policy.
 
-**Data pipeline** ([`market/tools/`](market/tools/)): Python 3 standard library plus `curl` and macOS `sips`. YouTube IDs are checked with oEmbed; X posts come from the public fxtwitter API.
+**Data pipeline** ([`tools/`](tools/)): Python 3 standard library plus `curl` and macOS `sips`. YouTube IDs are checked with oEmbed; X posts come from the public fxtwitter API.
 
 **Pinned third-party scripts**
 
 | Script | Version | Loaded by |
 | --- | --- | --- |
-| `@supabase/supabase-js` (UMD, jsDelivr) | 2.117.3 | `config.js` (only when Supabase keys are set), `index.html` |
+| `@supabase/supabase-js` (UMD, jsDelivr) | 2.117.3 | `config.js` (only when Supabase keys are set) |
 | Google Identity Services | Google-hosted, unversioned | `auth.js`, when a Google client ID is set |
 | Stripe.js | v3 | `pay.js`, live mode only |
 | PayPal JS SDK | PayPal-hosted, unversioned | `pay.js`, live mode only |
@@ -96,9 +95,9 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 
 | Site | Path | Who it's for | Script |
 | --- | --- | --- | --- |
-| Client | `/market/` | Startups, brands, agencies and studios hiring AI filmmakers | `merchant.js` (`APP = "merchant"`) |
-| Creator | `/market/creator/` | Filmmakers: claim a crawled profile or apply, then work orders from an inbox | `creator.js` (`APP = "creator"`) |
-| Admin | `/market/admin/` | The Rolvo team: money, verification, discovery, disputes | `admin.js` (`APP = "admin"`) |
+| Client | `/` | Startups, brands, agencies and studios hiring AI filmmakers | `merchant.js` (`APP = "merchant"`) |
+| Creator | `/creator/` | Filmmakers: claim a crawled profile or apply, then work orders from an inbox | `creator.js` (`APP = "creator"`) |
+| Admin | `/admin/` | The Rolvo team: money, verification, discovery, disputes | `admin.js` (`APP = "admin"`) |
 
 Script load order on every site: `seed.js` → `creators.js` → `config.js` → `store.js` → `ui.js` → `auth.js` → `pay.js` → `voice.js` → the site script. The site script defines `APP` and calls `bootShared()`.
 
@@ -129,10 +128,10 @@ Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escr
 **Match a reference** (`#/match`, button on the home page, no account needed). The client gives a video they like and gets films that look like it.
 
 - **What can be read:** a file from their computer (six frames across its length), a YouTube link (the cover and three mid-film stills), or a direct `.mp4` / `.webm` / `.mov` link. Instagram, TikTok, Vimeo and most other sites don't let a browser read their video; there the client picks the kind and look by hand and films are ranked on those two tags.
-- **How it ranks:** the frames go through a small CLIP image model in the visitor's browser and become one fingerprint. [`market/embeds.js`](market/embeds.js) holds the same fingerprint for every film in the library. Films are ordered by how close the two are, two per creator at most. Nothing is uploaded.
+- **How it ranks:** the frames go through a small CLIP image model in the visitor's browser and become one fingerprint. [`embeds.js`](embeds.js) holds the same fingerprint for every film in the library. Films are ordered by how close the two are, two per creator at most. Nothing is uploaded.
 - **"We read it as":** kind and look are voted by the ten closest films and shown as chips the client can change; changing them nudges the order slightly. The guess leans toward Business & Brand because most of the library is.
 - **Then:** opening a matched film and starting a project puts the reference link and tags into the brief.
-- **Keep it in step:** run `market/tools/embed.mjs` after `creators.js` changes (see the comment at the top of that file). A film with no fingerprint is ranked last. The model must stay `fp32` on both sides; its 8-bit version gives unusable vectors.
+- **Keep it in step:** run `tools/embed.mjs` after `creators.js` changes (see the comment at the top of that file). A film with no fingerprint is ranked last. The model must stay `fp32` on both sides; its 8-bit version gives unusable vectors.
 
 **What a creator does:** claims a profile built from their public work, or signs up and applies in 4 steps (who you are and tools, what you make, links to work, pricing); accepts or counters terms; delivers cuts; tracks payouts.
 
@@ -143,16 +142,16 @@ Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escr
 
 **Admin views:** Overview (money, funnel, sign-ins and payments by method, needs attention, activity) · Orders · Payments · Clients (one-click Verify / Revoke) · Creators · Discovery (crawled profiles and invites) · Trust (early endings, failed pre-reviews, break limits) · Integrations (which pieces are live or demo).
 
-**Creators on the site:** 87 real people from the team's research list, across brand ads, narrative film, experimental and music video, animation and AI UGC. Covers and players come from their own YouTube uploads (IDs checked with oEmbed) or their own X posts. None has joined Rolvo: profiles say so, and prices are labelled estimates. 33 more handles with no public video (mostly Instagram-only fashion creators) wait in admin Discovery. Rebuild with [`market/tools/README.md`](market/tools/README.md).
+**Creators on the site:** 87 real people from the team's research list, across brand ads, narrative film, experimental and music video, animation and AI UGC. Covers and players come from their own YouTube uploads (IDs checked with oEmbed) or their own X posts. None has joined Rolvo: profiles say so, and prices are labelled estimates. 33 more handles with no public video (mostly Instagram-only fashion creators) wait in admin Discovery. Rebuild with [`tools/README.md`](tools/README.md).
 
 ## Run it locally
 
 ```bash
 cd promptflix
 python3 -m http.server 8131
-# http://localhost:8131/market/          client
-# http://localhost:8131/market/creator/  creator
-# http://localhost:8131/market/admin/    admin
+# http://localhost:8131/          client
+# http://localhost:8131/creator/  creator
+# http://localhost:8131/admin/    admin
 node scripts/check.mjs                   # repo checks (Node 22+)
 ```
 
@@ -176,7 +175,7 @@ Live (Supabase keys set in `config.js`, as on imjane.top) there are no demo acco
 
 ## Configuration
 
-All switches live in [`market/config.js`](market/config.js). Empty values keep that piece in demo mode, independently of the others. **Only public or publishable values go in this file; it is served to every visitor.** Secrets go in Supabase function env (`supabase secrets set`) or in the Supabase / Google dashboards.
+All switches live in [`config.js`](config.js). Empty values keep that piece in demo mode, independently of the others. **Only public or publishable values go in this file; it is served to every visitor.** Secrets go in Supabase function env (`supabase secrets set`) or in the Supabase / Google dashboards.
 
 | Key | Value | Turns on |
 | --- | --- | --- |
@@ -190,7 +189,7 @@ All switches live in [`market/config.js`](market/config.js). Empty values keep t
 
 ## Going live
 
-Every integration is optional and independent. Fill [`market/config.js`](market/config.js) one piece at a time; anything left empty stays in demo mode.
+Every integration is optional and independent. Fill [`config.js`](config.js) one piece at a time; anything left empty stays in demo mode.
 
 **Google sign-in**
 
@@ -200,7 +199,7 @@ Sign-in uses Google's own "Continue with Google" button. Clicking it opens Googl
 2. Authorized JavaScript origins: `http://localhost`, `http://localhost:8131` and `https://imjane.top`. No redirect URI is needed. Copy the client ID (the secret is only for Supabase, step 5).
 3. Paste the client ID into `googleClientId`. The button now works, but the token is only checked in the browser. That's fine for a prototype; it isn't proof of identity for orders or money.
 4. **Audience:** while the app is in Testing, only listed test users can sign in. Click **Publish app** to open it to everyone. It only asks for name, email and picture (non-sensitive scopes), so Google doesn't need to review it.
-5. **Branding:** set the home page `https://imjane.top/promptflix/market/`, privacy policy `https://imjane.top/promptflix/market/privacy/`, terms `https://imjane.top/promptflix/market/terms/`, and authorized domain `imjane.top` (verify it in Google Search Console). Brand verification then shows the Rolvo name and logo on Google's screen.
+5. **Branding:** set the home page `https://imjane.top/promptflix/`, privacy policy `https://imjane.top/promptflix/privacy/`, terms `https://imjane.top/promptflix/terms/`, and authorized domain `imjane.top` (verify it in Google Search Console). Brand verification then shows the Rolvo name and logo on Google's screen.
 6. **Server-checked sessions:** with `supabaseUrl` and `supabaseKey` also set, each Google token goes to Supabase (`signInWithIdToken`), which checks Google's signature, our client ID and a one-time nonce before opening a session. In Supabase → Authentication → Sign In / Providers → Google, enable it and paste the same client ID and its secret. Google's screen then names imjane.top, not supabase.co.
 
 Google sign-in is free and doesn't use Google Cloud credits or need billing.
@@ -215,14 +214,14 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
    - Supabase allows one code per address every 60 seconds, so the sheet's Resend button waits 60 seconds when live.
 3. Phone: enable the Phone provider and connect an SMS provider (Twilio, MessageBird or Vonage).
    Live, the email and phone tabs stay hidden until `emailCodes` / `smsCodes` are `true` in `config.js`. Supabase's built-in mailer only delivers to your own team, so email codes also need custom SMTP. Until then the sign-in sheet shows Google only.
-4. Add `https://imjane.top/promptflix/market/` to Authentication → URL Configuration → Redirect URLs.
+4. Add `https://imjane.top/promptflix/` to Authentication → URL Configuration → Redirect URLs.
 
 **Accounts in the database**
 
-Run [`market/server/market.sql`](market/server/market.sql) once in the Supabase SQL editor. From then on:
+Run [`server/market.sql`](server/market.sql) once in the Supabase SQL editor. From then on:
 
 - Every sign-up gets a row in `market_profiles` (email, phone, name, avatar, sign-in methods, role, company, onboarding answers, verified flag). Every sign-in adds a row to `market_logins`.
-- After Supabase Auth succeeds the site calls the `market_enter` function (`Cloud` in [`market/auth.js`](market/auth.js)). The database sets the side on first sign-in (client or creator), refuses an account on the wrong site, and never grants admin.
+- After Supabase Auth succeeds the site calls the `market_enter` function (`Cloud` in [`auth.js`](auth.js)). The database sets the side on first sign-in (client or creator), refuses an account on the wrong site, and never grants admin.
 - Onboarding answers and profile edits are pushed to the signed-in account's row. People can only edit their own descriptive fields; role, verification, email and phone change only through the SQL functions.
 - Make yourself an admin by hand after your first sign-in: `update market_profiles set role = 'admin' where email = 'you@example.com';` and add the same address to `adminEmails` in config.js.
 - If the SQL hasn't been run, sign-in still works and a console warning says accounts aren't being stored.
@@ -247,9 +246,9 @@ Stripe setup, done by whoever legally owns the account (in the US an individual 
 - In Connect settings, set the instant payout fee creators pay (1%) if you want it collected by Stripe.
 - Non-US creators are onboarded as cross-border "recipient" accounts. Which countries Stripe supports changes; Stripe returns an error for the rest, and those creators need another route.
 
-Card numbers never touch Rolvo: Stripe's Payment Element and PayPal's buttons collect them. The server part is one Supabase Edge Function, [`market/server/functions/payments`](market/server/functions/payments/index.ts).
+Card numbers never touch Rolvo: Stripe's Payment Element and PayPal's buttons collect them. The server part is one Supabase Edge Function, [`server/functions/payments`](server/functions/payments/index.ts).
 
-1. Run [`market/server/market.sql`](market/server/market.sql) in the Supabase SQL editor.
+1. Run [`server/market.sql`](server/market.sql) in the Supabase SQL editor.
 2. Deploy the function:
    ```bash
    supabase functions deploy payments --no-verify-jwt
@@ -290,7 +289,7 @@ In rough priority order. Each item says where the work goes.
 - [ ] Move email codes off Gmail to a sender on rolvo.market (e.g. Resend, `noreply@rolvo.market`) once the domain is active.
 
 **3. Payments**
-- [ ] Deploy `market/server/functions/payments`, set Stripe and PayPal **test** keys, add the Stripe webhook, run a full test order.
+- [ ] Deploy `server/functions/payments`, set Stripe and PayPal **test** keys, add the Stripe webhook, run a full test order.
 - [ ] Compute amounts on the server from `market_orders` (`ORDERS_IN_DB=true`). Until then the function refuses live keys.
 - [ ] Real refunds through Stripe / PayPal (today a refund is a ledger entry).
 - [ ] Creator payouts: first test run of the Stripe Connect flow in test mode; server-side releases; refunds through Stripe (today a refund is only a ledger entry); a route for creators in countries Stripe can't pay; tax forms.
@@ -313,11 +312,8 @@ In rough priority order. Each item says where the work goes.
 - [ ] Brief reader and matching use a keyword list (`LEXICON` in `seed.js`, `DB.readBrief` / `DB.match`). Replace with an LLM.
 - [ ] Voice onboarding asks scripted questions through the Web Speech API (Chrome / Safari only). Replace with a real voice agent.
 - [ ] Analytics, error reporting.
-- [ ] Own domain (today under imjane.top/promptflix).
+- [ ] Own domain: `rolvo.market` is bought at IONOS and waiting for approval. Then: DNS to GitHub Pages, a `CNAME` file here, and the new origin added in Google Cloud and Supabase (today the site is under imjane.top/promptflix).
 - [ ] Legal review of privacy and terms. They're a first draft.
-
-**7. Feed app (`index.html`)**
-- [ ] New Supabase project, run `schema.sql`, update the URL and key in `index.html` (see [Feed app setup](#feed-app-setup-indexhtml)).
 
 ## Pull requests
 
@@ -346,30 +342,17 @@ Until a secret exists, both Claude jobs skip themselves with a notice, and PRs s
 
 | File | Role |
 | --- | --- |
-| `market/config.js` | Keys and live/demo switches |
-| `market/store.js` | Data layer: identities, orders, escrow state machine, ledger, payments, invites |
-| `market/auth.js` | Google / email / phone sign-in: Google's own button (ID token, verified by Supabase when set), Supabase codes, or demo |
-| `market/pay.js` | Checkout sheet: Stripe Payment Element or PayPal Buttons, or demo |
-| `market/ui.js` | Shared UI: `h()`, router, header and footer, sheets, covers, video player, chat and order card, watermarked preview |
-| `market/merchant.js` · `creator.js` · `admin.js` | The three sites |
-| `market/voice.js` | "Talk it through" voice answers for onboarding (Web Speech API) |
-| `market/seed.js` · `creators.js` | Taxonomy, styles and demo clients · generated creator data (don't edit by hand) |
-| `market/embeds.js` | Generated image fingerprints of every film, loaded only by Match a reference (don't edit by hand) |
-| `market/privacy/` · `terms/` | Legal pages (contact from `supportEmail`) |
-| `market/server/` | Payments Edge Function and SQL |
-| `market/tools/` | Pipeline that rebuilds `creators.js`; `embed.mjs` rebuilds `embeds.js` |
+| `config.js` | Keys and live/demo switches |
+| `store.js` | Data layer: identities, orders, escrow state machine, ledger, payments, invites |
+| `auth.js` | Google / email / phone sign-in: Google's own button (ID token, verified by Supabase when set), Supabase codes, or demo |
+| `pay.js` | Checkout sheet: Stripe Payment Element or PayPal Buttons, or demo |
+| `ui.js` | Shared UI: `h()`, router, header and footer, sheets, covers, video player, chat and order card, watermarked preview |
+| `merchant.js` · `creator.js` · `admin.js` | The three sites |
+| `voice.js` | "Talk it through" voice answers for onboarding (Web Speech API) |
+| `seed.js` · `creators.js` | Taxonomy, styles and demo clients · generated creator data (don't edit by hand) |
+| `embeds.js` | Generated image fingerprints of every film, loaded only by Match a reference (don't edit by hand) |
+| `privacy/` · `terms/` | Legal pages (contact from `supportEmail`) |
+| `server/` | Payments Edge Function and SQL |
+| `tools/` | Pipeline that rebuilds `creators.js`; `embed.mjs` rebuilds `embeds.js` |
 | `scripts/check.mjs` | Repo checks |
 
----
-
-## Feed app setup (`index.html`)
-
-1. Create a Supabase project, then open **SQL Editor** and run [`schema.sql`](schema.sql).
-2. In **Authentication → URL Configuration**, set Site URL to `https://imjane.top/promptflix/` and add it to Redirect URLs.
-3. Copy **Project URL** and **anon public key** (Project Settings → API) into `SUPABASE_URL` / `SUPABASE_ANON_KEY` at the top of the script in `index.html`.
-4. Sign in on the site once, then make yourself an admin so you can see hire requests:
-   ```sql
-   insert into public.admins (user_id) select id from auth.users where email = '<your email>';
-   ```
-
-The feed is a vertical list of every posted video. **Hire** opens a short request form, with no sign-up needed. Creators sign in with an email link, set their name, rate and bio, and post videos (up to 50 MB). Hire requests and creator emails are readable only by admins.

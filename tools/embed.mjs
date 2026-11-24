@@ -1,7 +1,7 @@
-// Builds market/embeds.js: one image fingerprint per film, used by "Match a reference" on the client site.
+// Builds embeds.js: one image fingerprint per film, used by "Match a reference" on the client site.
 // Each film's cover (and, for YouTube, three frames from the middle of the film) goes through the same small CLIP image model
 // the browser runs on the client's reference video; matching is the cosine between the two.
-// Needs @huggingface/transformers next to it:  cd market/tools && npm i @huggingface/transformers@4.3.2 && node embed.mjs
+// Needs @huggingface/transformers next to it:  cd tools && npm i @huggingface/transformers@4.3.2 && node embed.mjs
 // Re-run after creators.js changes; a film with no fingerprint is ranked last.
 import fs from "node:fs";
 import { AutoProcessor, CLIPVisionModelWithProjection, RawImage } from "@huggingface/transformers";

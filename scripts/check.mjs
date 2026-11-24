@@ -42,7 +42,7 @@ for (const f of files.filter(f => f.endsWith(".ts"))){
   catch (e) { fail(f, `${e.name}: ${e.message}`); }
 }
 
-// 3. No secrets in the repo. Only publishable keys belong in market/config.js; secrets go in Supabase function env.
+// 3. No secrets in the repo. Only publishable keys belong in config.js; secrets go in Supabase function env.
 const SECRETS = [
   [/\bsk_(live|test)_[A-Za-z0-9]{12,}/, "Stripe secret key"],
   [/\brk_(live|test)_[A-Za-z0-9]{12,}/, "Stripe restricted key"],
@@ -63,8 +63,8 @@ for (const f of files){
   if (/(^|\/)\.DS_Store$/.test(f)) fail(f, "macOS .DS_Store must not be committed");
   if (/\.(html|js|css|md)$/.test(f) && /["'(]\/Users\/[^"')]+/.test(readFileSync(join(ROOT, f), "utf8"))) fail(f, "absolute local path; use a relative path");
 }
-const cfg = readFileSync(join(ROOT, "market/config.js"), "utf8");
-if (/sk_live_|PAYPAL_SECRET|service_role/.test(cfg)) fail("market/config.js", "secret material in the public config");
+const cfg = readFileSync(join(ROOT, "config.js"), "utf8");
+if (/sk_live_|PAYPAL_SECRET|service_role/.test(cfg)) fail("config.js", "secret material in the public config");
 
 if (errors.length){ console.error(errors.join("\n") + `\n\n${errors.length} problem(s).`); process.exit(1); }
 console.log(`✓ ${PAGES.length} pages, ${files.filter(f => /\.(m?js|ts)$/.test(f)).length} scripts, ${files.length} files checked. All good.`);

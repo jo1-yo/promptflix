@@ -27,7 +27,7 @@ const Cloud = {
   async enter(identity){
     const { data, error } = await Auth.client().rpc("market_enter", { p_app: APP, p_via: identity.provider || "email" });
     if (!error) return data;
-    if (error.code === "PGRST202" || error.code === "42883"){ console.warn("Rolvo: run market/server/market.sql in Supabase to store accounts."); return null; }   // schema not installed yet: sign-in still works
+    if (error.code === "PGRST202" || error.code === "42883"){ console.warn("Rolvo: run server/market.sql in Supabase to store accounts."); return null; }   // schema not installed yet: sign-in still works
     throw error;
   },
   /* Link the local user to its row and fill in anything the database already knows (a second device, a returning user). */

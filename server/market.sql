@@ -1,7 +1,7 @@
 -- Rolvo Market — database. Run the whole file once in the Supabase SQL editor (safe to run again).
 --
 -- Part 1 · Accounts. Every sign-up (Google, email code, phone code) gets a row in market_profiles; every sign-in a row in
--- market_logins. The site calls market_enter() right after Supabase Auth succeeds (see market/auth.js → Cloud).
+-- market_logins. The site calls market_enter() right after Supabase Auth succeeds (see auth.js → Cloud).
 -- Part 2 · Orders and payments, used by the payments function. The prototype still keeps orders in the browser.
 --
 -- Make yourself an admin after your first sign-in on the admin site (it will refuse you until you do):
