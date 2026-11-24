@@ -99,7 +99,8 @@ begin
     on conflict (id) do nothing;
   select * into p from public.market_profiles where id = auth.uid() for update;
   want := case p_app when 'merchant' then 'client' when 'creator' then 'creator' else 'admin' end;
-  if (want = 'admin') <> (p.role is not distinct from 'admin') then raise exception 'wrong_side:%', coalesce(p.role, 'none'); end if;
+  -- Only the admin console is limited. An admin's own email may also be a client or a creator on the public sites.
+  if want = 'admin' and p.role is distinct from 'admin' then raise exception 'wrong_side:%', coalesce(p.role, 'none'); end if;
   if p.role is null then p.role := want; end if;
   update public.market_profiles m
      set role = p.role, last_login_at = now(),

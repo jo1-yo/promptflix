@@ -58,8 +58,7 @@ const DB = {
     const id = typeof identity === "string" ? { email: identity, provider: "email" } : { ...identity };
     if (id.email) id.email = id.email.trim().toLowerCase();
     let u = this.findByIdentity(id, APP);
-    if (APP === "admin"){ if (!u) return null; }
-    else if (this.findByIdentity(id, "admin")) return null;     // the admin login stays off the public sites
+    if (APP === "admin"){ if (!u) return null; }     // only the admin console is limited to a list; the public sites take any email or phone
     if (!u){   // first time on this side: the same login gets its own account here, whatever it has on the other side
       const base = { email: id.email || null, phone: id.phone || null, name: id.name || "", avatar: id.avatar || null, createdAt: now() };
       if (APP === "merchant") { u = { id: rid("u"), role: "client", org: "", onboarded: false, ...base }; this.state.users.push(u); }
@@ -280,7 +279,7 @@ const DB = {
   inviteCreator(id){ const c = this.creator(id); if (c && c.real && !c.claimed && !c.invitedAt){ c.invitedAt = now(); this.save(); return true; } return false; },
   setVerified(uid, on){ const u = this.user(uid); if (u){ u.verified = !!on; u.verifiedBy = on ? "admin" : null; u.verifiedAt = on ? now() : null; this.save(); } },
   ensureAdmin(email){ email = (email || "").toLowerCase(); if (!CONFIG.adminEmails.map(x => x.toLowerCase()).includes(email)) return false;
-    if (!this.state.users.some(u => u.email === email)) { this.state.users.push({ id: rid("u"), role: "admin", name: "Rolvo team", email }); this.save(); } return true; },
+    if (!this.state.users.some(u => u.email === email && u.role === "admin")) { this.state.users.push({ id: rid("u"), role: "admin", name: "Rolvo team", email }); this.save(); } return true; },
   invite(id){ const d = this.state.discovered.find(x => x.id === id); if (d && d.status === "new"){ d.status = "invited"; d.invitedAt = now(); this.save(); } },
 };
 
