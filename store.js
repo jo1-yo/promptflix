@@ -48,23 +48,23 @@ const DB = {
   me(){ const id = this.state.sessions[APP]; return id ? this.user(id) : null; },
   user(id){ return this.state.users.find(u => u.id === id) || this.creator(id); },
   /* identity = { email?, phone?, provider: "google"|"email"|"phone", name?, avatar? } — already verified by Auth (OTP / OAuth) */
-  findByIdentity(id){
-    const all = [...this.state.users, ...this.state.creators];
-    return all.find(x => (id.email && x.email === id.email) || (id.phone && x.phone === id.phone));
+  /* One login (email or phone) can hold a client account and a creator account. `side` picks which one: "merchant", "creator" or "admin". */
+  findByIdentity(id, side){
+    const pool = side === "creator" ? this.state.creators : side === "admin" ? this.state.users.filter(u => u.role === "admin")
+      : side === "merchant" ? this.state.users.filter(u => u.role !== "admin") : [...this.state.users, ...this.state.creators];
+    return pool.find(x => (id.email && x.email === id.email) || (id.phone && x.phone === id.phone));
   },
   signIn(identity){
     const id = typeof identity === "string" ? { email: identity, provider: "email" } : { ...identity };
     if (id.email) id.email = id.email.trim().toLowerCase();
-    let u = this.findByIdentity(id);
-    if (APP === "admin"){ if (!u || u.role !== "admin") return null; }
-    else if (u && u.role === "admin") u = null;                 // admin can't log into the public sites
-    if (!u){
+    let u = this.findByIdentity(id, APP);
+    if (APP === "admin"){ if (!u) return null; }
+    else if (this.findByIdentity(id, "admin")) return null;     // the admin login stays off the public sites
+    if (!u){   // first time on this side: the same login gets its own account here, whatever it has on the other side
       const base = { email: id.email || null, phone: id.phone || null, name: id.name || "", avatar: id.avatar || null, createdAt: now() };
       if (APP === "merchant") { u = { id: rid("u"), role: "client", org: "", onboarded: false, ...base }; this.state.users.push(u); }
       else { u = { id: rid("c"), live: false, handle: "", where: "", bg: "", tools: [], cats: [], styles: [], fit: [], ask: null, closes: [], quotes: [], days: 7, rating: 0, done: 0, works: [], ...base }; this.state.creators.push(u); }
     }
-    if (APP === "merchant" && u.cats) return null;   // a creator account can't enter the merchant site
-    if (APP === "creator" && !u.cats) return null;   // and vice versa
     if (id.email && !u.email) u.email = id.email; if (id.phone && !u.phone) u.phone = id.phone;
     if (id.avatar && !u.avatar) u.avatar = id.avatar; if (id.name && !u.name) u.name = id.name;
     u.providers = [...new Set([...(u.providers || []), id.provider || "email"])]; u.lastLoginAt = now();
@@ -72,7 +72,9 @@ const DB = {
     this.state.sessions[APP] = u.id; this.save(); return u;
   },
   signOut(){ this.state.sessions[APP] = null; this.save(); if (typeof Cloud !== "undefined") Cloud.signOut(); },
-  roster(){ return this.state.creators.filter(c => c.live); },
+  /* featured creators (CONFIG.featured, by handle) lead every list; the rest keep their order */
+  featuredRank(c){ const i = (CONFIG.featured || []).indexOf(c.handle); return i < 0 ? 1e9 : i; },
+  roster(){ const rank = c => this.featuredRank(c); return this.state.creators.filter(c => c.live).map((c, i) => ({ c, i })).sort((a, b) => (rank(a.c) - rank(b.c)) || (a.i - b.i)).map(x => x.c); },
   filmed(){ return this.roster().filter(c => c.works.length); },   // for strips and galleries that need a film to show
   nameOf(id){ const u = this.user(id); return u ? (u.name || u.org || u.email || "Someone") : "Someone"; },
   creator(id){ return this.state.creators.find(c => c.id === id); },
@@ -88,7 +90,7 @@ const DB = {
   /* claiming: a crawled profile becomes a real account once its owner proves the social handle (demo skips the DM code) */
   unclaimed(){ return this.state.creators.filter(c => c.real && !c.claimed); },
   claim(id, identity){ const c = this.creator(id); if (!c || c.claimed) return null;
-    const dupe = this.findByIdentity(identity); if (dupe && dupe.id !== id && (dupe.works || []).length) return null; // that login already owns a real account
+    const dupe = this.findByIdentity(identity, "creator"); if (dupe && dupe.id !== id && (dupe.works || []).length) return null; // that login already owns a real account
     if (dupe && !(dupe.works || []).length) this.state.creators = this.state.creators.filter(x => x !== dupe);    // drop an empty application started with the same login
     c.claimed = true; c.email = identity.email || null; c.phone = identity.phone || null; c.providers = [identity.provider || "email"]; c.claimedAt = now(); c.lastLoginAt = now();
     (this.state.logins ||= []).push({ at: now(), uid: c.id, app: APP, provider: identity.provider || "email", mode: identity.mode || "demo", claim: true });
@@ -106,6 +108,7 @@ const DB = {
   },
   match(q){ // q = {cat, opt, styles[], type, budget:[lo,hi], text}
     const words = (q.text||"").toLowerCase().split(/\s+/).filter(Boolean);
+    const lift = c => this.featuredRank(c) < 1e9 ? 1 : 0;
     return this.roster().map(c => {
       let s = 0; const why = [];
       if (q.cat && c.cats.includes(q.cat)){ s += 40; why.push(TAXONOMY[q.cat].name); }
@@ -118,7 +121,7 @@ const DB = {
         const hits = words.filter(w => hay.includes(w)).length; s += hits * 12; }
       s += c.rating * 2;
       return { c, score: s, why: [...new Set(why)].slice(0, 4) };
-    }).filter(m => !q.strict || m.score > 15).sort((a, b) => b.score - a.score);
+    }).filter(m => !q.strict || m.score >= 12).sort((a, b) => (lift(b.c) - lift(a.c)) || (b.score - a.score));   // a featured creator needs a real match to show, then goes ahead of everyone else. 12 = one matching word
   },
 
   /* orders */

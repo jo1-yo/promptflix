@@ -51,7 +51,7 @@ const A = {
   clientStatus: u => u.verified ? ["Verified", "ok"] : u.onboarded ? ["Needs review", "warn"] : ["Onboarding", "dim"],
   live: on => h("span", { class: "pill " + (on ? "live" : "demo") }, on ? "Live" : "Demo"),
 };
-const clients = () => Live.on() ? (Live.rows || []).filter(u => u.role === "client") : DB.state.users.filter(u => u.role === "client");
+const clients = () => Live.on() ? (Live.rows || []).filter(u => u.isClient) : DB.state.users.filter(u => u.role === "client");
 const joined = () => DB.state.creators.filter(c => c.claimed || !c.real);
 const wallets = () => joined().map(c => [c, DB.wallet(c.id)]);
 const activeOrders = () => DB.state.orders.filter(o => !["completed", "cancelled", "negotiating"].includes(o.status));
@@ -71,7 +71,7 @@ const Live = {
     this.loading = (async () => {
       const sb = Auth.client();
       const [p, l] = await Promise.all([
-        sb.from("market_profiles").select("id, role, email, phone, name, avatar_url, providers, org, onboarded, verified, profile, local_id, created_at, last_login_at").order("created_at", { ascending: false }).limit(2000),
+        sb.from("market_profiles").select("*").order("created_at", { ascending: false }).limit(2000),
         sb.from("market_logins").select("user_id, app, provider, at").order("at", { ascending: false }).limit(500)]);
       const err = p.error || l.error;
       if (err) this.error = err.code === "42501" || /JWT|permission/i.test(err.message) ? "Your database session has ended. Sign out and sign in again to load accounts." : err.message;
@@ -88,11 +88,14 @@ const Live = {
       h("button", { class: "link small", type: "button", onclick: () => this.load(true) }, "Refresh"));
   },
 };
-const liveUser = r => ({ id: r.id, cloud: true, role: r.role, email: r.email, phone: r.phone ? "+" + String(r.phone).replace(/^\+/, "") : null, name: r.name || "",
+/* One row can be a client and a creator. Before the creator_* columns exist (older market.sql) the role says which single side it is on. */
+const liveUser = r => { const two = r.creator_profile !== undefined, oldCreator = !two && r.role === "creator"; return { ...liveBase(r), isClient: two ? !!r.is_client : r.role === "client", isCreator: two ? !!r.is_creator : oldCreator,
+  creator: { onboarded: two ? !!r.creator_onboarded : oldCreator && !!r.onboarded, profile: (two ? r.creator_profile : oldCreator ? r.profile : null) || {}, localId: two ? r.creator_local_id : oldCreator ? r.local_id : null } }; };
+const liveBase = r => ({ id: r.id, cloud: true, role: r.role, email: r.email, phone: r.phone ? "+" + String(r.phone).replace(/^\+/, "") : null, name: r.name || "",
   avatar: r.avatar_url, providers: r.providers || [], org: r.org, onboarded: r.onboarded, verified: r.verified, profile: r.profile || {}, localId: r.local_id,
   createdAt: r.created_at, lastLoginAt: r.last_login_at });
 const whoIs = id => { const u = Live.byId(id); return u ? (u.name || u.org || u.email || u.phone || "Someone") : DB.nameOf(id); };
-const ordersOf = (u, key) => DB.state.orders.filter(o => o[key] === u.id || (u.localId && o[key] === u.localId));
+const ordersOf = (u, key) => { const lid = key === "creatorId" && u.creator ? u.creator.localId : u.localId; return DB.state.orders.filter(o => o[key] === u.id || (lid && o[key] === lid)); };
 
 /* ---------- overview ---------- */
 function vOverview(s){
@@ -234,13 +237,13 @@ function vCreators(s, q){
 /* Live: every creator account in the database (sign-ups and claimed profiles), whatever this browser has seen. */
 function creatorAccounts(term){
   if (!Live.on()) return [];
-  const rows = (Live.rows || []).filter(u => u.role === "creator" && (!term || [u.name, u.email, u.phone, u.profile.handle].join(" ").toLowerCase().includes(term)));
+  const rows = (Live.rows || []).filter(u => u.isCreator && (!term || [u.name, u.email, u.phone, u.creator.profile.handle].join(" ").toLowerCase().includes(term)));
   return [Live.source() || "", h("span", { class: "eyebrow", style: { display: "block", margin: "6px 0 12px" } }, "Creator accounts · " + rows.length),
     A.table([{ l: "Creator" }, { l: "Sign-in" }, { l: "Via" }, { l: "Application" }, { l: "Orders", right: 1 }, { l: "Joined" }, { l: "Last seen" }],
-      rows.map(u => { const p = u.profile; return h("tr", null,
+      rows.map(u => { const p = u.creator.profile; return h("tr", null,
         A.td(h("div", null, h("b", { style: { fontWeight: 500 } }, u.name || "(no name yet)"), p.handle ? h("small", { class: "dim", style: { display: "block" } }, "@" + p.handle + (p.source ? " · " + p.source : "")) : null)),
         A.td(A.login(u), { cls: "muted" }), A.td(A.providers(u), { cls: "muted" }),
-        A.td(h("span", { class: u.onboarded ? "ok" : "warn" }, u.onboarded ? "Filled in" : "Not finished")), A.td(ordersOf(u, "creatorId").length || "—", { right: 1 }),
+        A.td(h("span", { class: u.creator.onboarded ? "ok" : "warn" }, u.creator.onboarded ? "Filled in" : "Not finished")), A.td(ordersOf(u, "creatorId").length || "—", { right: 1 }),
         A.td(u.createdAt ? ago(u.createdAt) : "—", { cls: "muted" }), A.td(u.lastLoginAt ? ago(u.lastLoginAt) : "—", { cls: "muted" })); }),
       Live.rows ? "No creator accounts yet." : "Loading…")];
 }

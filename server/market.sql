@@ -10,7 +10,7 @@
 -- ───────────────────────── Part 1 · Accounts ─────────────────────────
 create table if not exists market_profiles (
   id uuid primary key references auth.users on delete cascade,
-  role text check (role in ('client','creator','admin')),   -- set by market_enter on first sign-in; admin only by hand
+  role text check (role in ('client','creator','admin')),   -- the side the account joined first (set by market_enter); admin only by hand
   email text,
   phone text,
   name text,
@@ -29,6 +29,19 @@ create table if not exists market_profiles (
 alter table market_profiles add column if not exists stripe_account text;          -- acct_…
 alter table market_profiles add column if not exists payout_country text;
 alter table market_profiles add column if not exists payouts_ready boolean not null default false;
+-- One login can be on both sides. is_client / is_creator say which sides the account has entered. The client side keeps
+-- org / onboarded / profile / local_id; the creator side has its own three columns, so neither overwrites the other.
+alter table market_profiles add column if not exists is_client boolean not null default false;
+alter table market_profiles add column if not exists is_creator boolean not null default false;
+alter table market_profiles add column if not exists creator_onboarded boolean not null default false;   -- application filled in
+alter table market_profiles add column if not exists creator_profile jsonb not null default '{}';        -- handle, tools, categories, ask…
+alter table market_profiles add column if not exists creator_local_id text;                               -- id in the browser store / creators.js
+-- Accounts made while an account was kept to one side. Safe to run again: each row moves once.
+update market_profiles set is_client = true where role = 'client' and not is_client;
+update market_profiles
+   set is_creator = true, creator_onboarded = onboarded, creator_profile = profile, creator_local_id = local_id,
+       onboarded = false, profile = '{}', local_id = null
+ where role = 'creator' and not is_creator;
 create index if not exists market_profiles_email on market_profiles (email);
 create index if not exists market_profiles_local on market_profiles (local_id);
 create index if not exists market_profiles_role on market_profiles (role);
@@ -66,8 +79,9 @@ language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.market_profiles where id = auth.uid() and role = 'admin')
 $$;
 
--- Called by the site after every sign-in. First sign-in on the client site makes a client, on the creator site a creator.
--- An account can't cross sides, and nobody becomes an admin through this function.
+-- Called by the site after every sign-in. Signing in on the client site adds the client side to the account, on the creator
+-- site the creator side; one login can have both. An admin login stays off the public sites, and nobody becomes an admin
+-- through this function.
 create or replace function market_enter(p_app text, p_via text default 'email') returns market_profiles
 language plpgsql security definer set search_path = public as $$
 declare
@@ -85,10 +99,12 @@ begin
     on conflict (id) do nothing;
   select * into p from public.market_profiles where id = auth.uid() for update;
   want := case p_app when 'merchant' then 'client' when 'creator' then 'creator' else 'admin' end;
-  if p.role is null and want <> 'admin' then p.role := want; end if;
-  if p.role is distinct from want then raise exception 'wrong_side:%', coalesce(p.role, 'none'); end if;
+  if (want = 'admin') <> (p.role is not distinct from 'admin') then raise exception 'wrong_side:%', coalesce(p.role, 'none'); end if;
+  if p.role is null then p.role := want; end if;
   update public.market_profiles m
      set role = p.role, last_login_at = now(),
+         is_client = m.is_client or p_app = 'merchant',
+         is_creator = m.is_creator or p_app = 'creator',
          email = coalesce((select lower(u.email) from auth.users u where u.id = m.id), m.email),
          phone = coalesce((select u.phone from auth.users u where u.id = m.id), m.phone),
          providers = case when via = any (m.providers) then m.providers else m.providers || via end
@@ -117,7 +133,7 @@ create policy "own logins or admin" on market_logins for select using (user_id =
 -- People edit only their own descriptive fields. Role, verification, email, phone and sign-in history change through the functions above.
 revoke all on market_profiles, market_logins from anon, authenticated;
 grant select on market_profiles, market_logins to authenticated;
-grant update (name, avatar_url, org, onboarded, profile, local_id) on market_profiles to authenticated;
+grant update (name, avatar_url, org, onboarded, profile, local_id, creator_onboarded, creator_profile, creator_local_id) on market_profiles to authenticated;
 revoke all on function market_enter(text, text), market_set_verified(uuid, boolean), market_is_admin(), market_new_user(), market_touch() from public, anon;
 grant execute on function market_enter(text, text), market_set_verified(uuid, boolean), market_is_admin() to authenticated;
 
