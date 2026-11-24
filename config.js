@@ -12,6 +12,14 @@ const CONFIG = {
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
   adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com"],   // live, also set role = 'admin' in market_profiles (see market.sql)
+  // Featured creators, by handle from creators.js. They are listed first: home film wall, Creators page (Best match)
+  // and every search they match. Order here = order on the site. A creator with no film or cover image still shows nowhere.
+  featured: [
+    "ali", "anugrah-pratap-singh", "natalia-but", "johnny-kim", "ofri-margalit", "ouzani-mohamed-lamine",
+    "tariq-bakkali", "kartikye-kashyap", "omar-soto", "stas-mareev", "jay-pirabakaran", "razwan-latif",
+    "daly-hadjtaieb", "bulat-visual", "jcl-aragon", "abdul-okuev", "daniele-zanini",
+    "moaz-genidy", "filip-krejci", "t-j-misny",
+  ],
   supportEmail: "janezhang555l@gmail.com",         // shown on the privacy and terms pages; also the support email on Google's consent screen
 };
 const LIVE = {

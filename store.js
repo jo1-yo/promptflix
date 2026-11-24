@@ -72,7 +72,9 @@ const DB = {
     this.state.sessions[APP] = u.id; this.save(); return u;
   },
   signOut(){ this.state.sessions[APP] = null; this.save(); if (typeof Cloud !== "undefined") Cloud.signOut(); },
-  roster(){ return this.state.creators.filter(c => c.live); },
+  /* featured creators (CONFIG.featured, by handle) lead every list; the rest keep their order */
+  featuredRank(c){ const i = (CONFIG.featured || []).indexOf(c.handle); return i < 0 ? 1e9 : i; },
+  roster(){ const rank = c => this.featuredRank(c); return this.state.creators.filter(c => c.live).map((c, i) => ({ c, i })).sort((a, b) => (rank(a.c) - rank(b.c)) || (a.i - b.i)).map(x => x.c); },
   filmed(){ return this.roster().filter(c => c.works.length); },   // for strips and galleries that need a film to show
   nameOf(id){ const u = this.user(id); return u ? (u.name || u.org || u.email || "Someone") : "Someone"; },
   creator(id){ return this.state.creators.find(c => c.id === id); },
@@ -106,6 +108,7 @@ const DB = {
   },
   match(q){ // q = {cat, opt, styles[], type, budget:[lo,hi], text}
     const words = (q.text||"").toLowerCase().split(/\s+/).filter(Boolean);
+    const lift = c => this.featuredRank(c) < 1e9 ? 1 : 0;
     return this.roster().map(c => {
       let s = 0; const why = [];
       if (q.cat && c.cats.includes(q.cat)){ s += 40; why.push(TAXONOMY[q.cat].name); }
@@ -118,7 +121,7 @@ const DB = {
         const hits = words.filter(w => hay.includes(w)).length; s += hits * 12; }
       s += c.rating * 2;
       return { c, score: s, why: [...new Set(why)].slice(0, 4) };
-    }).filter(m => !q.strict || m.score > 15).sort((a, b) => b.score - a.score);
+    }).filter(m => !q.strict || m.score >= 12).sort((a, b) => (lift(b.c) - lift(a.c)) || (b.score - a.score));   // a featured creator needs a real match to show, then goes ahead of everyone else. 12 = one matching word
   },
 
   /* orders */
