@@ -810,3 +810,6 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 .matchin .i{flex:1 1 260px;min-width:0}
 .matchref{max-width:420px}
 .matchvid{width:100%;aspect-ratio:16/9;border-radius:var(--rc);background:#000;display:block}
+
+/* v10 · admin: where a table's rows come from (database vs this browser) */
+.srcline{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin:0 0 18px}
