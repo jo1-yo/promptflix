@@ -120,12 +120,21 @@ function tasteStep(){
       const focus = i => { TQ.focus = i;
         slides.forEach((el, j) => { const rel = (j - i + nR) % nR; const pos = rel === 0 ? "center" : rel === 1 ? "right" : "left";
           el.dataset.pos = pos; el.setAttribute("aria-label", pos === "center" ? R[j].w[0] + ", playing" : "Show " + R[j].w[0]); el.setAttribute("aria-current", String(pos === "center")); el.tabIndex = pos === "center" ? -1 : 0; });
-        title.textContent = R[i].w[0]; meta.textContent = R[i].c.name; };
+        body.style.setProperty("--far", slides[i].dataset.ar || 16 / 9); title.textContent = R[i].w[0]; meta.textContent = R[i].c.name; sound(); };
       // all three load at once behind their covers, so moving a film to the middle shows it already playing
-      if (canPreview()) slides.forEach((el, j) => { const node = previewNode(R[j].w[5], true); if (node) el.querySelector(".art").append(node); });
+      // each card takes its film's shape: known up front where the URL says it, corrected once the file reports its real size
+      // sound is off until asked for (browsers only autoplay muted); once on, it follows whichever film is in the middle
+      const nodes = []; const snd = h("button", { class: "slidesound", type: "button", onclick: () => { TQ.sound = !TQ.sound; sound(); } });
+      const sound = () => { const on = !!TQ.sound; nodes.forEach((n, j) => n && n.sound(on && j === TQ.focus)); snd.hidden = !nodes[TQ.focus];
+        snd.setAttribute("aria-label", on ? "Turn sound off" : "Turn sound on"); snd.setAttribute("aria-pressed", String(on));
+        snd.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/>' + (on ? '<path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11"/>' : '<path d="M16 9.5l5 5M21 9.5l-5 5"/>') + "</svg>"; };
+      const shape = (j, r) => { slides[j].style.setProperty("--ar", r); slides[j].dataset.ar = r; if (j === TQ.focus) body.style.setProperty("--far", r); };
+      slides.forEach((el, j) => shape(j, filmRatio(R[j].w[5])));
+      if (canPreview()) slides.forEach((el, j) => { const node = previewNode(R[j].w[5], true); if (!node) return; el.querySelector(".art").append(node); nodes[j] = node; node.addEventListener("pfm:playing", sound);
+        const v = node.querySelector("video"); if (v) v.addEventListener("loadedmetadata", () => { const r = fitRatio(v.videoWidth / v.videoHeight); if (Math.abs(r / el.dataset.ar - 1) > .02) shape(j, r); }, { once: true }); });
       const step = d => focus((TQ.focus + d + nR) % nR);
       const arrow = (d, label, glyph) => nR > 1 ? h("button", { class: "slidearrow " + (d < 0 ? "prev" : "next"), type: "button", "aria-label": label, onclick: () => step(d) }, glyph) : null;
-      body.append(h("div", { class: "slides", onkeydown: e => { if (e.key === "ArrowLeft"){ e.preventDefault(); step(-1); } if (e.key === "ArrowRight"){ e.preventDefault(); step(1); } } }, ...slides, arrow(-1, "Previous film", "←"), arrow(1, "Next film", "→")),
+      body.append(h("div", { class: "slides", onkeydown: e => { if (e.key === "ArrowLeft"){ e.preventDefault(); step(-1); } if (e.key === "ArrowRight"){ e.preventDefault(); step(1); } } }, ...slides, arrow(-1, "Previous film", "←"), arrow(1, "Next film", "→"), snd),
         h("div", { class: "slidecap" }, h("div", { class: "who", "aria-live": "polite" }, title, meta), h("button", { class: "btn primary big", type: "button", onclick: () => pick(R[TQ.focus]) }, "Pick this film")));
       focus(TQ.focus);
     }

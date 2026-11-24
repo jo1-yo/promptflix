@@ -813,3 +813,27 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 
 /* v10 · admin: where a table's rows come from (database vs this browser) */
 .srcline{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin:0 0 18px}
+
+/* questions window: the film card takes the film's own shape. --ar is each slide's width / height, --far the middle one's
+   (set in merchant.js). --slf is the share of the row a card may take, --slh the tallest it may be with the question and the
+   button still on screen. The row is as tall as the middle card, so a portrait film grows it and a wide one leaves no gap. */
+.panel.winp.slidesp .win-body{--far:1.7778;--slf:.56;--slh:clamp(240px,calc(100vh - 400px),560px)}
+@supports(height:100dvh){.panel.winp.slidesp .win-body{--slh:clamp(240px,calc(100dvh - 400px),560px)}}
+.slidesp .slides{width:100%;aspect-ratio:calc(var(--far) / var(--slf));max-height:var(--slh);transition:aspect-ratio .45s cubic-bezier(.2,.7,.2,1)}
+.slidesp .slide{--ar:1.7778;left:50%;top:50%;width:min(calc(var(--slf) * 100%),calc(var(--slh) * var(--ar)));aspect-ratio:var(--ar);transform:translate(-50%,-50%);
+  transition:transform .45s cubic-bezier(.2,.7,.2,1),left .45s cubic-bezier(.2,.7,.2,1),width .45s cubic-bezier(.2,.7,.2,1),opacity .45s,filter .45s}
+.slidesp .slide[data-pos="left"]{left:10.1%;transform:translate(-50%,-50%) scale(.36)}
+.slidesp .slide[data-pos="right"]{left:89.9%;transform:translate(-50%,-50%) scale(.36)}
+.slidesp .slidearrow.prev{left:calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) - 22px)}
+.slidesp .slidearrow.next{right:calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) - 22px)}
+@media(min-width:761px){.slidesp .slidecap{width:max(min(calc(var(--slf) * 100%),calc(var(--slh) * var(--far))),340px);max-width:100%}}
+@media(max-width:760px){
+  .panel.winp.slidesp .win-body{--slf:.78}
+  .slidesp .slides{width:calc(100% + 32px)}
+  .slidesp .slide[data-pos="left"]{left:-21.8%;transform:translate(-50%,-50%) scale(.8)}
+  .slidesp .slide[data-pos="right"]{left:121.8%;transform:translate(-50%,-50%) scale(.8)}
+  .slidesp .slidearrow.prev{left:max(4px,calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) - 14px))}
+  .slidesp .slidearrow.next{right:max(4px,calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) - 14px))}
+}
+.slidesound{position:absolute;z-index:2;bottom:10px;right:calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) + 10px);width:36px;height:36px;border-radius:50%;background:rgba(247,247,244,.9);color:var(--fg);display:grid;place-items:center;transition:background .15s}
+.slidesound:hover{background:#fff} .slidesound[hidden]{display:none}
