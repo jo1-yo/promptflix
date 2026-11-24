@@ -2,7 +2,10 @@ import json, re, sys, unicodedata
 D = sys.argv[1]; OUT = sys.argv[2]
 yt = json.load(open(f"{D}/x.json")); yt2 = json.load(open(f"{D}/x2.json"))
 X = {**yt, **{k: v for k, v in yt2.items() if v.get("works")}}
-maxres = dict(l.split() for l in open(f"{D}/ytcovers.txt"))
+maxres = dict(l.split() for l in open(f"{D}/ytcovers.txt"))   # video id -> HTTP status of maxresdefault.jpg (1280x720)
+import os
+SD = set(open(f"{D}/ytsd.txt").read().split()) if os.path.exists(f"{D}/ytsd.txt") else set()   # no maxres, but sddefault.jpg (640x480) exists
+def ytcover(i): return f"https://i.ytimg.com/vi/{i}/" + ("maxresdefault.jpg" if maxres.get(i) == "200" else "sddefault.jpg" if i in SD else "hqdefault.jpg")
 import os
 LUM = json.load(open(f"{D}/lum.json")) if os.path.exists(f"{D}/lum.json") else {}
 LEAD = {"thedorbrothers": "White Flag"}   # hand-picked lead films (e.g. avoid a political deepfake as a marketplace cover)
@@ -52,8 +55,8 @@ for group in ["brand", "narrative", "experimental", "animation", "fashion", "ugc
         social = c["social"]; h = handle_of(social); src = "X" if "x.com" in social else ("LinkedIn" if "linkedin" in social else "Instagram")
         works = []
         for w in (c.get("works") or [])[:3]:
-            cover = f"https://i.ytimg.com/vi/{w['id']}/" + ("maxresdefault.jpg" if maxres.get(w["id"]) == "200" else "hqdefault.jpg") if w["provider"] == "youtube" else w.get("thumb")   # Vimeo: thumbnail_url from oEmbed
-            m = {"cover": cover, "lb": cover.endswith("hqdefault.jpg") if cover else False, "link": f"https://www.youtube.com/watch?v={w['id']}" if w["provider"] == "youtube" else f"https://vimeo.com/{w['id']}", "on": "YouTube" if w["provider"] == "youtube" else "Vimeo", "by": w["author"]}
+            cover = ytcover(w["id"]) if w["provider"] == "youtube" else w.get("thumb")   # Vimeo: thumbnail_url from oEmbed
+            m = {"cover": cover, "lb": not cover.endswith("maxresdefault.jpg") if cover and "ytimg" in cover else False, "link": f"https://www.youtube.com/watch?v={w['id']}" if w["provider"] == "youtube" else f"https://vimeo.com/{w['id']}", "on": "YouTube" if w["provider"] == "youtube" else "Vimeo", "by": w["author"]}
             m["yt" if w["provider"] == "youtube" else "vm"] = w["id"]
             works.append([w["title"], cats[0], styles[0], None, None, m])
         xr = X.get(h) if src == "X" else None
@@ -104,7 +107,7 @@ if os.path.exists(f"{D}/outreach300.json"):
         works = []
         for w in o["works"][:3]:
             yt = w["provider"] == "youtube"
-            m = {"cover": f"https://i.ytimg.com/vi/{w['id']}/hqdefault.jpg" if yt else w.get("thumb"), "lb": yt, "link": f"https://www.youtube.com/watch?v={w['id']}" if yt else f"https://vimeo.com/{w['id']}", "on": "YouTube" if yt else "Vimeo", "by": w["author"]}
+            m = {"cover": ytcover(w["id"]) if yt else w.get("thumb"), "lb": yt and maxres.get(w["id"]) != "200", "link": f"https://www.youtube.com/watch?v={w['id']}" if yt else f"https://vimeo.com/{w['id']}", "on": "YouTube" if yt else "Vimeo", "by": w["author"]}
             m["yt" if yt else "vm"] = w["id"]
             works.append([w["title"], cats[0], styles[0], None, None, m])
         for u in (o.get("clips") or [])[: 3 - len(works)]:   # clips hosted on the creator's Steam store page
