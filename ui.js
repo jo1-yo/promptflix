@@ -98,13 +98,15 @@ for (const o of ["https://www.youtube-nocookie.com", "https://i.ytimg.com", "htt
 const YT_PLAYERS = new WeakMap(); let ytBound = false;
 function previewNode(m, fit){
   if (!m || !(m.yt || m.vm || m.mp4)) return null;
-  const box = h("div", { class: "hoverplay" + (fit ? " fit" : ""), "aria-hidden": "true" }); const show = () => box.classList.add("on");
-  if (m.mp4){ const v = h("video", { src: m.mp4, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" }); v.muted = true; v.addEventListener("playing", show, { once: true }); box.append(v); return box; }
+  const box = h("div", { class: "hoverplay" + (fit ? " fit" : ""), "aria-hidden": "true" }); const show = () => { box.classList.add("on"); box.dispatchEvent(new Event("pfm:playing")); };   // box.sound(on) is how a caller unmutes it
+  if (m.mp4){ const v = h("video", { src: m.mp4, autoplay: true, loop: true, playsinline: true, referrerpolicy: "no-referrer" }); v.muted = true; v.addEventListener("playing", show, { once: true }); box.append(v);
+    box.sound = on => { v.muted = !on; if (on && v.paused) v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); }; return box; }
   const f = h("iframe", { tabindex: "-1", allow: "autoplay; encrypted-media", referrerpolicy: "strict-origin-when-cross-origin",
     src: m.yt ? `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${m.yt}&rel=0&disablekb=1&iv_load_policy=3&fs=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}` : `https://player.vimeo.com/video/${m.vm}?background=1&autoplay=1&muted=1&loop=1` });
   box.append(f);
-  if (!m.yt){ f.addEventListener("load", () => setTimeout(show, 700), { once: true }); return box; }
   const say = o => { try { f.contentWindow.postMessage(JSON.stringify(o), "*"); } catch {} };
+  if (!m.yt){ f.addEventListener("load", () => setTimeout(show, 700), { once: true }); box.sound = on => { say({ method: "setMuted", value: !on }); if (on) say({ method: "setVolume", value: 1 }); }; return box; }
+  box.sound = on => { say({ event: "command", func: on ? "unMute" : "mute", args: [] }); if (on) say({ event: "command", func: "setVolume", args: [100] }); };
   if (!ytBound){ ytBound = true; addEventListener("message", e => { const fn = e.source && YT_PLAYERS.get(e.source); if (!fn) return; let d = e.data; if (typeof d === "string"){ try { d = JSON.parse(d); } catch { return; } } if (d) fn(d); }); }
   let started = false;
   f.addEventListener("load", () => { YT_PLAYERS.set(f.contentWindow, d => {
@@ -114,6 +116,9 @@ function previewNode(m, fit){
     say({ event: "listening", id: 1, channel: "widget" }); }, { once: true });
   return box;
 }
+/* a film's shape as width / height. X's mp4 URLs carry it; an embed can't tell us, so it counts as 16:9. Kept within 1:2 and 2.4:1 so one odd file can't break a layout. */
+const fitRatio = r => Math.min(2.4, Math.max(.5, r || 16 / 9));
+function filmRatio(m){ const d = m && m.mp4 && /\/(\d{3,4})x(\d{3,4})\//.exec(m.mp4); return fitRatio(d ? d[1] / d[2] : 0); }
 const canPreview = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* hover preview: while the pointer is on a card the film plays in place of its cover; leaving puts the cover back */
 function hoverPlay(el, w){
