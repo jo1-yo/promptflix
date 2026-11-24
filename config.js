@@ -11,7 +11,7 @@ const CONFIG = {
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
-  adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com"],   // live, also set role = 'admin' in market_profiles (see market.sql)
+  adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com", "kh3443@barnard.edu"],   // live, also set role = 'admin' in market_profiles (see market.sql)
   supportEmail: "janezhang555l@gmail.com",         // shown on the privacy and terms pages; also the support email on Google's consent screen
 };
 const LIVE = {
