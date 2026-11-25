@@ -205,11 +205,24 @@ function vUsers(s, q){
       Live.on() && !Live.rows ? "Loading…" : "No clients match."));
 }
 
+/* The admin screen can outlive its database session (signed out elsewhere, or the token could not refresh). Send them back to sign in instead of showing a database error. */
+function adminExpired(){ DB.signOut(); Live.reset(); go("#/"); render(); toast("Your admin sign-in ended. Sign in again, then retry."); }
+/* Rolvo sends no invites itself yet. This copies a message with the creator's profile and claim link for the admin to send by hand, and notes when. */
+const siteBase = () => new URL("../", location.href).href;
+const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return "site"; } };
+async function copyInvite(c){
+  const b = siteBase(), text = "Hi " + (c.name || "there") + ", your work is on Rolvo, where brands hire AI filmmakers: " + b + "#/creator/" + c.id + "\nClaim the profile to set your own rates and hear from clients: " + b + "creator/#/claim?q=" + encodeURIComponent(c.name || c.handle || "");
+  try { await navigator.clipboard.writeText(text); } catch (e) { return toast("Couldn't copy. Allow clipboard access and try again."); }
+  if (!DB.inviteCreator(c.id)){ c.invitedAt = new Date().toISOString(); DB.save(); }
+  toast("Invite copied. Paste it into a message to " + c.name + "; Rolvo has not sent anything."); render();
+}
 async function setVerified(u){
   const on = !u.verified, label = u.org || u.name || u.email || "client";
   if (u.cloud){   // market_set_verified checks the caller is an admin
-    const { error } = await Auth.client().rpc("market_set_verified", { p_user: u.id, p_on: on });
-    if (error) return toast("Couldn't save: " + error.message);
+    const sb = Auth.client(), { data } = await sb.auth.getSession();
+    if (!data || !data.session) return adminExpired();
+    const { error } = await sb.rpc("market_set_verified", { p_user: u.id, p_on: on });
+    if (error) return error.code === "42501" ? adminExpired() : toast("Couldn't save: " + error.message);
     u.verified = on; if (u.localId && DB.user(u.localId)) DB.setVerified(u.localId, on);
   } else DB.setVerified(u.id, on);
   toast(on ? "Verified " + label : "Verification removed"); render();
@@ -221,16 +234,19 @@ function vCreators(s, q){
   const group = c => c.real ? (c.claimed ? "joined" : "unclaimed") : (c.live ? "joined" : "applying");
   const list = all.filter(c => (!q.s || group(c) === q.s) && (!term || [c.name, c.handle, c.email, c.phone].join(" ").toLowerCase().includes(term)));
   const n = k => all.filter(c => group(c) === k).length;
-  s.append(A.title("Creators", "On Rolvo = claimed a crawled profile or finished an application. Unclaimed profiles are built from public work; a client starting a project sends them an invite."),
+  s.append(A.title("Creators", "On Rolvo = claimed a crawled profile or finished an application. Unclaimed profiles are built from public work. Rolvo sends no invites yet: Copy invite gives you a message with their claim link to send yourself."),
     h("div", { class: "toolrow" }, A.chips([["", "All", all.length], ["joined", "On Rolvo", n("joined")], ["applying", "Applying", n("applying")], ["unclaimed", "Unclaimed", n("unclaimed")]], q.s, "#/creators"), A.search(q.q, "#/creators", "Search name or handle")),
     ...creatorAccounts(term),
     Live.on() ? h("span", { class: "eyebrow", style: { display: "block", margin: "30px 0 12px" } }, "Profiles on the site") : "",
     A.table([{ l: "Creator" }, { l: "Status" }, { l: "Sign-in" }, { l: "Works", right: 1 }, { l: "Orders", right: 1 }, { l: "Rates" }, { l: "" }],
       list.slice(0, 200).map(c => { const g = group(c); return h("tr", null,
         A.td(h("div", { class: "row", style: { gap: "10px", flexWrap: "nowrap" } }, h("span", { class: "thumb" }, cover(c.works[0])), h("div", null, h("b", { style: { fontWeight: 500 } }, c.name || "(no name yet)"), h("small", { class: "dim", style: { display: "block" } }, c.handle ? "@" + c.handle + (c.source ? " · " + c.source : "") : "new application")))),
-        A.td(h("span", { class: g === "joined" ? "ok" : g === "applying" ? "warn" : "dim" }, g === "joined" ? "On Rolvo" : g === "applying" ? "Applying" : c.invitedAt ? "Invited " + ago(c.invitedAt) : "Unclaimed")),
+        A.td(h("span", { class: g === "joined" ? "ok" : g === "applying" ? "warn" : "dim" }, g === "joined" ? "On Rolvo" : g === "applying" ? "Applying" : c.invitedAt ? "Invite copied " + ago(c.invitedAt) : "Unclaimed")),
         A.td(c.claimed || !c.real ? A.login(c) : "—", { cls: "muted" }), A.td(c.works.length, { right: 1 }), A.td(DB.state.orders.filter(o => o.creatorId === c.id).length || "—", { right: 1 }), A.td(c.ask ? money(c.ask) + "+" : rangeText(c) + " est.", { cls: "muted" }),
-        A.td(g === "unclaimed" && !c.invitedAt ? h("button", { class: "btn small", onclick: () => { DB.inviteCreator(c.id); toast("Invite queued for " + c.name); render(); } }, "Invite") : c.social ? h("a", { class: "link small", href: c.social, target: "_blank", rel: "noopener" }, c.source + " ↗") : null)); }),
+        A.td(h("div", { class: "row", style: { gap: "12px", flexWrap: "nowrap", justifyContent: "flex-end", whiteSpace: "nowrap" } },
+          c.real || c.live ? h("a", { class: "link small", href: siteBase() + "#/creator/" + c.id, target: "_blank" }, "Profile") : null,
+          c.social ? h("a", { class: "link small", href: c.social, target: "_blank", rel: "noopener", title: c.social }, hostOf(c.social) + " ↗") : null,
+          g === "unclaimed" ? h("button", { class: "btn small", onclick: () => copyInvite(c) }, c.invitedAt ? "Copy again" : "Copy invite") : null))); }),
       "No creators match."));
 }
 
@@ -264,12 +280,12 @@ function vDiscovery(s){
   const un = DB.unclaimed(), inv = un.filter(c => c.invitedAt), D = DB.state.discovered;
   const waiting = un.filter(c => DB.state.orders.some(o => o.creatorId === c.id && o.status === "negotiating"));
   s.append(A.title("Discovery", "The crawler builds a profile when it finds playable public work on YouTube or X. Handles with no public video wait below until they post some or answer an invite.",
-      h("button", { class: "btn primary", disabled: un.every(c => c.invitedAt), onclick: () => { const k = un.filter(c => DB.inviteCreator(c.id)).length; toast(k + " invites queued"); render(); } }, "Invite all not yet invited")),
+      h("button", { class: "btn primary", disabled: un.every(c => c.invitedAt), onclick: () => { const k = un.filter(c => DB.inviteCreator(c.id)).length; toast(k + " marked as invited. Rolvo has not sent anything."); render(); } }, "Mark all as invited")),
     A.kpis([[un.length, "Profiles, unclaimed"], [inv.length, "Invited"], [DB.state.creators.filter(c => c.real && c.claimed).length, "Claimed"], [waiting.length, "Have a client waiting"], [D.length, "Found, no public video"]]));
   if (waiting.length) s.append(h("div", { style: { marginTop: "30px" } }, h("span", { class: "eyebrow" }, "Clients are waiting on these"), A.table([{ l: "Creator" }, { l: "Projects waiting" }, { l: "Reach them on" }],
     waiting.map(c => h("tr", null, A.td(c.name), A.td(DB.state.orders.filter(o => o.creatorId === c.id && o.status === "negotiating").map(o => o.title).join(", ")), A.td(h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, c.source + " ↗")))))));
   s.append(h("div", { style: { marginTop: "30px" } }, h("span", { class: "eyebrow" }, "Found, no public video yet"), A.table([{ l: "Handle" }, { l: "Name" }, { l: "Source" }, { l: "Focus" }, { l: "Status" }],
-    D.map(d => h("tr", null, A.td(d.url ? h("a", { class: "link", href: d.url, target: "_blank", rel: "noopener" }, d.handle) : d.handle), A.td(d.name || "—"), A.td(d.source, { cls: "muted" }), A.td(d.specialty), A.td(d.status === "new" ? h("button", { class: "btn small", onclick: () => { DB.invite(d.id); toast("Invite queued for " + d.handle); render(); } }, "Invite") : h("span", { class: "dim" }, d.status)))))));
+    D.map(d => h("tr", null, A.td(d.url ? h("a", { class: "link", href: d.url, target: "_blank", rel: "noopener" }, d.handle) : d.handle), A.td(d.name || "—"), A.td(d.source, { cls: "muted" }), A.td(d.specialty), A.td(d.status === "new" ? h("button", { class: "btn small", onclick: () => { DB.invite(d.id); toast(d.handle + " marked as invited. Rolvo has not sent anything."); render(); } }, "Mark invited") : h("span", { class: "dim" }, d.status)))))));
 }
 
 /* ---------- trust ---------- */
