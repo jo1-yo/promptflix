@@ -854,10 +854,6 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 .aians.on .aihit{opacity:1;transform:none} .aians.on .aihit:nth-child(2){transition-delay:.12s} .aians.on .aihit:nth-child(3){transition-delay:.24s}
 .aihit img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;background:var(--raise)}
 .aihit b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .aihit span{color:var(--muted)}
-.ailine{display:flex;align-items:center;gap:14px;padding:14px 20px;border-radius:14px;background:var(--frost);-webkit-backdrop-filter:var(--frost-blur);backdrop-filter:var(--frost-blur);font-size:15px}
-.aidot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--fg)}
-.aisay{flex:1;min-width:0;color:var(--muted);min-height:1.5em}
-.aigo{flex:none;font-weight:500} .aigo i{font-style:normal;display:inline-block;transition:transform .2s} .ailine:hover .aigo i{transform:translateX(3px)}
 .aipage{max-width:860px} .aipage h2{margin:48px 0 14px;font-size:22px}
 .aiaddr{gap:10px;padding:24px} .aiaddr b{font-weight:500}
 .aiurl{display:flex;align-items:center;gap:12px;min-width:0} .aiurl code{flex:1;min-width:0;font:13px/1.5 var(--mono);overflow-wrap:anywhere;user-select:all}
@@ -868,6 +864,5 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 @media(max-width:760px){
   .aicard{grid-template-columns:1fr;gap:24px;padding:24px 20px}
   .aiask{justify-self:stretch}
-  .ailine{flex-wrap:wrap;gap:6px 12px;padding:14px 16px} .aisay{flex-basis:calc(100% - 24px)} .aigo{margin-left:19px}
   .aipage .aihow .use{grid-template-columns:1fr;gap:4px} .aiurl{flex-direction:column;align-items:flex-start}
 }

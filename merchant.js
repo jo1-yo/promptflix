@@ -196,7 +196,7 @@ function vHome(m, q){
     h("div", { class: "row cta" }, h("button", { class: "btn primary big", onclick: () => TASTE.get() ? openRecommended() : openTaste() }, "Hire a filmmaker"),
       h("button", { class: "btn big", onclick: () => $("#films").scrollIntoView({ block: "start", behavior: canPreview() ? "smooth" : "auto" }) }, "Browse works"),
       h("a", { class: "btn big", href: "#/match" }, "Match a reference"))));
-  m.append(aiHome(q.ai));
+  m.append(aiHome());
   const tabBtn = (id, label, onclick) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick }, label);
   const films = tab && tab !== "rec" ? tabFilms(tab) : null;
   m.append(h("section", { class: "wrap section tight", id: "films" },

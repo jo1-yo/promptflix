@@ -9,31 +9,22 @@ const aiOpen = () => !!(CONFIG.mcpUrl && LIVE.auth);
 const aiUsd = n => n >= 1000 ? "$" + (n / 1000) + "k" : "$" + n;
 const aiCopy = (text, said) => { const done = () => toast(said || "Copied"); navigator.clipboard ? navigator.clipboard.writeText(text).then(done, () => toast("Copy it by hand: select the text.")) : toast("Copy it by hand: select the text."); };
 
-/* Types `lines` one after another into `el`. `loop` keeps cycling; otherwise it stops on the first and calls `then`. */
-function aiType(el, lines, loop, then){
-  if (!canPreview()){ el.textContent = lines[0]; then && then(); return; }
-  let i = 0, n = 0;
-  const tick = () => { if (!el.isConnected) return;
-    const s = lines[i]; el.textContent = s.slice(0, ++n);
-    if (n < s.length) return setTimeout(tick, 26);
-    if (!loop) return then && then();
-    setTimeout(() => { if (!el.isConnected) return; i = (i + 1) % lines.length; n = 0; el.textContent = ""; tick(); }, 2400); };
+/* Types `text` into `el`, then calls `then`. */
+function aiType(el, text, then){
+  if (!canPreview()){ el.textContent = text; then(); return; }
+  let n = 0;
+  const tick = () => { if (!el.isConnected) return; el.textContent = text.slice(0, ++n); n < text.length ? setTimeout(tick, 26) : then(); };
   setTimeout(tick, 500);
 }
 
-/* Home entry. Two directions while Jane picks: the card with a small worked example (default) and the single line (#/?ai=b). */
-function aiHome(variant){
-  if (variant === "b"){
-    const t = h("span", { class: "aitype" }); aiType(t, AI_ASKS, true);
-    return h("section", { class: "wrap aihome" }, h("a", { class: "ailine", href: "#/connect", "aria-label": "Connect to your AI" },
-      h("i", { class: "aidot", "aria-hidden": "true" }), h("span", { class: "aisay", "aria-hidden": "true" }, t), h("span", { class: "aigo" }, "Connect to your AI ", h("i", { "aria-hidden": "true" }, "→"))));
-  }
+/* Home entry: a card with a small worked example. The creators and prices in it are real. */
+function aiHome(){
   const hits = DB.match({ cat: "biz", styles: ["hero"], text: "launch", strict: true }).map(x => x.c).filter(c => c.works.length && c.works[0][5] && c.works[0][5].cover).slice(0, 3);
   const ask = h("span", { class: "aitype" });
   const ans = h("div", { class: "aians" }, ...hits.map(c => { const r = DB.priceRange(c);
     return h("div", { class: "aihit" }, h("img", { src: c.works[0][5].cover, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" }),
       h("b", null, c.name), h("span", null, (r.est ? "~" : "") + aiUsd(r.lo) + "–" + aiUsd(r.hi))); }));
-  aiType(ask, [AI_ASKS[0]], false, () => ans.classList.add("on"));
+  aiType(ask, AI_ASKS[0], () => ans.classList.add("on"));
   return h("section", { class: "wrap aihome" }, h("a", { class: "aicard", href: "#/connect" },
     h("div", { class: "aicopy" }, h("span", { class: "eyebrow" }, "Connect to your AI"), h("h2", null, "Ask your AI. It finds the filmmaker."),
       h("span", { class: "btn primary" }, "Connect")),
