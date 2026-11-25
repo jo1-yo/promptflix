@@ -23,6 +23,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Real creators (87) | ✅ Live, unclaimed | Outreach. Invites are a status flag, no email is sent |
 | Privacy policy and terms | ✅ Live (draft) | Legal review |
 | Repo checks on every PR | ✅ GitHub Actions | — |
+| Connect to your AI (client `#/connect`): remote MCP server + JSON API, read-only | 🟡 Code done, not deployed. The page says "Opening soon" | Run `server/mcp/mcp.sql`, deploy the Worker, set `mcpUrl` (see [Going live](#going-live)) |
 | Claude PR review + `@claude` | 🟡 Workflows in place | Repo secret `ANTHROPIC_API_KEY` (see [Pull requests](#pull-requests)) |
 | Select showcase (`select/`) | ✅ Live | — |
 
@@ -35,6 +36,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | [`market/`](market/) | Forwarding pages only, so links to the old `/market/…` addresses keep working. |
 | [`privacy/`](privacy/) · [`terms/`](terms/) | Privacy policy and terms (needed for Google sign-in branding). |
 | [`server/`](server/) | Payments Edge Function (Deno) and SQL for Supabase. Not deployed. |
+| [`server/mcp/`](server/mcp/) · [`wrangler.toml`](wrangler.toml) | Connect to your AI: a Cloudflare Worker (remote MCP server and JSON API over the creator list) and the SQL for personal keys and the call log. Not deployed. |
 | [`tools/`](tools/) | Python pipeline that builds `creators.js` from research data, and `embed.mjs`, which builds `embeds.js` (film fingerprints for Match a reference). |
 | [`select/`](select/) | Rolvo Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
 | [`scripts/check.mjs`](scripts/check.mjs) | Repo checks, run locally and in CI. |
@@ -265,6 +267,19 @@ Card numbers never touch Rolvo: Stripe's Payment Element and PayPal's buttons co
 - A client and a creator on two different devices can't share an order yet, because orders live in each browser. This blocks real payments more than anything else.
 - Accounts (sign-ups, sign-ins, onboarding answers) are stored in Supabase once it's configured. Orders, chats, deliveries and the ledger still live in the browser. Moving the rest of `store.js` onto Supabase tables is the next step; each method maps onto one table or RPC.
 
+### Connect to your AI
+
+Lets a client's own agent (Claude, ChatGPT, Cursor…) search creators and read profiles. [`server/mcp/worker.js`](server/mcp/worker.js) is one Cloudflare Worker with no dependencies: `POST /mcp` is a remote MCP server (Streamable HTTP) with three read-only tools, `search_creators`, `get_creator` and `list_categories`; `GET /v1/creators`, `/v1/creators/{handle}` and `/v1/categories` are the same reads as JSON. It reads `creators.js` and `config.js` from the live site, so the site's deploy is its data deploy. It never returns a creator's email or social link.
+
+Every call needs a personal key. A signed-in client makes one on `#/connect`; only its hash is stored (`market_agent_keys`) and each tool call is logged against the account (`market_agent_calls`). Sending messages, orders and booking calls are not built: they wait for messages and orders to live in the database.
+
+1. Supabase → SQL editor: run [`server/mcp/mcp.sql`](server/mcp/mcp.sql) (after `market.sql`).
+2. Cloudflare: the Worker `promptflix` is connected to this repo and builds from [`wrangler.toml`](wrangler.toml), so a merge to `main` deploys it. Its variables are public values only (site address, Supabase URL and publishable key).
+3. Cloudflare → Workers → `promptflix` → Settings → Domains & Routes → add the custom domain `mcp.rolvo.market`.
+4. Set `mcpUrl: "https://mcp.rolvo.market/mcp"` in `config.js`. Until then the page says "Opening soon" and shows no address.
+
+Local test: serve the site on 8131, run the Worker's `fetch` with `SITE=http://localhost:8131` and a `DEV_KEY` (a test key accepted without Supabase; never set it in production), then `npx @modelcontextprotocol/inspector --cli http://localhost:8788/mcp/<DEV_KEY> --transport http --method tools/list`.
+
 ## What's not done
 
 In rough priority order. Each item says where the work goes.
@@ -348,6 +363,7 @@ Until a secret exists, both Claude jobs skip themselves with a notice, and PRs s
 | `pay.js` | Checkout sheet: Stripe Payment Element or PayPal Buttons, or demo |
 | `ui.js` | Shared UI: `h()`, router, header and footer, sheets, covers, video player, chat and order card, watermarked preview |
 | `merchant.js` · `creator.js` · `admin.js` | The three sites |
+| `connect.js` | Connect to your AI: the `#/connect` page and the home entry (client site only) |
 | `voice.js` | "Talk it through" voice answers for onboarding (Web Speech API) |
 | `seed.js` · `creators.js` | Taxonomy, styles and demo clients · generated creator data (don't edit by hand) |
 | `embeds.js` | Generated image fingerprints of every film, loaded only by Match a reference (don't edit by hand) |

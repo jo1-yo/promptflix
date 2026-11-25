@@ -66,5 +66,12 @@ for (const f of files){
 const cfg = readFileSync(join(ROOT, "config.js"), "utf8");
 if (/sk_live_|PAYPAL_SECRET|service_role/.test(cfg)) fail("config.js", "secret material in the public config");
 
+// 5. The Connect to your AI Worker names every category and style the site has (it keeps its own short copy of seed.js).
+{
+  const box = {}; vm.createContext(box); vm.runInContext(readFileSync(join(ROOT, "seed.js"), "utf8") + ";this.T = TAXONOMY; this.S = STYLES;", box);
+  const worker = readFileSync(join(ROOT, "server/mcp/worker.js"), "utf8");
+  for (const id of [...Object.keys(box.T), ...Object.keys(box.S)]) if (!new RegExp(`\\n  ${id}: \\[`).test(worker)) fail("server/mcp/worker.js", `category or style "${id}" is in seed.js but not in the Worker's table`);
+}
+
 if (errors.length){ console.error(errors.join("\n") + `\n\n${errors.length} problem(s).`); process.exit(1); }
 console.log(`✓ ${PAGES.length} pages, ${files.filter(f => /\.(m?js|ts)$/.test(f)).length} scripts, ${files.length} files checked. All good.`);
