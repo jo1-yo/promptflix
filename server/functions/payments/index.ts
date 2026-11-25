@@ -60,16 +60,19 @@ async function caller(req: Request) {
   const r = await fetch(`${env("SUPABASE_URL")}/auth/v1/user`, { headers: { apikey: env("SUPABASE_SERVICE_ROLE_KEY"), authorization: req.headers.get("authorization") ?? "" } });
   if (!r.ok) throw new Error("Sign in first");
   const u = await r.json();
-  const [p] = await db(`market_profiles?id=eq.${encodeURIComponent(u.id)}&select=id,role,email,stripe_account`);
+  const [p] = await db(`market_profiles?id=eq.${encodeURIComponent(u.id)}&select=id,role,is_creator,email,stripe_account`);
   if (!p) throw new Error("No account record for this sign-in");
-  return p as { id: string; role: string | null; email: string | null; stripe_account: string | null };
+  return p as { id: string; role: string | null; is_creator: boolean; email: string | null; stripe_account: string | null };
 }
-const creatorOnly = (p: { role: string | null }) => { if (p.role !== "creator") throw new Error("Creator accounts only"); };
+// One login can be on both sides, and `role` only says which side it joined first, so the creator side is is_creator.
+const creatorOnly = (p: { is_creator: boolean }) => { if (!p.is_creator) throw new Error("Creator accounts only"); };
 const usd = (list: { amount: number; currency: string }[] = []) => list.filter((x) => x.currency === "usd").reduce((n, x) => n + x.amount, 0) / 100;
 
+// Throws when the row can't be written. The webhook then answers non-2xx and Stripe sends the event again, so a database
+// hiccup can't lose a payment. `ref` is unique, so a repeat is ignored.
 async function record(p: { order_id: string; kind: string; amount: number; method: string; ref: string; mode: string }) {
   if (!env("SUPABASE_SERVICE_ROLE_KEY")) return;
-  await db("market_payments?on_conflict=ref", { method: "POST", headers: { prefer: "resolution=ignore-duplicates" }, body: JSON.stringify({ ...p, status: "succeeded" }) }).catch(() => {});
+  await db("market_payments?on_conflict=ref", { method: "POST", headers: { prefer: "resolution=ignore-duplicates" }, body: JSON.stringify({ ...p, status: "succeeded" }) });
 }
 
 /* ---------- Stripe ---------- */
@@ -81,12 +84,18 @@ async function stripe(path: string, params: Record<string, string> = {}, o: { ge
   const r = await fetch(`https://api.stripe.com/v1/${path}`, o.get ? { headers } : { method: "POST", headers, body: new URLSearchParams(params) });
   const j = await r.json(); if (!r.ok) throw new Error(j.error?.message ?? "Stripe error"); return j;
 }
+// Same length and every character equal, without stopping at the first difference.
+const sameText = (a: string, b: string) => { let d = a.length ^ b.length; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i % (b.length || 1)); return d === 0; };
 async function verifyStripe(payload: string, header: string) {
-  const parts = Object.fromEntries(header.split(",").map((kv) => kv.split("=") as [string, string]));
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env("STRIPE_WEBHOOK_SECRET")), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${parts.t}.${payload}`));
+  const secret = env("STRIPE_WEBHOOK_SECRET");
+  if (!secret) throw new Error("Webhook secret not set");   // say so plainly; never check a signature against an empty secret
+  const pairs = header.split(",").map((kv) => kv.trim().split("=") as [string, string]);
+  const t = pairs.find(([k]) => k === "t")?.[1] ?? "";
+  const sent = pairs.filter(([k]) => k === "v1").map(([, v]) => v);   // Stripe sends two v1 values while a secret is being rolled
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${t}.${payload}`));
   const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
-  if (hex !== parts.v1 || Math.abs(Date.now() / 1000 - Number(parts.t)) > 300) throw new Error("Bad signature");
+  if (!sent.some((v) => sameText(hex, v)) || !(Math.abs(Date.now() / 1000 - Number(t)) <= 300)) throw new Error("Bad signature");
 }
 
 /* ---------- PayPal ---------- */
@@ -158,7 +167,7 @@ Deno.serve(async (req) => {
       if (isLive() || env("ORDERS_IN_DB") === "true") throw new Error("Releases are test-mode only until order state changes run on the server");
       if (!b.orderId || !["deposit", "balance"].includes(b.kind)) throw new Error("orderId and kind required");
       const amount = Number(b.amount); if (!Number.isFinite(amount) || amount < 1 || amount > 100000) throw new Error("Bad amount");
-      const [c] = await db(`market_profiles?local_id=eq.${encodeURIComponent(String(b.creatorId))}&role=eq.creator&select=stripe_account`);
+      const [c] = await db(`market_profiles?creator_local_id=eq.${encodeURIComponent(String(b.creatorId))}&is_creator=is.true&select=stripe_account`);
       if (!c?.stripe_account) throw new Error("The creator hasn't added a payout method yet; the money stays in escrow");
       const net = Math.round(amount * (1 - num("COMMISSION_PCT", 1) / 100) * 100);
       const t = await stripe("transfers", { amount: String(net), currency: "usd", destination: c.stripe_account, transfer_group: b.orderId, "metadata[order_id]": b.orderId, "metadata[kind]": b.kind }, { idem: `release:${b.orderId}:${b.kind}` });
@@ -179,7 +188,13 @@ Deno.serve(async (req) => {
     if (b.action === "paypal_capture") {
       const c = await pp(`/v2/checkout/orders/${encodeURIComponent(b.paypalOrderId)}/capture`, {});
       const cap = c.purchase_units?.[0]?.payments?.captures?.[0];
-      if (c.status === "COMPLETED" && cap) await record({ order_id: b.orderId, kind: b.kind, amount: Number(cap.amount.value), method: "paypal", ref: cap.id, mode: env("PAYPAL_ENV") === "live" ? "live" : "test" });
+      // Which order and which part this money was for is what paypal_create wrote on the PayPal order, not what the browser says now:
+      // otherwise a small payment made for one order could be recorded against another.
+      const pu = c.purchase_units?.[0]; const kind = cap?.custom_id ?? pu?.custom_id;
+      if (c.status === "COMPLETED" && cap) {
+        if (!pu?.reference_id || !["deposit", "balance"].includes(kind)) throw new Error("PayPal didn't say which order this payment was for");
+        await record({ order_id: pu.reference_id, kind, amount: Number(cap.amount.value), method: "paypal", ref: cap.id, mode: env("PAYPAL_ENV") === "live" ? "live" : "test" });
+      }
       return json({ status: c.status, captureId: cap?.id });
     }
     return json({ error: "Unknown action" }, 400);

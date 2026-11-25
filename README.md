@@ -8,21 +8,22 @@ A marketplace for AI filmmakers. Clients find the person who made a film they li
 
 ## Status at a glance
 
-The market is a **working prototype**. Every flow runs end to end in one browser, but data lives in that browser and nothing real is charged yet.
+The market is a **working prototype**. Sign-in and accounts are real (Supabase). Everything after sign-in (orders, chats, deliveries, the ledger) runs end to end in one browser, but lives in that browser, and nothing real is charged yet.
 
 | Piece | State | What's missing (details in [What's not done](#whats-not-done)) |
 | --- | --- | --- |
 | Client, creator and admin sites | ✅ Working (demo data) | Shared backend. Each browser has its own copy of the data |
-| Sign-in: email codes | ✅ Live (sent from a Gmail account as "Rolvo Market") | A sender on rolvo.market once the domain is active |
+| Sign-in: email codes | ✅ Live (sent from a Gmail account as "Rolvo Market") | A sender on rolvo.market (the domain is active now) |
 | Sign-in: phone codes | 🟡 Demo (code shown on screen) | SMS provider |
-| Sign-in: Google | 🟡 Code done, waiting on keys | Client ID in `config.js`, then publish the Google app |
+| Sign-in: Google | ✅ Live. Google's own button; every token is checked by Supabase | Brand verification in Google Cloud |
+| Accounts in the database (`market_profiles`, `market_logins`) | ✅ Live. One login can be a client and a creator | Admin views read them; nothing else is in the database yet |
 | Payments in: card through Stripe (order amount + card fee) | 🟡 Code done, demo mode | Supabase function deployed, Stripe test keys, server-side order amounts |
 | Creator wallet: balance, payout method, withdrawals (Stripe Connect) | 🟡 Demo works; live code written, never run against Stripe | Stripe account with Connect enabled, function deployed, orders in the database |
 | Escrow, revisions, contract breaks | ✅ Working (browser ledger) | Real money movement and creator payouts |
 | Match a reference (client `#/match`) | ✅ Live. Reads an uploaded file or a YouTube link in the browser | Other sites' videos can't be read; category guess is rough; phone speed untested |
-| Real creators (87) | ✅ Live, unclaimed | Outreach. Invites are a status flag, no email is sent |
+| Real creators (418 listed, 362 shown) | ✅ Live, unclaimed. Only a creator with a film or a cover image is shown | Outreach. Invites are a status flag, no email is sent |
 | Privacy policy and terms | ✅ Live (draft) | Legal review |
-| Repo checks on every PR | ✅ GitHub Actions | — |
+| Repo checks and tests on every PR | ✅ GitHub Actions | The tests cover the order and money rules and the payments function; no browser test |
 | Claude PR review + `@claude` | 🟡 Workflows in place | Repo secret `ANTHROPIC_API_KEY` (see [Pull requests](#pull-requests)) |
 | Select showcase (`select/`) | ✅ Live | — |
 
@@ -34,10 +35,11 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | [`creator/`](creator/) · [`admin/`](admin/) | HTML shells for the other two sites. They load the same scripts as the client site. |
 | [`market/`](market/) | Forwarding pages only, so links to the old `/market/…` addresses keep working. |
 | [`privacy/`](privacy/) · [`terms/`](terms/) | Privacy policy and terms (needed for Google sign-in branding). |
-| [`server/`](server/) | Payments Edge Function (Deno) and SQL for Supabase. Not deployed. |
+| [`server/`](server/) | SQL for Supabase (run by hand in the SQL editor of the live project) and the payments Edge Function (Deno; **not deployed**, `paymentsUrl` is empty). |
 | [`tools/`](tools/) | Python pipeline that builds `creators.js` from research data, and `embed.mjs`, which builds `embeds.js` (film fingerprints for Match a reference). |
 | [`select/`](select/) | Rolvo Select: a curated showcase where every film plays inside the site. Creator names hidden on purpose. |
 | [`scripts/check.mjs`](scripts/check.mjs) | Repo checks, run locally and in CI. |
+| [`tests/`](tests/) | `node --test`. Order and escrow rules in `store.js`; the payments function with Supabase, Stripe and PayPal stubbed. No dependencies, no network. |
 | [`.github/workflows/`](.github/workflows/) | CI: `check` (required), `claude-review`, `claude` (`@claude` mentions). |
 
 ## Tech stack
@@ -47,7 +49,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 - Classic `<script>` tags (not ES modules), loaded in a fixed order. All files share one global scope.
 - Rendering: a small `h(tag, attrs, ...children)` DOM helper in `ui.js`. Each site has a `render()` that rebuilds the main view from state.
 - Routing: hash router (`#/creators`, `#/chat/:id`, …). `route()` and `go()` in `ui.js`.
-- Styling: one stylesheet, [`styles.css`](styles.css). Warm light look after the Cursor study in Tasta: off-white canvas, dark ink, white cards, one orange marker. CSS custom properties in `:root`. Mobile-first, works down to 375 px.
+- Styling: one stylesheet, [`styles.css`](styles.css). Warm off-white canvas, dark ink, frosted panes, no accent colour. CSS custom properties in `:root`. Mobile-first, works down to 375 px.
 - Fonts: Inter (400, 500, 600) from Google Fonts. Icons: inline SVG.
 - Match a reference is the one page that loads outside code: [transformers.js](https://github.com/huggingface/transformers.js) 4.3.2 from jsDelivr and the image model `Xenova/mobileclip_s0` (about 45 MB, cached by the browser) from Hugging Face, both fetched only when a visitor gives a reference. The site itself still has no npm and no build step.
 - Browser APIs: `localStorage`, IndexedDB (uploaded preview files), Web Speech API (voice answers in onboarding), `crypto.subtle` (sign-in nonce).
@@ -69,7 +71,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 - Server: one Supabase Edge Function (Deno, no dependencies) that creates Stripe PaymentIntents, creates and captures PayPal orders, verifies the Stripe webhook signature (HMAC SHA-256), and records payments in `market_payments`.
 - Card numbers never touch Rolvo.
 
-**Backend (planned):** Supabase. Postgres with row-level security, Auth, Storage, Edge Functions. Schema so far: [`server/market.sql`](server/market.sql) (accounts, sign-in log, orders, payments).
+**Backend:** one Supabase project. In use today: Auth and Postgres with row-level security, for accounts only. Planned: orders, chats, Storage for cuts, the payments Edge Function. Schema: [`server/market.sql`](server/market.sql) (accounts and sign-in log in use; `market_orders` and `market_payments` exist but nothing writes to them yet). See [How Rolvo uses Supabase](#how-rolvo-uses-supabase).
 
 **Media**
 - Creator films are embedded from where the creator posted them: YouTube (`youtube-nocookie.com`), Vimeo, or MP4 files from X (`video.twimg.com`).
@@ -87,7 +89,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Stripe.js | v3 | `pay.js`, live mode only |
 | PayPal JS SDK | PayPal-hosted, unversioned | `pay.js`, live mode only |
 
-**Hosting and CI:** GitHub Pages (`.nojekyll`, custom domain on the parent `jo1-yo.github.io` repo). GitHub Actions runs [`scripts/check.mjs`](scripts/check.mjs) on every pull request, plus Claude review ([`anthropics/claude-code-action@v1`](https://github.com/anthropics/claude-code-action)) once a key is set.
+**Hosting and CI:** GitHub Pages (`.nojekyll`; the `CNAME` file in this repo sets `rolvo.market`). GitHub Actions runs [`scripts/check.mjs`](scripts/check.mjs) and the tests on every pull request, plus Claude review ([`anthropics/claude-code-action@v1`](https://github.com/anthropics/claude-code-action)) once a key is set.
 
 ## How the market works
 
@@ -142,7 +144,7 @@ Escrow per order: `escrow.deposit` is `none | held | released | refunded`; `escr
 
 **Admin views:** Overview (money, funnel, sign-ins and payments by method, needs attention, activity) · Orders · Payments · Clients (one-click Verify / Revoke) · Creators · Discovery (crawled profiles and invites) · Trust (early endings, failed pre-reviews, break limits) · Integrations (which pieces are live or demo).
 
-**Creators on the site:** 87 real people from the team's research list, across brand ads, narrative film, experimental and music video, animation and AI UGC. Covers and players come from their own YouTube uploads (IDs checked with oEmbed) or their own X posts. None has joined Rolvo: profiles say so, and prices are labelled estimates. 33 more handles with no public video (mostly Instagram-only fashion creators) wait in admin Discovery. Rebuild with [`tools/README.md`](tools/README.md).
+**Creators on the site:** 418 real people from the team's research list and outreach sheet, across brand ads, narrative film, experimental and music video, animation and AI UGC. 259 have at least one film that plays in the site; 362 have a film or a cover image, and only those are shown. Covers and players come from their own YouTube or Vimeo uploads (IDs checked with oEmbed), their own X posts, or their portfolio page. None has joined Rolvo: profiles say so, and prices are labelled estimates. The ones in `featured` (`config.js`) are listed first. Rebuild with [`tools/README.md`](tools/README.md).
 
 ## Run it locally
 
@@ -152,7 +154,9 @@ python3 -m http.server 8131
 # http://localhost:8131/          client
 # http://localhost:8131/creator/  creator
 # http://localhost:8131/admin/    admin
+# Use port 8131: Google sign-in only works on the origins registered in Google Cloud.
 node scripts/check.mjs                   # repo checks (Node 22+)
+node --test                              # tests/ (order and money rules, payments function)
 ```
 
 `python3 -m http.server` lets the browser cache scripts. After editing, hard-reload (Cmd+Shift+R) or you may test old code.
@@ -161,7 +165,7 @@ node scripts/check.mjs                   # repo checks (Node 22+)
 
 ### Demo accounts
 
-In demo mode no email or SMS is sent: the 6-digit code appears on screen.
+Demo mode means `supabaseUrl` / `supabaseKey` are empty in `config.js`. The committed file has them set, so a local copy signs in against the live project; blank the two values locally (don't commit that) to use the accounts below. In demo mode no email or SMS is sent: the 6-digit code appears on screen.
 
 | Sign in as | How | What you'll see |
 | --- | --- | --- |
@@ -184,7 +188,10 @@ All switches live in [`config.js`](config.js). Empty values keep that piece in d
 | `stripePk` | `pk_test_…` / `pk_live_…` | Card payments (also needs `paymentsUrl`) |
 | `paypalClientId` | PayPal REST app client ID | PayPal payments (also needs `paymentsUrl`) |
 | `paymentsUrl` | `https://<ref>.supabase.co/functions/v1/payments` | The payments function |
-| `adminEmails` | list | Who may open admin (client-side only for now) |
+| `emailCodes`, `smsCodes` | `true` / `false` | Live only: show the email-code / phone-code option in the sign-in sheet. `smsCodes` stays `false` until an SMS provider is connected |
+| `codeLength` | number | Digits in a code. Must equal the OTP length set in Supabase |
+| `adminEmails` | list | Who is offered an admin code. A convenience, not the lock: the database opens admin only for `role = 'admin'` in `market_profiles` |
+| `featured` | list of creator handles | Creators listed first, in this order |
 | `supportEmail` | email | Contact shown on privacy and terms |
 
 ## Going live
@@ -221,12 +228,12 @@ Google sign-in is free and doesn't use Google Cloud credits or need billing.
 Run [`server/market.sql`](server/market.sql) once in the Supabase SQL editor. From then on:
 
 - Every sign-up gets a row in `market_profiles` (email, phone, name, avatar, sign-in methods, role, company, onboarding answers, verified flag). Every sign-in adds a row to `market_logins`.
-- After Supabase Auth succeeds the site calls the `market_enter` function (`Cloud` in [`auth.js`](auth.js)). The database sets the side on first sign-in (client or creator), refuses an account on the wrong site, and never grants admin.
+- After Supabase Auth succeeds the site calls the `market_enter` function (`Cloud` in [`auth.js`](auth.js)). The database adds the side of the site you signed in on (client or creator; one login can have both, each with its own columns), lets only `role = 'admin'` into the admin console, and never grants admin.
 - Onboarding answers and profile edits are pushed to the signed-in account's row. People can only edit their own descriptive fields; role, verification, email and phone change only through the SQL functions.
 - Make yourself an admin by hand after your first sign-in: `update market_profiles set role = 'admin' where email = 'you@example.com';` and add the same address to `adminEmails` in config.js.
 - If the SQL hasn't been run, sign-in still works and a console warning says accounts aren't being stored.
 
-Orders, chats and creator approval are still browser-only (see below).
+Live, the admin Overview, Clients and Creators views read these two tables (row-level security lets an admin read every row), and Verify calls `market_set_verified`. Orders, chats and creator approval are still browser-only (see below).
 
 **Payments and payouts (Stripe + Stripe Connect)**
 
@@ -263,18 +270,60 @@ Card numbers never touch Rolvo: Stripe's Payment Element and PayPal's buttons co
 - The function trusts the amount from the browser only in test/sandbox mode. It refuses `sk_live_` keys and `PAYPAL_ENV=live` until orders are written to `market_orders` and `ORDERS_IN_DB=true`, so amounts come from the server.
 - The Stripe Connect code (onboarding, balance, withdraw, release) has been written but **never run against Stripe**; expect fixes on first test. `connect_release` trusts the browser and is test-mode only. Real releases need order state changes to run on the server.
 - A client and a creator on two different devices can't share an order yet, because orders live in each browser. This blocks real payments more than anything else.
+- The function is deployed with `--no-verify-jwt` because Stripe's webhook has no Supabase session. The payout actions check the caller's session themselves; `stripe_intent` and the PayPal actions don't know who is calling. Once orders are in the database, each of them must check that the caller is that order's client.
+- More in [Security model and known gaps](#security-model-and-known-gaps).
 - Accounts (sign-ups, sign-ins, onboarding answers) are stored in Supabase once it's configured. Orders, chats, deliveries and the ledger still live in the browser. Moving the rest of `store.js` onto Supabase tables is the next step; each method maps onto one table or RPC.
+
+## How Rolvo uses Supabase
+
+Supabase's three official Next.js examples are the reference for this backend. Rolvo is a static site, so not everything carries over. What each one teaches, what Rolvo does today, and what's left:
+
+| Reference | What it shows | Rolvo today | Gap |
+| --- | --- | --- | --- |
+| [Auth starter](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs-full) | Two Supabase clients: one for the browser, one for the server that reads the session from **cookies**; a proxy refreshes the session on every request; protected pages check the user on the server before rendering. | No server renders pages, so there is only the browser client (`Auth.client()` in `auth.js`). The session is kept in `localStorage`, one key per site (`pfm.sb.merchant` / `creator` / `admin`), which is why one browser can hold both sides. | Nothing the browser does is a security boundary: hiding a page or checking `adminEmails` is only presentation. Every rule has to live in Postgres or in an Edge Function. Cookie sessions only matter if the site moves to Next.js. |
+| [User management](https://github.com/supabase/supabase/tree/master/examples/user-management/nextjs-user-management) | A `profiles` table keyed to `auth.users`, filled by a trigger on sign-up; row-level security so people change only their own row; avatars in Storage with their own policies. | `market_profiles`, filled by the `market_new_user` trigger. Stricter than the example: a row is readable only by its owner or an admin (the example's profiles are public), and **column grants** let the owner change descriptive fields only. Role, verification, email and phone change only inside `security definer` functions. | Storage isn't used: uploaded cuts sit in the uploader's IndexedDB. When they move, use a private bucket, one folder per order, a policy that checks the order's two parties, and signed URLs that expire. |
+| [Slack clone](https://github.com/supabase/supabase/tree/master/examples/slack-clone/nextjs-slack-clone) | Channels and messages with row-level security; tables added to the `supabase_realtime` publication so inserts reach subscribed browsers; roles and permissions in tables, put into the JWT by an auth hook and checked by an `authorize()` function. | Chats are still per browser on `main`. Admin is one column, checked by `market_is_admin()` (a lookup on each check; fine at this size). | Chats in the database with Realtime. In Realtime, row-level security decides who hears a row, so a chat's select policy is also its privacy. If roles grow beyond admin, move them into a roles table and a JWT claim as the example does. |
+
+Two rules follow, and new tables should keep to them:
+
+- **Client and creator are sides of a deal, not roles.** One login can be both (`is_client`, `is_creator`). What someone may read or change comes from their relation to the row (`client_id = auth.uid()` or `creator_id = auth.uid()` on that order or chat), never from "is a creator". Only admin is a role.
+- **The browser reads through row-level security and writes through functions.** A direct `update` from the browser is allowed only for columns with no consequence (the owner's own profile text). Anything that moves an order, money, verification or ownership is an RPC or the Edge Function, which checks who is calling and reads amounts from the database.
+
+## Security model and known gaps
+
+What is enforced today, and where:
+
+| Rule | Enforced by |
+| --- | --- |
+| A visitor who isn't signed in reads nothing from the database | Row-level security on every table (no policy matches without a session); the account tables also have no grant for `anon` |
+| People read only their own account and sign-in history; admins read all | Row-level security on `market_profiles`, `market_logins` |
+| People can't make themselves admin or verified, or change their email | Column grants; `market_enter` never sets admin; `market_set_verified` is admin-only |
+| The admin console opens only for admins | `market_enter('admin')` raises for anyone else |
+| No secret key in the repo | `scripts/check.mjs` on every PR |
+| Live payment keys can't be used while amounts come from the browser | The payments function refuses `sk_live_` and `PAYPAL_ENV=live` until `ORDERS_IN_DB=true` |
+
+Known gaps, none exploitable for money today because no payment key is live. Each one has to be closed before it is:
+
+- **`local_id` and `creator_local_id` are written by the account's owner.** They say which browser record or listed profile an account claims to be; they don't prove it. `connect_release` finds the creator to pay by `creator_local_id`, so it must stay test-only. Orders need the creator's account id (`uuid`), set by an admin-confirmed claim.
+- **`market_orders` isn't ready for use.** `creator_id` is text, so no policy can let a creator read their own orders; `status` accepts any text; `market_payments.order_id` doesn't reference an order.
+- **`stripe_intent`, `paypal_create` and `paypal_capture` don't identify the caller** (see [Before real money](#going-live)). `connect_release` accepts any signed-in account and an amount from the browser.
+- **One `verified` flag serves both sides** of an account. Verifying a company as a client also marks the same login verified as a creator.
+- **Recorded amounts differ by method:** a Stripe payment is recorded as the order amount, a PayPal one as the amount charged (order amount plus fee).
+- **The local store and the database can disagree.** The browser's copy is the working copy and is pushed to `market_profiles` after each change; the database copy only fills gaps on sign-in.
 
 ## What's not done
 
 In rough priority order. Each item says where the work goes.
 
 **1. A real backend (blocks almost everything else)**
-- [ ] Create a Supabase project (the old one, `wbbzlaeqzfrffooqenvs`, no longer exists). Paid plan once real users depend on it; free projects pause after a week idle.
+- [x] Supabase project ("Rolvo", the one in `config.js`), `server/market.sql` run on it.
+- [ ] Paid Supabase plan once real users depend on it; free projects pause after a week idle.
+- [ ] Keep the SQL as numbered migration files (Supabase CLI) instead of one file run by hand, so the repo and the live database can't drift apart unnoticed.
 - [ ] Move `store.js` from `localStorage` to Supabase tables with row-level security: creators, orders, messages, deliveries, payments, ledger, reviews, breaks, discovered. Keep the `DB` method names; swap their bodies for queries/RPCs. Today **each browser has its own data**, so a teammate can't see an order you created.
 - [ ] Move uploaded cuts from IndexedDB to Supabase Storage (or Mux / Cloudflare Stream) with signed, expiring URLs.
 - [ ] Realtime chat (Supabase Realtime) instead of re-rendering on local changes.
-- [ ] Admin rights from a server-side role, not `CONFIG.adminEmails` (anyone can read and edit that list in the browser).
+- [x] Admin rights come from the database (`role = 'admin'`, checked by `market_enter` and row-level security). `CONFIG.adminEmails` only decides who is offered a code.
+- [ ] Admin Orders, Payments and Trust views still read the browser's own store, so they show that browser's data only.
 
 **1b. Matching and the creator side of the market**
 - [ ] Client briefs that creators can see and answer. Needs a `briefs` table first (data is per browser today), a weekly cap on outreach, and new copy for the creator landing page, which says clients don't post jobs.
@@ -283,10 +332,10 @@ In rough priority order. Each item says where the work goes.
 - [ ] Test Match a reference on phones; the first use downloads about 45 MB.
 
 **2. Sign-in**
-- [ ] Paste the Google client ID into `googleClientId` and test Google's popup on localhost and rolvo.market.
+- [x] Google sign-in: client ID set, tokens checked by Supabase.
 - [ ] Google Cloud: publish the app; add home page, privacy and terms URLs; verify `rolvo.market` in Search Console; submit brand verification.
 - [ ] Supabase Auth: SMS provider (Twilio or similar). Google, the email code templates and custom SMTP are done.
-- [ ] Move email codes off Gmail to a sender on rolvo.market (e.g. Resend, `noreply@rolvo.market`) once the domain is active.
+- [ ] Move email codes off Gmail to a sender on rolvo.market (e.g. Resend, `noreply@rolvo.market`). The domain is active.
 
 **3. Payments**
 - [ ] Deploy `server/functions/payments`, set Stripe and PayPal **test** keys, add the Stripe webhook, run a full test order.
@@ -294,7 +343,7 @@ In rough priority order. Each item says where the work goes.
 - [ ] Real refunds through Stripe / PayPal (today a refund is a ledger entry).
 - [ ] Creator payouts: first test run of the Stripe Connect flow in test mode; server-side releases; refunds through Stripe (today a refund is only a ledger entry); a route for creators in countries Stripe can't pay; tax forms.
 - [ ] Receipts and invoices; sales tax / VAT.
-- [ ] Type-check the Deno function in CI (`deno check`). It's currently only parsed.
+- [ ] Type-check the Deno function in CI (`deno check`). It's parsed and its behaviour is tested with stubs (`tests/payments.test.mjs`), but its types aren't checked.
 
 **4. Trust and content protection**
 - [ ] Server-side watermarking of preview cuts. The current watermark and blur are browser overlays: they discourage casual copying but don't stop a screen recording or a direct file URL.
@@ -303,7 +352,7 @@ In rough priority order. Each item says where the work goes.
 - [ ] Stronger client verification than "work email matches website domain".
 
 **5. Creators and growth**
-- [ ] Real outreach to the 87 listed creators and the 33 in Discovery. "Invite" only sets a flag today; no email is sent.
+- [ ] Real outreach to the listed creators. "Invite" only sets a flag today; no email is sent.
 - [ ] Take-down path for creators who don't want a listing (the privacy page promises it by email).
 - [ ] Re-host or refresh covers: they hotlink YouTube and X, and links can break.
 - [ ] Email / push notifications for new messages, terms, deliveries and payments.
@@ -323,7 +372,7 @@ In rough priority order. Each item says where the work goes.
 
 | Workflow | What it does | Needs |
 | --- | --- | --- |
-| [`check`](.github/workflows/check.yml) | `node scripts/check.mjs`: every page's scripts compile **together** (catches a duplicate top-level name across files, which silently breaks the page); the Deno function parses; no secret keys (Stripe, Google client secret, Supabase secret / service role, private keys); no `.DS_Store` or absolute local paths. **Required to merge.** | Nothing |
+| [`check`](.github/workflows/check.yml) | `node --test` (the tests in `tests/`) and `node scripts/check.mjs`: every page's scripts compile **together** (catches a duplicate top-level name across files, which silently breaks the page); the Deno function parses; no secret keys (Stripe, Google client secret, Supabase secret / service role, private keys); no `.DS_Store` or absolute local paths. **Required to merge.** | Nothing |
 | [`claude-review`](.github/workflows/claude-review.yml) | Claude reads `AGENTS.md` and the diff, leaves inline comments on real problems (bugs, escrow/payment logic, secrets, global-name clashes, missing demo paths, mobile breakage) and one summary comment. Re-runs on each push; skips drafts. Advisory, not required. | Repo secret |
 | [`claude`](.github/workflows/claude.yml) | Mention `@claude` in a PR or issue comment to ask a question or request a change. Claude works on the PR branch (never `main`) and runs the checks before committing. Only the owner and collaborators can trigger it. | Repo secret |
 
@@ -334,7 +383,7 @@ In rough priority order. Each item says where the work goes.
 Until a secret exists, both Claude jobs skip themselves with a notice, and PRs still merge on **check** alone.
 
 **Before opening a PR**
-- Run `node scripts/check.mjs`.
+- Run `node scripts/check.mjs` and `node --test`. If you change a money rule, an order state or the payments function, add or change a test in the same PR.
 - For UI changes, run the site locally and click through the flow you touched at desktop and phone width (the checks don't open a browser). Say in the PR what you tested.
 - To join, ask the repo owner to add you under Settings → Collaborators.
 
@@ -355,4 +404,5 @@ Until a secret exists, both Claude jobs skip themselves with a notice, and PRs s
 | `server/` | Payments Edge Function and SQL |
 | `tools/` | Pipeline that rebuilds `creators.js`; `embed.mjs` rebuilds `embeds.js` |
 | `scripts/check.mjs` | Repo checks |
+| `tests/` | `helpers.mjs` loads the site scripts or the payments function into a fresh context with stubs; `store.test.mjs`, `payments.test.mjs` |
 
