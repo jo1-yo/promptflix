@@ -10,3 +10,9 @@ SITE = "https://rolvo.market"
 SUPABASE_URL = "https://wjohvxtwjuqihhmuqily.supabase.co"
 # publishable key, the same one as in config.js. Not a secret.
 SUPABASE_KEY = "sb_publishable_yDSnbcBAtqkt7CT9JD2ADQ_2aOKB6xq"
+
+# Branch and pull-request builds run `wrangler preview`, which wants its own copy of the variables. Same public values.
+[previews.vars]
+SITE = "https://rolvo.market"
+SUPABASE_URL = "https://wjohvxtwjuqihhmuqily.supabase.co"
+SUPABASE_KEY = "sb_publishable_yDSnbcBAtqkt7CT9JD2ADQ_2aOKB6xq"
