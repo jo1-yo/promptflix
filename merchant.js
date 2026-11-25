@@ -355,8 +355,12 @@ function startProject(c){
   if (!u.onboarded && !whoSkipped) return whoStep(c);
   if (MATCHCUR && route().parts[0] === "match"){ const r = MATCHCUR;   // started from a matched film: the reference and its tags go into the brief
     p.brief = "Reference: " + (r.u || r.file + " (I'll send the file in chat)") + "\n" + (p.brief || p.goal || ""); if (r.cat) p.cat = r.cat; if (r.styles.length) p.styles = r.styles; }
-  const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
-    const o = DB.createOrder({ clientId: u.id, creatorId: c.id, title: fd.get("title").trim(), brief: fd.get("brief").trim(), cat: fd.get("cat") || null, opt: p.opt || null, style: fd.get("style") || null, price: Number(fd.get("price")) || c.ask });
+  const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); const fd = new FormData(f), btn = f.querySelector("[type=submit]");
+    const job = { clientId: u.id, creatorId: c.id, title: fd.get("title").trim(), brief: fd.get("brief").trim(), cat: fd.get("cat") || null, opt: p.opt || null, style: fd.get("style") || null, price: Number(fd.get("price")) || c.ask };
+    // Live, the chat is made in the database so the creator sees it on their own device; otherwise it stays in this browser.
+    let o; btn.disabled = true;
+    try { o = await Chat.open(c, job); } catch (err) { btn.disabled = false; return toast("Couldn't open the chat. " + err.message); }
+    o ||= DB.createOrder(job);
     AFTER.set(null); closeSheet(); go("#/chat/" + o.id); } },
     field("Project name", h("input", { class: "i", name: "title", required: true, minlength: "3", maxlength: "60", placeholder: "e.g. Lumen cold brew · launch film" })),
     field("The job", h("textarea", { class: "i", name: "brief", required: true, minlength: "10", placeholder: "Deliverables, length, ratios, where it runs, deadline, references", value: p.brief || p.goal || "" })),

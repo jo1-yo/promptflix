@@ -837,3 +837,9 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 }
 .slidesound{position:absolute;z-index:2;bottom:10px;right:calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) + 10px);width:36px;height:36px;border-radius:50%;background:rgba(247,247,244,.9);color:var(--fg);display:grid;place-items:center;transition:background .15s}
 .slidesound:hover{background:#fff} .slidesound[hidden]{display:none}
+
+/* ---------- chats in the database (chat.js) ---------- */
+.msg .st{font-size:11.5px;color:var(--dim)}
+.msg .st.link{justify-self:end;color:var(--fg)}
+.msg.failed .bub{opacity:.55}
+.tnote{margin:0;padding:10px 20px 14px;font-size:12.5px;line-height:1.45;color:var(--muted)}

@@ -145,6 +145,7 @@ async function playWork(w, c, cta){
 
 /* ---------- chats: the order lives inside the conversation (Xianyu-style) ---------- */
 function actionNeeded(o, uid){
+  if (o.cloud) return Chat.unread(o.id) > 0;   // a database chat: unread messages are what needs you
   const isC = o.clientId === uid, isK = o.creatorId === uid;
   switch (o.status){
     case "negotiating": return !o.terms.accepted[uid];
@@ -158,8 +159,8 @@ function actionNeeded(o, uid){
   }
 }
 const pendingCount = uid => uid ? DB.ordersFor(uid).filter(o => actionNeeded(o, uid)).length : 0;
-const otherOf = (o, uid) => DB.user(o.clientId === uid ? o.creatorId : o.clientId);
-const lastMsg = o => { const ms = DB.messages(o.id); const m = ms[ms.length - 1]; return !m ? "" : m.kind === "terms" ? "Proposed terms · " + money(m.terms.price) : m.text; };
+const otherOf = (o, uid) => DB.user(o.cloud ? (APP === "creator" ? o.clientId : o.creatorId) : (o.clientId === uid ? o.creatorId : o.clientId)) || { name: "Someone" };   // a database chat goes by side: one login can be on both
+const lastMsg = o => { if (o.cloud) return Chat.last(o); const ms = DB.messages(o.id); const m = ms[ms.length - 1]; return !m ? "" : m.kind === "terms" ? "Proposed terms · " + money(m.terms.price) : m.text; };
 
 function vChats(root, id){
   const u = me();
@@ -167,20 +168,24 @@ function vChats(root, id){
   const list = APP === "admin" ? DB.state.orders.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) : DB.ordersFor(u.id);
   let o = id ? DB.order(id) : (innerWidth > 800 ? list[0] : null);
   if (o && !(o.clientId === u.id || o.creatorId === u.id || APP === "admin")) o = null;
+  Chat.relistWith = () => threadList(APP === "admin" ? list : DB.ordersFor(u.id), o, u);
   root.append(h("div", { class: "chats" + (o ? " open" : "") }, threadList(list, o, u), o ? thread(o, u) : h("div", { class: "thread none" }, h("div", { class: "chat-empty" }, list.length ? h("span", null, "Pick a conversation.") : [h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, APP === "creator" ? "No projects yet." : "No conversations yet."), h("span", null, APP === "creator" ? "When a client starts a project with you, the chat opens here." : "Start a project with a creator and the chat opens here."), APP === "merchant" ? h("a", { class: "btn", href: "#/work" }, "Browse creators") : null]))));
 }
 function threadList(list, cur, u){
-  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : APP === "merchant" ? "Projects" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null),
+  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : APP === "merchant" ? "Projects" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null), Chat.note(),
     ...list.map(o => { const other = APP === "admin" ? DB.user(o.creatorId) : otherOf(o, u.id); const need = actionNeeded(o, u.id);
       return h("a", { class: "trow", href: "#/chat/" + o.id, "aria-current": String(cur && cur.id === o.id) }, avatar(other),
         h("div", { style: { minWidth: 0 } }, h("div", { class: "n" }, need ? h("i", { class: "dot" }) : null, APP === "admin" ? DB.nameOf(o.clientId) + " ↔ " + other.name : (other.org || other.name)), h("div", { class: "t" }, o.title + " · " + lastMsg(o))),
-        h("div", { class: "r" }, h("span", null, ago(o.updatedAt)), h("span", { class: "badge " + o.status }, STATUS[o.status][0].replace("Contract ready", "Contract")))); }),
+        h("div", { class: "r" }, h("span", null, ago(o.updatedAt)), o.cloud ? (o.joined ? null : h("span", { class: "xs dim" }, "Not joined yet")) : h("span", { class: "badge " + o.status }, STATUS[o.status][0].replace("Contract ready", "Contract")))); }),
     list.length ? null : h("p", { class: "hint", style: { padding: "20px" } }, "Nothing here yet."));
 }
 function thread(o, u){
+  if (o.cloud) return Chat.thread(o, u);
   const other = APP === "admin" ? DB.user(o.creatorId) : otherOf(o, u.id); const isParty = u.id === o.clientId || u.id === o.creatorId;
   const items = [...DB.messages(o.id).map(m => ({ at: m.at, m })), ...o.deliveries.map(d => ({ at: d.at, d }))].sort((a, b) => a.at.localeCompare(b.at));
-  const stream = h("div", { class: "stream" }, ...items.map(it => it.m ? msgEl(it.m, o, u) : deliveryCard(o, it.d, u)));
+  // Live, a conversation that isn't in the database exists in this browser only. Say so rather than let it look delivered.
+  const localOnly = LIVE.auth && APP !== "admin" ? h("div", { class: "msg sys" }, h("div", { class: "bub" }, "This conversation is saved on this device only. The other side can't see it.")) : null;
+  const stream = h("div", { class: "stream" }, localOnly, ...items.map(it => it.m ? msgEl(it.m, o, u) : deliveryCard(o, it.d, u)));
   const input = h("input", { class: "i", placeholder: isParty ? "Message " + first(other.name) : "Admins can read but not write", disabled: !isParty, autocomplete: "off" });
   const form = h("form", { class: "composer", onsubmit: e => { e.preventDefault(); if (!input.value.trim()) return; DB.send(o.id, u.id, input.value.trim()); input.value = ""; render(); setTimeout(() => { const i = $(".composer input"); i && i.focus(); }, 0); } },
     h("button", { class: "plus", type: "button", "aria-label": "More", onclick: () => plusMenu(o, u) }, "+"), input, h("button", { class: "btn primary", type: "submit", disabled: !isParty }, "Send"));
