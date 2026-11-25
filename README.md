@@ -285,7 +285,9 @@ In rough priority order. Each item says where the work goes.
 - [ ] Move uploaded cuts from IndexedDB to Supabase Storage (or Mux / Cloudflare Stream) with signed, expiring URLs.
 - [x] Chats in Supabase with Realtime (`chat.js`, `market.sql` Part 3). Left: run it against the live project with two accounts; an admin view of chats waiting on creators who haven't joined; email notice for a new message.
 - [x] Order forms inside the chat (`market.sql` Part 4): name, kind, price, payment method; accept, decline, change, withdraw, state kept by the database. The + next to the message box opens a tray of tools. Left: paying an accepted form (wallet, card, PayPal), and deliveries for database chats.
-- [ ] Rolvo Wallet for clients: a ledger in the database, top-ups, paying an order form from the balance on the server.
+- [x] Rolvo Wallet for clients (`market.sql` Part 5, `Wallet` in `pay.js`): the balance is the sum of ledger rows, the database takes the payment for an accepted order form, and an optional add-funds step closes client onboarding. Runs in **demo mode** (pretend funds, labelled everywhere) until payments are connected.
+- [ ] Real money in the wallet. Needs: a Stripe account; `stripePk` (pk_test_… first) and `paymentsUrl` in `config.js`; the payments function deployed with `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, and its webhook URL registered at Stripe for `payment_intent.succeeded`; then `update market_settings set value = 'test' where key = 'wallet_mode';`. The `wallet_topup` action and its webhook branch are written but have never run against Stripe, and refuse live keys. Before `live`: money-transmission / stored-value legal review, refunds and withdrawals of unspent balance, and releasing a paid order to the creator (deliveries for database chats don't exist yet).
+- [ ] PayPal and card payment of an order form outside demo mode (PayPal needs a client id and secret; both need the amount read from the order form on the server).
 - [ ] Admin rights from a server-side role, not `CONFIG.adminEmails` (anyone can read and edit that list in the browser).
 
 **1b. Matching and the creator side of the market**

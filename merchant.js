@@ -24,7 +24,7 @@ function header(){
 }
 /* Creators, messages and search results are for signed-in clients. */
 const CREATORS_SIGNIN = { title: "Sign in to see creators", sub: "Profiles, rates and messages are for signed-in clients." };
-const GATED = ["creators", "creator", "search", "chats", "chat", "account", "onboarding"];
+const GATED = ["creators", "creator", "search", "chats", "chat", "account", "onboarding", "wallet"];
 let LASTOK = "#/";
 const gatedHash = hash => GATED.includes((hash || "").replace(/^#\/?/, "").split(/[/?]/)[0]);
 function askSignIn(target){ const v = target.replace(/^#\/?/, "").split(/[/?]/)[0]; openSignIn(() => { if (location.hash === target) render(); else go(target); }, ["creators", "creator", "search"].includes(v) ? CREATORS_SIGNIN : null); }
@@ -52,6 +52,7 @@ function render(){
   else if (v === "orders") return go("#/chats");
   else if (v === "order") return go("#/chat/" + r.parts[1]);
   else if (v === "account") vAccount(m);
+  else if (v === "wallet") vWallet(m);
   else return go("#/");
   if (!["onboarding", "chats", "chat"].includes(v)) m.append(footer());
   const as = $("#assist"); if (as) as.hidden = ["onboarding", "chats", "chat"].includes(v);
@@ -488,7 +489,7 @@ function vOnboarding(m){
   const u = me(); if (!u) return requireAuth(() => render());
   const p = u.profile || {}; W.step ??= 0; scrollTo(0, 0);
   // someone who answered the questions window already told us what they make and which films they like: only who-you-are and budget are left
-  const shown = TASTE.get() && p.cat ? [0, 4] : W.describe ? [0, 1, 4] : [0, 1, 2, 3, 4]; const total = shown.length; const n = shown.indexOf(W.step) + 1;
+  const shown = TASTE.get() && p.cat ? [0, 4, 5] : W.describe ? [0, 1, 4, 5] : [0, 1, 2, 3, 4, 5]; /* 5 = add funds, optional */ const total = shown.length; const n = shown.indexOf(W.step) + 1;
   const page = h("div", { class: "win-body" });
   m.append(h("div", { class: "flow-page" }, h("section", { class: "win", "aria-label": "Onboarding" },
     h("div", { class: "win-bar" }, h("b", null, "Getting started"), h("span", null, `Question ${n} of ${total}`),
@@ -553,15 +554,36 @@ function vOnboarding(m){
   if (W.step === 4){
     const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const o = Object.fromEntries(new FormData(f));
       DB.saveClientProfile(u.id, { cat: W.cat || p.cat || null, opt: W.opt || p.opt || null, styles: W.styles || p.styles || [], budget: o.budget, cadence: o.cadence, deadline: o.deadline, brief: o.brief.trim(), industry: o.industry.trim() }, true);
-      const after = AFTER.get(); W = {}; toast(u.verified ? "You're verified. Welcome." : "Thanks. We'll verify your company before the first contract.");
-      if (after && after.type === "hire"){ const c = DB.creator(after.creatorId); go("#/creator/" + c.id); setTimeout(() => startProject(c), 50); } else go("#/?tab=rec"); } },
+      W.step = 5; render(); } },
       h("div", { class: "row2" }, field("Budget per film", h("select", { class: "i", name: "budget" }, ...[["0-800", "Under $800"], ["800-2000", "$800–2,000"], ["2000-5000", "$2,000–5,000"], ["5000-20000", "$5,000–20,000"], ["20000-999999", "$20,000+"]].map(([v, l]) => h("option", { value: v, selected: p.budget === v }, l)))), field("How often", h("select", { class: "i", name: "cadence" }, ...[["once", "One film"], ["monthly", "A few every month"], ["ongoing", "Ongoing, volume"]].map(([v, l]) => h("option", { value: v, selected: p.cadence === v }, l))))),
       h("div", { class: "row2" }, field("Industry", h("input", { class: "i", name: "industry", value: p.industry || "", placeholder: "Specialty coffee, fintech, mobile games" })), field("Needed by", h("input", { class: "i", name: "deadline", type: "date", value: p.deadline || "" }))),
       field("The job, in your words", h("textarea", { class: "i", name: "brief", value: W.text || p.brief || "", placeholder: "Deliverables, length, where it runs, references" })),
-      h("div", null, h("button", { class: "btn primary big", type: "submit" }, AFTER.get() && AFTER.get().type === "hire" ? "Finish and open the chat" : "See matching creators")));
+      h("div", null, h("button", { class: "btn primary big", type: "submit" }, "Continue")));
     head("Budget and timing.", "Creators quote against this. A clear range gets faster, better replies.", Voice.button(f, VQ5, "Last part. Budget and timing."));
     page.append(f);
   }
+  if (W.step === 5){   // optional: put money in the wallet now, so hiring later is one tap. The answers are already saved.
+    const finish = added => { const after = AFTER.get(); W = {}; if (!added) toast("You can add funds any time under Account → Wallet.");
+      if (after && after.type === "hire"){ const c = DB.creator(after.creatorId); go("#/creator/" + c.id); setTimeout(() => startProject(c), 50); } else go("#/?tab=rec"); };
+    head("Add funds to your wallet.", "Optional. " + Wallet.buys(1000) + " Pay each one from your balance in one tap.");
+    page.append(h("div", { class: "row" }, h("button", { class: "btn primary big", onclick: () => Wallet.sheet(() => finish(true)) }, "Add funds"), h("button", { class: "btn big", onclick: () => finish(false) }, "Skip for now")),
+      h("p", { class: "hint" }, "Unspent funds stay in your Rolvo Wallet. You can also pay by card or PayPal per order."));
+  }
+}
+
+function vWallet(m){
+  const body = h("div", { class: "stack", style: { gap: "28px" } }, h("p", { class: "hint" }, "Loading your wallet…"));
+  m.append(h("section", { class: "wrap section narrow" }, h("h1", { class: "pname" }, "Wallet"), body));
+  const draw = w => { const tag = Wallet.tag(w.mode);
+    body.replaceChildren(
+      h("div", { class: "wcard main" }, h("span", { class: "eyebrow" }, tag ? tag + " balance" : "Balance"), h("b", { class: "wnum" }, money(w.balance)),
+        h("div", null, h("button", { class: "btn primary", onclick: () => Wallet.sheet(draw) }, "Add funds")),
+        h("span", { class: "hint" }, Wallet.buys(1000) + (w.mode === "demo" ? " Demo mode: payments aren't connected yet, so no real money is added or spent." : ""))),
+      h("div", null, h("span", { class: "eyebrow" }, "Activity"),
+        w.rows.length ? h("div", { class: "tbl", style: { marginTop: "14px" } }, h("table", null, h("thead", null, h("tr", null, h("th", null, "When"), h("th", null, "What"), h("th", { style: { textAlign: "right" } }, "Amount"))),
+          h("tbody", null, ...w.rows.map(r => h("tr", null, h("td", null, when(r.created_at)), h("td", null, r.kind === "topup" ? (r.method === "demo" ? "Demo funds" : "Added funds") : r.kind === "refund" ? "Refund" : (r.note || "Order")), h("td", { class: "num" + (r.amount > 0 ? " ok" : "") }, (r.amount > 0 ? "+" : "−") + money(Math.abs(r.amount))))))))
+          : h("p", { class: "hint", style: { marginTop: "10px" } }, "Nothing yet. Funds you add and orders you pay show up here."))); };
+  Wallet.load().then(draw, e => body.replaceChildren(h("div", { class: "notice warn" }, h("b", null, "Couldn't load your wallet. "), e.message)));
 }
 
 function vAccount(m){
@@ -573,7 +595,7 @@ function vAccount(m){
     ["Budget", budget ? money(budget[0]) + "–" + (budget[1] > 500000 ? "∞" : money(budget[1])) : ""], ["Verification", u.verified ? "Verified" : u.onboarded ? "In review" : ""]].filter(r => r[1]);
   m.append(h("section", { class: "wrap section narrow" }, h("h1", { class: "pname" }, "Account"),
     h("dl", { class: "acct" }, ...rows.map(([k, v, note]) => h("div", null, h("dt", null, k), h("dd", null, v, note ? h("small", null, note) : null)))),
-    h("div", { class: "row acct-actions" }, h("button", { class: "btn", onclick: () => { W = { step: 0 }; go("#/onboarding"); } }, "Edit details"), h("a", { class: "btn", href: "#/chats" }, "Dashboard"), h("button", { class: "btn quiet", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out"))));
+    h("div", { class: "row acct-actions" }, h("button", { class: "btn", onclick: () => { W = { step: 0 }; go("#/onboarding"); } }, "Edit details"), h("a", { class: "btn", href: "#/wallet" }, "Wallet"), h("a", { class: "btn", href: "#/chats" }, "Dashboard"), h("button", { class: "btn quiet", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out"))));
 }
 
 bootShared();

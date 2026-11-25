@@ -13,6 +13,8 @@
 //   { action: "connect_dashboard" }                     → { url }   Stripe Express dashboard (change bank / card, see payouts)
 //   { action: "connect_payout", amount, instant }       → { id, status, arrival }   "Withdraw": from the creator's Stripe balance to their bank / card
 //   { action: "connect_release", orderId, kind, amount, creatorId } → { id }   escrow → creator, minus commission (test mode only for now)
+//   { action: "wallet_topup", amount }                  → { clientSecret, id }   a client adds funds to their Rolvo Wallet (test mode only);
+//                                                          the webhook writes the row in market_wallet_ledger (market.sql → Part 5)
 //
 // The charge is "separate charges and transfers": the client's payment lands in the platform balance (the escrow) tagged with
 // transfer_group = order id; a release is a Transfer to the creator's connected account. Card and bank numbers only ever go to Stripe.
@@ -108,6 +110,14 @@ Deno.serve(async (req) => {
     if (sigHeader) { // Stripe webhook
       const payload = await req.text(); await verifyStripe(payload, sigHeader);
       const ev = JSON.parse(payload);
+      if (ev.type === "payment_intent.succeeded" && ev.data.object.metadata?.kind === "wallet_topup") {
+        // A client added funds: one ledger row per PaymentIntent (the unique index on kind + ref makes a repeated webhook a no-op).
+        const pi = ev.data.object;
+        if (pi.livemode) throw new Error("Live wallet top-ups aren't switched on");
+        await db("market_wallet_ledger", { method: "POST", body: JSON.stringify({ user_id: pi.metadata.user_id, amount: Number(pi.metadata.wallet_amount), kind: "topup", mode: "test", method: "card", ref: pi.id, note: "Added funds" }) })
+          .catch((e) => { if (!/23505|duplicate/.test(String(e.message))) throw e; });
+        return json({ received: true });
+      }
       if (ev.type === "payment_intent.succeeded") { const pi = ev.data.object; await record({ order_id: pi.metadata.order_id, kind: pi.metadata.kind, amount: Number(pi.metadata.order_amount) || pi.amount / 100, method: "card", ref: pi.id, mode: pi.livemode ? "live" : "test" }); }
       return json({ received: true });
     }
@@ -163,6 +173,16 @@ Deno.serve(async (req) => {
       const net = Math.round(amount * (1 - num("COMMISSION_PCT", 1) / 100) * 100);
       const t = await stripe("transfers", { amount: String(net), currency: "usd", destination: c.stripe_account, transfer_group: b.orderId, "metadata[order_id]": b.orderId, "metadata[kind]": b.kind }, { idem: `release:${b.orderId}:${b.kind}` });
       return json({ id: t.id });
+    }
+
+    /* ----- Rolvo Wallet: a client adds funds. Test mode only for now; the ledger row is written by the webhook above. ----- */
+    if (b.action === "wallet_topup") {
+      const p = await caller(req);
+      if (isLive()) throw new Error("Wallet top-ups run in test mode only for now");
+      const amount = Math.round(Number(b.amount)); if (!Number.isFinite(amount) || amount < 1 || amount > 20000) throw new Error("Bad amount");
+      const pi = await stripe("payment_intents", { amount: String(withCardFee(amount)), currency: "usd", "automatic_payment_methods[enabled]": "true",
+        "metadata[kind]": "wallet_topup", "metadata[user_id]": p.id, "metadata[wallet_amount]": String(amount), description: `Rolvo Wallet top-up · ${amount}` });
+      return json({ clientSecret: pi.client_secret, id: pi.id });
     }
 
     if (!b.orderId || !["deposit", "balance"].includes(b.kind)) return json({ error: "orderId and kind required" }, 400);

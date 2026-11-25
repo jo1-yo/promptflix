@@ -172,7 +172,7 @@ function vChats(root, id){
   root.append(h("div", { class: "chats" + (o ? " open" : "") }, threadList(list, o, u), o ? thread(o, u) : h("div", { class: "thread none" }, h("div", { class: "chat-empty" }, list.length ? h("span", null, "Pick a conversation.") : [h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, APP === "creator" ? "No projects yet." : "No conversations yet."), h("span", null, APP === "creator" ? "When a client starts a project with you, the chat opens here." : "Start a project with a creator and the chat opens here."), APP === "merchant" ? h("a", { class: "btn", href: "#/work" }, "Browse creators") : null]))));
 }
 function threadList(list, cur, u){
-  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : APP === "merchant" ? "Projects" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null), Chat.note(),
+  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : APP === "merchant" ? "Projects" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : APP === "merchant" ? walletLink() : null), Chat.note(),
     ...list.map(o => { const other = APP === "admin" ? DB.user(o.creatorId) : otherOf(o, u.id); const need = actionNeeded(o, u.id);
       return h("a", { class: "trow", href: "#/chat/" + o.id, "aria-current": String(cur && cur.id === o.id) }, avatar(other),
         h("div", { style: { minWidth: 0 } }, h("div", { class: "n" }, need ? h("i", { class: "dot" }) : null, APP === "admin" ? DB.nameOf(o.clientId) + " ↔ " + other.name : (other.org || other.name)), h("div", { class: "t" }, o.title + " · " + lastMsg(o))),
@@ -241,11 +241,17 @@ function deliveryCard(o, d, u){
     h("div", { class: "dcard" }, h("div", { class: "dtop" }, h("b", null, (d.kind === "trial" ? "First cut" : "Revision") + " · v" + d.v), h("span", null, st)), d.note ? h("p", null, d.note) : null, d.feedback ? h("p", { style: { borderLeft: "1px solid var(--line2)", paddingLeft: "10px" } }, "“" + d.feedback + "”") : null,
       h("div", { class: "row" }, h("button", { class: "btn small", onclick: () => showPreview(o, d, clean) }, clean ? "Open clean master" : "View preview"))));
 }
+/* The client's balance next to "Projects": where the wallet lives, one tap from every chat. */
+function walletLink(){
+  const a = h("a", { class: "wlink", href: "#/wallet" }, "Wallet"); const show = w => { if (w) a.textContent = "Wallet " + money(w.balance); };
+  if (Wallet.data) show(Wallet.data); Wallet.load().then(show, () => {}); return a;
+}
 function plusItems(o, u){
   const isC = u.id === o.clientId, isK = u.id === o.creatorId; const items = [];
   if (o.status === "negotiating" && (isC || isK)) items.push(["form", "Order form", () => proposeTerms(o, u)]);
   if (isK && o.status === "in_production") items.push(["film", "Deliver cut", () => uploadCut(o, "First cut")]);
   if (isK && o.status === "revising" && DB.latest(o).status === "revise") items.push(["film", "Deliver revision", () => uploadCut(o, "Revision v" + (o.deliveries.length + 1))]);
+  if (isC && APP === "merchant") items.push(["wallet", "Wallet", () => Wallet.sheet()]);
   items.push(["info", "Details", () => openSheet(detailsSheet(o, u))]);
   if (!["completed", "cancelled"].includes(o.status) && (isC || isK)) items.push(["end", "End contract", () => endContract(o, u)]);
   return items;
@@ -286,8 +292,8 @@ function orderFormSheet(cur, sub, send){
   openSheet([phead("Order form", sub), f]);
 }
 /* f = { title, kind, price, method }; status: pending | accepted | declined | withdrawn | superseded */
-function offerCard(f, { status, mine, who, at, other, btns, foot }){
-  const st = { pending: mine ? "Waiting for " + other : "Needs your answer", accepted: "Accepted", declined: "Declined", withdrawn: "Withdrawn", superseded: "Replaced" }[status];
+function offerCard(f, { status, mine, who, at, other, btns, foot, label }){
+  const st = label || { pending: mine ? "Waiting for " + other : "Needs your answer", accepted: "Accepted", declined: "Declined", withdrawn: "Withdrawn", superseded: "Replaced" }[status];
   return h("div", { class: "msg" + (mine ? " me" : "") }, h("span", { class: "who" }, who + " · " + ago(at)),
     h("div", { class: "ocard " + status },
       h("div", { class: "otop" }, h("span", null, "Order form"), h("span", { class: "ost" }, st)),

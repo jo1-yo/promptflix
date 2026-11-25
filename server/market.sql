@@ -434,3 +434,106 @@ end $$;
 
 revoke all on function market_offer_send(uuid, text, text, text, integer, text), market_offer_answer(uuid, text, text) from public, anon;
 grant execute on function market_offer_send(uuid, text, text, text, integer, text), market_offer_answer(uuid, text, text) to authenticated;
+
+-- ───────────────────── Part 5 · Rolvo Wallet (clients) ─────────────────────
+-- A client's balance is never stored: it is the sum of their rows in market_wallet_ledger, one row per top-up or payment.
+-- Nobody writes the ledger from the browser. A payment is taken by market_offer_pay, which works the balance out here.
+--
+-- wallet_mode says what kind of money the wallet holds right now:
+--   demo  (default) no payment processor. market_wallet_topup_demo adds pretend funds so the flow can be tried; the site labels
+--         every balance and payment as demo. Card and PayPal order forms can be marked paid, also as demo.
+--   test  Stripe test keys: top-ups are written by the payments function after Stripe's webhook, with mode 'test'.
+--   live  real money: same path with live keys. Demo top-ups are refused, and demo rows no longer count.
+-- A balance only ever counts rows of the current mode, so pretend money can't be spent as real money. Change it by hand:
+--   update market_settings set value = 'test' where key = 'wallet_mode';
+create table if not exists market_settings (key text primary key, value text not null);
+insert into market_settings (key, value) values ('wallet_mode', 'demo') on conflict (key) do nothing;
+alter table market_settings enable row level security;
+revoke all on market_settings from anon, authenticated;
+
+create table if not exists market_wallet_ledger (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users on delete cascade,
+  amount numeric(12,2) not null check (amount <> 0),          -- + money in, − money out
+  kind text not null check (kind in ('topup','order','refund','adjust')),
+  mode text not null check (mode in ('demo','test','live')),
+  method text,                                                 -- card | paypal | demo
+  ref text,                                                    -- Stripe PaymentIntent / PayPal capture / order form id: one row each
+  note text,
+  created_at timestamptz not null default clock_timestamp()
+);
+create unique index if not exists market_wallet_ref on market_wallet_ledger (kind, ref) where ref is not null;
+create index if not exists market_wallet_user on market_wallet_ledger (user_id, id desc);
+alter table market_wallet_ledger enable row level security;
+drop policy if exists "own wallet rows or admin" on market_wallet_ledger;
+create policy "own wallet rows or admin" on market_wallet_ledger for select using (user_id = auth.uid() or market_is_admin());
+revoke all on market_wallet_ledger from anon, authenticated;
+grant select on market_wallet_ledger to authenticated;
+
+create or replace function market_wallet_mode() returns text
+language sql stable security definer set search_path = public as $$
+  select coalesce((select value from public.market_settings where key = 'wallet_mode' and value in ('demo','test','live')), 'demo')
+$$;
+
+-- My wallet: mode, balance in that mode, and the latest rows.
+create or replace function market_wallet() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare me uuid := auth.uid(); md text := public.market_wallet_mode();
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  return jsonb_build_object('mode', md,
+    'balance', (select coalesce(sum(amount), 0) from public.market_wallet_ledger where user_id = me and mode = md),
+    'rows', (select coalesce(jsonb_agg(to_jsonb(x) order by x.id desc), '[]'::jsonb) from
+              (select id, amount, kind, method, note, created_at from public.market_wallet_ledger where user_id = me and mode = md order by id desc limit 50) x));
+end $$;
+
+-- Pretend funds, only while the wallet is in demo mode.
+create or replace function market_wallet_topup_demo(p_amount integer) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid();
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if public.market_wallet_mode() <> 'demo' then raise exception 'demo funds are switched off'; end if;
+  if p_amount is null or p_amount < 1 or p_amount > 20000 then raise exception 'add between 1 and 20,000 dollars'; end if;
+  perform pg_advisory_xact_lock(hashtext(me::text));
+  if (select coalesce(sum(amount), 0) from public.market_wallet_ledger where user_id = me and mode = 'demo') + p_amount > 100000 then
+    raise exception 'that is more demo money than anyone needs';
+  end if;
+  insert into public.market_wallet_ledger (user_id, amount, kind, mode, method, note) values (me, p_amount, 'topup', 'demo', 'demo', 'Demo funds');
+  return public.market_wallet();
+end $$;
+
+-- The client pays an accepted order form. Wallet: the price is taken from the balance worked out here, never from a number
+-- the browser sends. Card / PayPal: only in demo mode, and marked as demo; a real card payment is confirmed by the processor.
+create or replace function market_offer_pay(p_msg uuid) returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; md text := public.market_wallet_mode(); price numeric(12,2); bal numeric(12,2); how text;
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  perform pg_advisory_xact_lock(hashtext(me::text));   -- one payment at a time per account, so two taps can't spend the same balance
+  select * into m from public.market_messages where id = p_msg and kind = 'offer' for update;
+  if m.id is null then raise exception 'no such order form'; end if;
+  if not exists (select 1 from public.market_chats where id = m.chat_id and client_id = me) then raise exception 'only the client pays'; end if;
+  if m.data->>'status' <> 'accepted' then raise exception 'this order form isn''t accepted'; end if;
+  if m.data->>'paid_at' is not null then raise exception 'already paid'; end if;
+  price := (m.data->>'price')::numeric; how := m.data->>'method';
+  if how = 'wallet' then
+    select coalesce(sum(amount), 0) into bal from public.market_wallet_ledger where user_id = me and mode = md;
+    if bal < price then raise exception 'not enough in your wallet: add %', to_char(price - bal, 'FM999999990.00'); end if;
+    insert into public.market_wallet_ledger (user_id, amount, kind, mode, method, ref, note) values (me, -price, 'order', md, 'wallet', m.id::text, m.data->>'title');
+  elsif md <> 'demo' then
+    raise exception 'card and PayPal payments aren''t connected yet';
+  end if;
+  update public.market_messages
+     set data = data || jsonb_build_object('paid_at', clock_timestamp(), 'paid_mode', case when how = 'wallet' then md else 'demo' end)
+   where id = p_msg returning * into m;
+  insert into public.market_messages (chat_id, side, kind, body)
+    values (m.chat_id, 'system', 'system', case when m.data->>'paid_mode' = 'live'
+      then 'Paid $' || (m.data->>'price') || '. Held by Rolvo until the work is delivered.'
+      else 'Paid $' || (m.data->>'price') || ' in ' || (m.data->>'paid_mode') || ' mode. No real money moved.' end);
+  update public.market_chats set last_text = 'Order form paid', last_side = 'client', last_at = clock_timestamp() where id = m.chat_id;
+  return m;
+end $$;
+
+revoke all on function market_wallet_mode(), market_wallet(), market_wallet_topup_demo(integer), market_offer_pay(uuid) from public, anon;
+grant execute on function market_wallet(), market_wallet_topup_demo(integer), market_offer_pay(uuid) to authenticated;

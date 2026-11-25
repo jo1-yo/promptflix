@@ -172,11 +172,14 @@ const Chat = {
     const lastMine = list.filter(m => m.side === side).pop();
     const other = first(otherOf(o, u.id).name);
     return list.map(m => {
-      if (m.kind === "offer" && m.data){ const d = m.data, mine = m.side === side, open = d.status === "pending";
+      if (m.kind === "offer" && m.data){ const d = m.data, mine = m.side === side, open = d.status === "pending", due = d.status === "accepted" && !d.paid_at, tag = d.paid_at && d.paid_mode !== "live" ? " · " + d.paid_mode : "";
         const act = (label, ans, cls) => h("button", { class: "btn small " + (cls || ""), onclick: e => { e.currentTarget.disabled = true; this.answer(m, ans); } }, label);
         const change = h("button", { class: "btn small", onclick: () => this.form(o, d) }, "Change");
         return offerCard(d, { status: d.status, mine, who: DB.nameOf(m.side === "client" ? o.clientId : o.creatorId), at: m.created_at, other,
-          btns: !open ? [] : mine ? [change, act("Withdraw", "withdraw", "quiet")] : [act("Accept", "accept", "primary"), change, act("Decline", "decline", "quiet")] }); }
+          label: d.paid_at ? "Paid" + tag : due ? (side === "client" ? "Accepted · payment due" : "Accepted · waiting for payment") : null,
+          btns: due && side === "client" ? [h("button", { class: "btn primary small", onclick: e => this.pay(o, m, e.currentTarget) }, "Pay " + money(d.price))]
+            : !open ? [] : mine ? [change, act("Withdraw", "withdraw", "quiet")] : [act("Accept", "accept", "primary"), change, act("Decline", "decline", "quiet")],
+          foot: due && side === "client" && d.method === "wallet" && Wallet.data ? h("div", { class: "ofoot" }, h("span", null, "Wallet " + money(Wallet.data.balance) + (Wallet.tag(Wallet.data.mode) ? " · " + Wallet.tag(Wallet.data.mode).toLowerCase() : "")), h("button", { class: "link", type: "button", onclick: () => Wallet.sheet(() => this.paint()) }, "Add funds")) : null }); }
       if (m.side === "system") return h("div", { class: "msg sys" }, h("div", { class: "bub" }, m.body));
       const mine = m.side === side, who = DB.nameOf(m.side === "client" ? o.clientId : o.creatorId);
       const st = !mine ? null : m.failed ? h("button", { class: "st link", type: "button", onclick: () => this.deliver(o.id, m) }, m.failed + " · Retry")
@@ -189,7 +192,8 @@ const Chat = {
     const other = otherOf(o, u.id), side = this.side();
     const stream = h("div", { class: "stream" }), pin = h("div", { class: "pinned" }, ...this.pinned(o));
     const input = h("input", { class: "i", placeholder: "Message " + first(other.name), autocomplete: "off", maxlength: "4000", "aria-label": "Message" });
-    const tools = plusTray([["form", "Order form", () => this.form(o)], ["info", "Details", () => this.details(o)]]);
+    const tools = plusTray([["form", "Order form", () => this.form(o)], ...(side === "client" ? [["wallet", "Wallet", () => Wallet.sheet(() => this.paint())]] : []), ["info", "Details", () => this.details(o)]]);
+    if (side === "client" && !Wallet.data) Wallet.load().then(() => this.paint(), () => {});
     const form = h("form", { class: "composer", onsubmit: e => { e.preventDefault(); const t = input.value.trim(); if (!t) return; input.value = ""; this.send(o.id, t); input.focus(); } },
       tools.btn, input, h("button", { class: "btn primary", type: "submit" }, "Send"));
     const sub = side === "creator" ? [other.verified ? "Verified company" : null, other.profile && other.profile.website].filter(Boolean).join(" · ") : other.where ? other.where + (other.tz ? " · " + other.tz : "") : "";
@@ -206,7 +210,7 @@ const Chat = {
     const side = this.side(), f = (this.msgs[o.id] || []).filter(m => m.kind === "offer" && m.data && ["pending", "accepted"].includes(m.data.status)).pop(), d = f && f.data;
     const price = d ? d.price : o.price;
     const fact = !d ? (o.price ? (side === "client" ? "Your opening offer" : "Client's opening offer") : "No price yet")
-      : d.status === "accepted" ? "Agreed · pay with " + payMethodName(d.method) : f.side === side ? "Order form sent" : "Order form needs your answer";
+      : d.paid_at ? "Paid" + (d.paid_mode !== "live" ? " · " + d.paid_mode : " · held by Rolvo") : d.status === "accepted" ? "Agreed · pay with " + payMethodName(d.method) : f.side === side ? "Order form sent" : "Order form needs your answer";
     return [h("div", { class: "ptop" }, h("div", { class: "ptitle" }, d ? d.title : o.title), price ? h("div", { class: "pprice" }, money(price)) : null),
       h("div", { class: "pfacts" }, h("span", { class: d && d.status === "accepted" ? "ok" : null }, fact), h("span", null, "Opened " + when(o.createdAt)))];
   },
@@ -217,6 +221,19 @@ const Chat = {
       const { data, error } = await Auth.client().rpc("market_offer_send", { p_chat: o.id, p_side: this.side(), p_title: f.title, p_kind: f.kind, p_price: f.price, p_method: f.method });
       if (error) throw new Error(chatSchemaMissing(error) ? "Order forms aren't switched on in the database yet." : error.message);
       this.onMessage(data); this.load(o.id, true); });   // reload: the form it replaced changed state too
+  },
+  /* The client pays an accepted form. The database takes the money (wallet) or, in demo mode only, marks a card / PayPal form paid. */
+  async pay(o, m, btn){
+    const d = m.data, sb = Auth.client(); if (btn) btn.disabled = true;
+    const settle = async () => { const { data, error } = await sb.rpc("market_offer_pay", { p_msg: m.id });
+      if (error){ toast(chatSchemaMissing(error) ? "Payments aren't switched on in the database yet." : error.message.replace(/^not enough/, "Not enough")); if (btn) btn.disabled = false; return; }
+      this.onMessage(data); Wallet.load().then(() => this.paint(), () => {}); toast("Paid " + money(d.price) + (data.data.paid_mode === "live" ? "." : " · " + data.data.paid_mode + " mode.")); };
+    let w; try { w = await Wallet.load(); } catch (e) { if (btn) btn.disabled = false; return toast(e.message); }
+    if (Wallet.local){ if (btn) btn.disabled = false; return toast("Payments aren't switched on in the database yet."); }
+    if (d.method === "wallet"){ if (w.balance >= d.price) return settle(); if (btn) btn.disabled = false; return Wallet.sheet(() => this.pay(o, m), d.price - w.balance); }
+    if (btn) btn.disabled = false;
+    if (w.mode !== "demo" || LIVE.stripe) return toast(payMethodName(d.method) + " payments aren't connected yet. Change the form to Rolvo Wallet.");
+    pay.skipWallet = true; try { pay(o, d.price, "Order", () => { settle(); }); } finally { pay.skipWallet = false; }   // the demo card / PayPal sheet, then the database marks it paid as demo
   },
   async answer(m, ans){
     const { data, error } = await Auth.client().rpc("market_offer_answer", { p_msg: m.id, p_side: this.side(), p_answer: ans });
