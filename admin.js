@@ -90,7 +90,7 @@ const Live = {
 };
 /* One row can be a client and a creator. Before the creator_* columns exist (older market.sql) the role says which single side it is on. */
 const liveUser = r => { const two = r.creator_profile !== undefined, oldCreator = !two && r.role === "creator"; return { ...liveBase(r), isClient: two ? !!r.is_client : r.role === "client", isCreator: two ? !!r.is_creator : oldCreator,
-  creator: { onboarded: two ? !!r.creator_onboarded : oldCreator && !!r.onboarded, profile: (two ? r.creator_profile : oldCreator ? r.profile : null) || {}, localId: two ? r.creator_local_id : oldCreator ? r.local_id : null } }; };
+  creator: { key: r.creator_key || null, onboarded: two ? !!r.creator_onboarded : oldCreator && !!r.onboarded, profile: (two ? r.creator_profile : oldCreator ? r.profile : null) || {}, localId: two ? r.creator_local_id : oldCreator ? r.local_id : null } }; };
 const liveBase = r => ({ id: r.id, cloud: true, role: r.role, email: r.email, phone: r.phone ? "+" + String(r.phone).replace(/^\+/, "") : null, name: r.name || "",
   avatar: r.avatar_url, providers: r.providers || [], org: r.org, onboarded: r.onboarded, verified: r.verified, profile: r.profile || {}, localId: r.local_id,
   createdAt: r.created_at, lastLoginAt: r.last_login_at });
@@ -255,13 +255,24 @@ function creatorAccounts(term){
   if (!Live.on()) return [];
   const rows = (Live.rows || []).filter(u => u.isCreator && (!term || [u.name, u.email, u.phone, u.creator.profile.handle].join(" ").toLowerCase().includes(term)));
   return [Live.source() || "", h("span", { class: "eyebrow", style: { display: "block", margin: "6px 0 12px" } }, "Creator accounts · " + rows.length),
-    A.table([{ l: "Creator" }, { l: "Sign-in" }, { l: "Via" }, { l: "Application" }, { l: "Orders", right: 1 }, { l: "Joined" }, { l: "Last seen" }],
+    A.table([{ l: "Creator" }, { l: "Sign-in" }, { l: "Via" }, { l: "Application" }, { l: "Orders", right: 1 }, { l: "Joined" }, { l: "Last seen" }, { l: "Profile" }],
       rows.map(u => { const p = u.creator.profile; return h("tr", null,
         A.td(h("div", null, h("b", { style: { fontWeight: 500 } }, u.name || "(no name yet)"), p.handle ? h("small", { class: "dim", style: { display: "block" } }, "@" + p.handle + (p.source ? " · " + p.source : "")) : null)),
         A.td(A.login(u), { cls: "muted" }), A.td(A.providers(u), { cls: "muted" }),
         A.td(h("span", { class: u.creator.onboarded ? "ok" : "warn" }, u.creator.onboarded ? "Filled in" : "Not finished")), A.td(ordersOf(u, "creatorId").length || "—", { right: 1 }),
-        A.td(u.createdAt ? ago(u.createdAt) : "—", { cls: "muted" }), A.td(u.lastLoginAt ? ago(u.lastLoginAt) : "—", { cls: "muted" })); }),
+        A.td(u.createdAt ? ago(u.createdAt) : "—", { cls: "muted" }), A.td(u.lastLoginAt ? ago(u.lastLoginAt) : "—", { cls: "muted" }), A.td(profileLink(u))); }),
       Live.rows ? "No creator accounts yet." : "Loading…")];
+}
+
+/* Which site profile an account speaks for. Clicking "claim" proves nothing, so client messages for a crawled profile (r_…)
+   reach an account only after an admin confirms it here (market_confirm_creator). */
+function profileLink(u){
+  const claim = u.creator.localId, key = u.creator.key, name = id => (DB.creator(id) || {}).name || id;
+  const set = async k => { const { error } = await Auth.client().rpc("market_confirm_creator", { p_user: u.id, p_key: k });
+    if (error) return toast("Couldn't save: " + error.message); toast(k ? "Confirmed. Client messages for " + name(k) + " now reach this account." : "Confirmation removed."); Live.load(true); };
+  if (key) return h("span", null, h("span", { class: "ok" }, "Confirmed · " + name(key)), " ", h("button", { class: "link small", type: "button", onclick: () => set(null) }, "Undo"));
+  if (claim && /^r_/.test(claim)) return h("span", null, h("span", { class: "warn" }, "Says: " + name(claim)), " ", h("button", { class: "btn small", type: "button", onclick: () => set(claim) }, "Confirm"));
+  return h("span", { class: "dim" }, "—");
 }
 
 /* ---------- discovery ---------- */

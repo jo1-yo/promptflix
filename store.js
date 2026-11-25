@@ -135,7 +135,8 @@ const DB = {
       createdAt: now(), updatedAt: now(), deadline: null, contractAt: null, review: {} };
     this.state.orders.push(o);
     this.sys(o.id, `${this.nameOf(clientId)} opened a project with ${c.name}. Agree on terms in chat to start the order.`);
-    if (c.real && !c.claimed) this.sys(o.id, `${c.name} isn't on Rolvo yet. We've sent them your brief and an invite through ${c.source}; this chat goes live when they claim their profile.`);
+    if (c.real && !c.claimed) this.sys(o.id, LIVE.auth ? `${c.name} isn't on Rolvo yet.`   // live, nothing is sent from a chat that only exists in this browser, so don't say it was
+      : `${c.name} isn't on Rolvo yet. We've sent them your brief and an invite through ${c.source}; this chat goes live when they claim their profile.`);
     this.save(); return o;
   },
   touch(o){ o.updatedAt = now(); },

@@ -169,3 +169,371 @@ drop policy if exists "own orders" on market_orders;
 create policy "own orders" on market_orders for select using (client_id = auth.uid());
 drop policy if exists "own payments" on market_payments;
 create policy "own payments" on market_payments for select using (exists (select 1 from market_orders o where o.id = order_id and o.client_id = auth.uid()));
+
+-- ───────────────────── Part 3 · Chats (real messages) ─────────────────────
+-- A chat is one project between a client and a creator. Both sides read it from here, so a message sent on one device shows
+-- up on the other (the site listens through Supabase Realtime). Nobody writes these tables directly: every write goes through
+-- the functions below, which check who is calling.
+--
+-- creator_key is the creator's id on the site (creators.js: r_…; a creator who applied: c_…). A chat opened with a creator who
+-- has no account yet keeps creator_id empty: the messages are stored and nobody else can read them. The chat is handed to an
+-- account only once market_profiles.creator_key says that account speaks for that profile. For crawled profiles (r_…) only an
+-- admin can say so (market_confirm_creator): clicking "claim" on the site proves nothing by itself.
+alter table market_profiles add column if not exists creator_key text;
+create unique index if not exists market_profiles_creator_key on market_profiles (creator_key) where creator_key is not null;
+
+create table if not exists market_chats (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references auth.users on delete cascade,
+  creator_key text not null,
+  creator_id uuid references auth.users on delete set null,   -- empty until that creator has a confirmed account
+  creator_name text,                                           -- as shown on the site when the chat was opened
+  title text not null,
+  brief text,
+  meta jsonb not null default '{}',                            -- category, style, the client's opening offer
+  last_text text,
+  last_side text,
+  last_at timestamptz not null default now(),
+  client_read_at timestamptz not null default now(),
+  creator_read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists market_chats_client on market_chats (client_id, last_at desc);
+create index if not exists market_chats_creator on market_chats (creator_id, last_at desc);
+create index if not exists market_chats_waiting on market_chats (creator_key) where creator_id is null;
+
+create table if not exists market_messages (
+  id uuid primary key default gen_random_uuid(),
+  seq bigint generated always as identity,                              -- the order messages were written in
+  chat_id uuid not null references market_chats on delete cascade,
+  side text not null check (side in ('client','creator','system')),   -- who wrote it; one login can be on both sides, so the side is stored, not guessed
+  sender uuid references auth.users on delete set null,
+  kind text not null default 'text',
+  body text not null default '',
+  data jsonb,
+  created_at timestamptz not null default clock_timestamp()   -- the real moment, so two messages written in one call keep their order
+);
+create index if not exists market_messages_chat on market_messages (chat_id, seq);
+
+alter table market_chats enable row level security;
+alter table market_messages enable row level security;
+drop policy if exists "chat parties or admin" on market_chats;
+create policy "chat parties or admin" on market_chats for select
+  using (client_id = auth.uid() or creator_id = auth.uid() or market_is_admin());
+drop policy if exists "messages of my chats or admin" on market_messages;
+create policy "messages of my chats or admin" on market_messages for select
+  using (exists (select 1 from market_chats c where c.id = chat_id and (c.client_id = auth.uid() or c.creator_id = auth.uid())) or market_is_admin());
+revoke all on market_chats, market_messages from anon, authenticated;
+grant select on market_chats, market_messages to authenticated;
+
+-- Hands waiting chats to an account whose creator_key matches, and says so in each chat. Internal: not callable from the site.
+create or replace function market_chat_bind(p_user uuid) returns integer
+language plpgsql security definer set search_path = public as $$
+declare k text; nm text; n integer := 0; r record;
+begin
+  select creator_key, coalesce(nullif(name, ''), 'The creator') into k, nm from public.market_profiles where id = p_user;
+  if k is null then return 0; end if;
+  for r in update public.market_chats set creator_id = p_user where creator_id is null and creator_key = k returning id loop
+    insert into public.market_messages (chat_id, side, kind, body) values (r.id, 'system', 'system', nm || ' joined Rolvo and can reply now.');
+    update public.market_chats set last_at = clock_timestamp() where id = r.id;
+    n := n + 1;
+  end loop;
+  return n;
+end $$;
+
+-- Called by the creator site after sign-in. A creator who applied on the site (id c_…, made in their own browser) speaks for
+-- that id straight away. A crawled profile (r_…) waits for an admin. Returns the confirmed key and how many chats arrived.
+create or replace function market_chat_link() returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare p public.market_profiles; n integer;
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  select * into p from public.market_profiles where id = auth.uid() for update;
+  if p.id is null then raise exception 'no account'; end if;
+  if p.creator_key is null and p.is_creator and p.creator_local_id is not null and p.creator_local_id !~ '^r_'
+     and not exists (select 1 from public.market_profiles o where o.id <> p.id and (o.creator_key = p.creator_local_id or o.creator_local_id = p.creator_local_id)) then
+    update public.market_profiles set creator_key = p.creator_local_id where id = p.id;
+    p.creator_key := p.creator_local_id;
+  end if;
+  n := public.market_chat_bind(p.id);
+  return jsonb_build_object('key', p.creator_key, 'claimed', p.creator_local_id, 'linked', n);
+end $$;
+
+-- Admin: this account really is that creator profile (p_key), or p_key null to take it back. Chats already handed over stay.
+create or replace function market_confirm_creator(p_user uuid, p_key text) returns integer
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.market_is_admin() then raise exception 'admins only'; end if;
+  if p_key is not null and exists (select 1 from public.market_profiles where creator_key = p_key and id <> p_user) then
+    raise exception 'another account is already confirmed for this profile';
+  end if;
+  update public.market_profiles set creator_key = nullif(trim(p_key), '') where id = p_user;
+  return public.market_chat_bind(p_user);
+end $$;
+
+-- A client opens a project with a creator.
+create or replace function market_chat_open(p_creator_key text, p_creator_name text, p_title text, p_brief text, p_meta jsonb default '{}')
+returns market_chats
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); c public.market_chats; who uuid; mine text; cname text := left(coalesce(nullif(trim(p_creator_name), ''), 'the creator'), 80);
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  select coalesce(nullif(org, ''), nullif(name, ''), 'A client') into mine from public.market_profiles where id = me and is_client;
+  if mine is null then raise exception 'client accounts only'; end if;
+  if p_creator_key is null or length(p_creator_key) not between 2 and 80 then raise exception 'unknown creator'; end if;
+  if length(trim(coalesce(p_title, ''))) not between 3 and 80 then raise exception 'the project needs a name'; end if;
+  if (select count(*) from public.market_chats where client_id = me and created_at > now() - interval '1 day') >= 40 then
+    raise exception 'too many new projects today';
+  end if;
+  select id into who from public.market_profiles where creator_key = p_creator_key;
+  insert into public.market_chats (client_id, creator_key, creator_id, creator_name, title, brief, meta, last_text, last_side, creator_read_at)
+    values (me, p_creator_key, who, cname, trim(p_title), left(p_brief, 4000), coalesce(p_meta, '{}'), left(p_brief, 200), 'client', null)
+    returning * into c;
+  insert into public.market_messages (chat_id, side, kind, body) values (c.id, 'system', 'system', mine || ' opened a project with ' || cname || '.');
+  if who is null then
+    insert into public.market_messages (chat_id, side, kind, body)
+      values (c.id, 'system', 'system', cname || ' hasn''t joined Rolvo yet. Messages are saved here and delivered when they join.');
+  end if;
+  update public.market_chats set client_read_at = clock_timestamp(), last_at = clock_timestamp() where id = c.id returning * into c;
+  return c;
+end $$;
+
+-- Send a message as one side of a chat.
+create or replace function market_chat_send(p_chat uuid, p_side text, p_body text) returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; t text := trim(coalesce(p_body, ''));
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if p_side not in ('client','creator') then raise exception 'unknown side'; end if;
+  if not exists (select 1 from public.market_chats where id = p_chat and ((p_side = 'client' and client_id = me) or (p_side = 'creator' and creator_id = me))) then
+    raise exception 'not your chat';
+  end if;
+  if length(t) not between 1 and 4000 then raise exception 'a message is 1 to 4000 characters'; end if;
+  if (select count(*) from public.market_messages where sender = me and created_at > now() - interval '1 minute') >= 60 then
+    raise exception 'slow down a little';
+  end if;
+  insert into public.market_messages (chat_id, side, sender, kind, body) values (p_chat, p_side, me, 'text', t) returning * into m;
+  update public.market_chats
+     set last_text = left(t, 200), last_side = p_side, last_at = m.created_at,
+         client_read_at = case when p_side = 'client' then m.created_at else client_read_at end,
+         creator_read_at = case when p_side = 'creator' then m.created_at else creator_read_at end
+   where id = p_chat;
+  return m;
+end $$;
+
+-- "I've seen everything in this chat up to now."
+create or replace function market_chat_read(p_chat uuid, p_side text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if p_side = 'client' then update public.market_chats set client_read_at = clock_timestamp() where id = p_chat and client_id = auth.uid();
+  elsif p_side = 'creator' then update public.market_chats set creator_read_at = clock_timestamp() where id = p_chat and creator_id = auth.uid();
+  end if;
+end $$;
+
+-- My chats on one side, newest first, each with the other person's public card and my unread count. 'admin' lists every chat.
+create or replace function market_chats_mine(p_side text) returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare me uuid := auth.uid(); res jsonb;
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if p_side not in ('client','creator','admin') then raise exception 'unknown side'; end if;
+  if p_side = 'admin' and not public.market_is_admin() then raise exception 'admins only'; end if;
+  select coalesce(jsonb_agg(x.j order by x.last_at desc), '[]'::jsonb) into res from (
+    select c.last_at, jsonb_build_object(
+      'id', c.id, 'creator_key', c.creator_key, 'creator_joined', c.creator_id is not null, 'title', c.title, 'brief', c.brief, 'meta', c.meta,
+      'last_text', c.last_text, 'last_side', c.last_side, 'last_at', c.last_at, 'created_at', c.created_at,
+      'client_read_at', c.client_read_at, 'creator_read_at', c.creator_read_at,
+      'client', jsonb_build_object('id', c.client_id, 'name', cl.name, 'org', cl.org, 'avatar', cl.avatar_url, 'verified', cl.verified, 'website', cl.profile->>'website'),
+      'creator', jsonb_build_object('name', coalesce(nullif(cr.name, ''), c.creator_name), 'avatar', cr.avatar_url),
+      'unread', (select count(*) from public.market_messages m where m.chat_id = c.id and m.side <> p_side
+                   and m.created_at > coalesce(case p_side when 'client' then c.client_read_at when 'creator' then c.creator_read_at end, '-infinity'::timestamptz))
+    ) as j
+    from public.market_chats c
+    left join public.market_profiles cl on cl.id = c.client_id
+    left join public.market_profiles cr on cr.id = c.creator_id
+    where (p_side = 'client' and c.client_id = me) or (p_side = 'creator' and c.creator_id = me) or p_side = 'admin'
+    order by c.last_at desc limit 300) x;
+  return res;
+end $$;
+
+revoke all on function market_chat_bind(uuid), market_chat_link(), market_confirm_creator(uuid, text), market_chat_open(text, text, text, text, jsonb),
+  market_chat_send(uuid, text, text), market_chat_read(uuid, text), market_chats_mine(text) from public, anon;
+grant execute on function market_chat_link(), market_confirm_creator(uuid, text), market_chat_open(text, text, text, text, jsonb),
+  market_chat_send(uuid, text, text), market_chat_read(uuid, text), market_chats_mine(text) to authenticated;
+
+-- Realtime: the site hears about new messages and chat changes without reloading. Row-level security still decides who hears what.
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'market_messages') then
+      alter publication supabase_realtime add table public.market_messages;
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'market_chats') then
+      alter publication supabase_realtime add table public.market_chats;
+    end if;
+  end if;
+end $$;
+
+-- ───────────────────── Part 4 · Order forms in chat ─────────────────────
+-- An order form is a message (kind 'offer') either side can send: what is being made, its kind, the agreed price, and how the
+-- client will pay (wallet | card | paypal). Its state lives in the message's data: pending → accepted | declined | withdrawn,
+-- or superseded when a newer form replaces it. Only the other side can accept or decline; only the sender can withdraw.
+create or replace function market_offer_send(p_chat uuid, p_side text, p_title text, p_kind text, p_price integer, p_method text)
+returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; t text := trim(coalesce(p_title, ''));
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if p_side not in ('client','creator') then raise exception 'unknown side'; end if;
+  if not exists (select 1 from public.market_chats where id = p_chat and ((p_side = 'client' and client_id = me) or (p_side = 'creator' and creator_id = me))) then
+    raise exception 'not your chat';
+  end if;
+  if length(t) not between 2 and 80 then raise exception 'the order needs a name'; end if;
+  if p_price is null or p_price < 1 or p_price > 1000000 then raise exception 'the price is 1 to 1,000,000 dollars'; end if;
+  if p_method not in ('wallet','card','paypal') then raise exception 'unknown payment method'; end if;
+  if exists (select 1 from public.market_messages where chat_id = p_chat and kind = 'offer' and data->>'status' = 'accepted' and data->>'paid_at' is null) then
+    raise exception 'an order form is already accepted in this chat';
+  end if;
+  update public.market_messages set data = data || '{"status":"superseded"}'::jsonb
+   where chat_id = p_chat and kind = 'offer' and data->>'status' = 'pending';
+  insert into public.market_messages (chat_id, side, sender, kind, body, data)
+    values (p_chat, p_side, me, 'offer', 'Order form · ' || t || ' · $' || p_price,
+            jsonb_build_object('title', t, 'kind', left(coalesce(p_kind, ''), 60), 'price', p_price, 'method', p_method, 'status', 'pending'))
+    returning * into m;
+  update public.market_chats
+     set last_text = m.body, last_side = p_side, last_at = m.created_at,
+         client_read_at = case when p_side = 'client' then m.created_at else client_read_at end,
+         creator_read_at = case when p_side = 'creator' then m.created_at else creator_read_at end
+   where id = p_chat;
+  return m;
+end $$;
+
+-- p_answer: 'accept' or 'decline' (the side that received it), 'withdraw' (the side that sent it).
+create or replace function market_offer_answer(p_msg uuid, p_side text, p_answer text) returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; st text; who text;
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if p_side not in ('client','creator') then raise exception 'unknown side'; end if;
+  select * into m from public.market_messages where id = p_msg and kind = 'offer' for update;
+  if m.id is null then raise exception 'no such order form'; end if;
+  if not exists (select 1 from public.market_chats where id = m.chat_id and ((p_side = 'client' and client_id = me) or (p_side = 'creator' and creator_id = me))) then
+    raise exception 'not your chat';
+  end if;
+  if m.data->>'status' <> 'pending' then raise exception 'this order form is no longer open'; end if;
+  if p_answer in ('accept','decline') and m.side = p_side then raise exception 'the other side answers an order form'; end if;
+  if p_answer = 'withdraw' and m.side <> p_side then raise exception 'only the sender can withdraw'; end if;
+  st := case p_answer when 'accept' then 'accepted' when 'decline' then 'declined' when 'withdraw' then 'withdrawn' else null end;
+  if st is null then raise exception 'unknown answer'; end if;
+  update public.market_messages set data = data || jsonb_build_object('status', st, 'answered_at', clock_timestamp()) where id = p_msg returning * into m;
+  who := case p_side when 'client' then 'The client' else 'The creator' end;
+  insert into public.market_messages (chat_id, side, kind, body)
+    values (m.chat_id, 'system', 'system', who || ' ' || st || ' the order form: ' || (m.data->>'title') || ' · $' || (m.data->>'price') || '.');
+  update public.market_chats set last_text = 'Order form ' || st, last_side = p_side, last_at = clock_timestamp() where id = m.chat_id;
+  return m;
+end $$;
+
+revoke all on function market_offer_send(uuid, text, text, text, integer, text), market_offer_answer(uuid, text, text) from public, anon;
+grant execute on function market_offer_send(uuid, text, text, text, integer, text), market_offer_answer(uuid, text, text) to authenticated;
+
+-- ───────────────────── Part 5 · Rolvo Wallet (clients) ─────────────────────
+-- A client's balance is never stored: it is the sum of their rows in market_wallet_ledger, one row per top-up or payment.
+-- Nobody writes the ledger from the browser. A payment is taken by market_offer_pay, which works the balance out here.
+--
+-- wallet_mode says what kind of money the wallet holds right now:
+--   demo  (default) no payment processor. market_wallet_topup_demo adds pretend funds so the flow can be tried; the site labels
+--         every balance and payment as demo. Card and PayPal order forms can be marked paid, also as demo.
+--   test  Stripe test keys: top-ups are written by the payments function after Stripe's webhook, with mode 'test'.
+--   live  real money: same path with live keys. Demo top-ups are refused, and demo rows no longer count.
+-- A balance only ever counts rows of the current mode, so pretend money can't be spent as real money. Change it by hand:
+--   update market_settings set value = 'test' where key = 'wallet_mode';
+create table if not exists market_settings (key text primary key, value text not null);
+insert into market_settings (key, value) values ('wallet_mode', 'demo') on conflict (key) do nothing;
+alter table market_settings enable row level security;
+revoke all on market_settings from anon, authenticated;
+
+create table if not exists market_wallet_ledger (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users on delete cascade,
+  amount numeric(12,2) not null check (amount <> 0),          -- + money in, − money out
+  kind text not null check (kind in ('topup','order','refund','adjust')),
+  mode text not null check (mode in ('demo','test','live')),
+  method text,                                                 -- card | paypal | demo
+  ref text,                                                    -- Stripe PaymentIntent / PayPal capture / order form id: one row each
+  note text,
+  created_at timestamptz not null default clock_timestamp()
+);
+create unique index if not exists market_wallet_ref on market_wallet_ledger (kind, ref) where ref is not null;
+create index if not exists market_wallet_user on market_wallet_ledger (user_id, id desc);
+alter table market_wallet_ledger enable row level security;
+drop policy if exists "own wallet rows or admin" on market_wallet_ledger;
+create policy "own wallet rows or admin" on market_wallet_ledger for select using (user_id = auth.uid() or market_is_admin());
+revoke all on market_wallet_ledger from anon, authenticated;
+grant select on market_wallet_ledger to authenticated;
+
+create or replace function market_wallet_mode() returns text
+language sql stable security definer set search_path = public as $$
+  select coalesce((select value from public.market_settings where key = 'wallet_mode' and value in ('demo','test','live')), 'demo')
+$$;
+
+-- My wallet: mode, balance in that mode, and the latest rows.
+create or replace function market_wallet() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare me uuid := auth.uid(); md text := public.market_wallet_mode();
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  return jsonb_build_object('mode', md,
+    'balance', (select coalesce(sum(amount), 0) from public.market_wallet_ledger where user_id = me and mode = md),
+    'rows', (select coalesce(jsonb_agg(to_jsonb(x) order by x.id desc), '[]'::jsonb) from
+              (select id, amount, kind, method, note, created_at from public.market_wallet_ledger where user_id = me and mode = md order by id desc limit 50) x));
+end $$;
+
+-- Pretend funds, only while the wallet is in demo mode.
+create or replace function market_wallet_topup_demo(p_amount integer) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid();
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if public.market_wallet_mode() <> 'demo' then raise exception 'demo funds are switched off'; end if;
+  if p_amount is null or p_amount < 1 or p_amount > 20000 then raise exception 'add between 1 and 20,000 dollars'; end if;
+  perform pg_advisory_xact_lock(hashtext(me::text));
+  if (select coalesce(sum(amount), 0) from public.market_wallet_ledger where user_id = me and mode = 'demo') + p_amount > 100000 then
+    raise exception 'that is more demo money than anyone needs';
+  end if;
+  insert into public.market_wallet_ledger (user_id, amount, kind, mode, method, note) values (me, p_amount, 'topup', 'demo', 'demo', 'Demo funds');
+  return public.market_wallet();
+end $$;
+
+-- The client pays an accepted order form. Wallet: the price is taken from the balance worked out here, never from a number
+-- the browser sends. Card / PayPal: only in demo mode, and marked as demo; a real card payment is confirmed by the processor.
+create or replace function market_offer_pay(p_msg uuid) returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; md text := public.market_wallet_mode(); price numeric(12,2); bal numeric(12,2); how text;
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  perform pg_advisory_xact_lock(hashtext(me::text));   -- one payment at a time per account, so two taps can't spend the same balance
+  select * into m from public.market_messages where id = p_msg and kind = 'offer' for update;
+  if m.id is null then raise exception 'no such order form'; end if;
+  if not exists (select 1 from public.market_chats where id = m.chat_id and client_id = me) then raise exception 'only the client pays'; end if;
+  if m.data->>'status' <> 'accepted' then raise exception 'this order form isn''t accepted'; end if;
+  if m.data->>'paid_at' is not null then raise exception 'already paid'; end if;
+  price := (m.data->>'price')::numeric; how := m.data->>'method';
+  if how = 'wallet' then
+    select coalesce(sum(amount), 0) into bal from public.market_wallet_ledger where user_id = me and mode = md;
+    if bal < price then raise exception 'not enough in your wallet: add %', to_char(price - bal, 'FM999999990.00'); end if;
+    insert into public.market_wallet_ledger (user_id, amount, kind, mode, method, ref, note) values (me, -price, 'order', md, 'wallet', m.id::text, m.data->>'title');
+  elsif md <> 'demo' then
+    raise exception 'card and PayPal payments aren''t connected yet';
+  end if;
+  update public.market_messages
+     set data = data || jsonb_build_object('paid_at', clock_timestamp(), 'paid_mode', case when how = 'wallet' then md else 'demo' end)
+   where id = p_msg returning * into m;
+  insert into public.market_messages (chat_id, side, kind, body)
+    values (m.chat_id, 'system', 'system', case when m.data->>'paid_mode' = 'live'
+      then 'Paid $' || (m.data->>'price') || '. Held by Rolvo until the work is delivered.'
+      else 'Paid $' || (m.data->>'price') || ' in ' || (m.data->>'paid_mode') || ' mode. No real money moved.' end);
+  update public.market_chats set last_text = 'Order form paid', last_side = 'client', last_at = clock_timestamp() where id = m.chat_id;
+  return m;
+end $$;
+
+revoke all on function market_wallet_mode(), market_wallet(), market_wallet_topup_demo(integer), market_offer_pay(uuid) from public, anon;
+grant execute on function market_wallet(), market_wallet_topup_demo(integer), market_offer_pay(uuid) to authenticated;

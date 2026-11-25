@@ -18,6 +18,7 @@ The market is a **working prototype**. Every flow runs end to end in one browser
 | Sign-in: Google | 🟡 Code done, waiting on keys | Client ID in `config.js`, then publish the Google app |
 | Payments in: card through Stripe (order amount + card fee) | 🟡 Code done, demo mode | Supabase function deployed, Stripe test keys, server-side order amounts |
 | Creator wallet: balance, payout method, withdrawals (Stripe Connect) | 🟡 Demo works; live code written, never run against Stripe | Stripe account with Connect enabled, function deployed, orders in the database |
+| Messages between a client and a creator | 🟡 Code done: stored in Supabase, pushed live to the other side (`chat.js`, `market.sql` Part 3). Tested against a local Postgres, not yet against the live project | Run the new `market.sql` in Supabase. Until then chats stay in the browser and say so. Terms, deliveries and escrow are still browser-only |
 | Escrow, revisions, contract breaks | ✅ Working (browser ledger) | Real money movement and creator payouts |
 | Match a reference (client `#/match`) | ✅ Live. Reads an uploaded file or a YouTube link in the browser | Other sites' videos can't be read; category guess is rough; phone speed untested |
 | Real creators (87) | ✅ Live, unclaimed | Outreach. Invites are a status flag, no email is sent |
@@ -226,7 +227,16 @@ Run [`server/market.sql`](server/market.sql) once in the Supabase SQL editor. Fr
 - Make yourself an admin by hand after your first sign-in: `update market_profiles set role = 'admin' where email = 'you@example.com';` and add the same address to `adminEmails` in config.js.
 - If the SQL hasn't been run, sign-in still works and a console warning says accounts aren't being stored.
 
-Orders, chats and creator approval are still browser-only (see below).
+**Chats (Supabase tables + Realtime)**
+
+`market.sql` Part 3 adds `market_chats` (one per project) and `market_messages`. Signed in on the live site, starting a project creates the chat in the database and both sides read the same rows; `chat.js` listens through Realtime, with a slow poll behind it.
+
+- Nobody writes the tables directly. Opening a chat, sending and marking read go through SQL functions that check the caller; row-level security lets only the two sides and admins read.
+- A chat with a creator who has no account is stored with no creator attached. The client sees "Saved · not delivered yet"; nothing claims an invite was sent.
+- Claiming a crawled profile (`r_…`) proves nothing, so its chats reach an account only after an admin presses **Confirm** in Admin → Creators → Creator accounts (`market_confirm_creator`). A creator who applied on the site (`c_…`) is linked without that step.
+- If Part 3 hasn't been run, or in demo mode, conversations stay in the browser as before, and live they carry a line saying the other side can't see them.
+
+Orders (terms, deliveries, escrow) and creator approval are still browser-only (see below).
 
 **Payments and payouts (Stripe + Stripe Connect)**
 
@@ -273,7 +283,11 @@ In rough priority order. Each item says where the work goes.
 - [ ] Create a Supabase project (the old one, `wbbzlaeqzfrffooqenvs`, no longer exists). Paid plan once real users depend on it; free projects pause after a week idle.
 - [ ] Move `store.js` from `localStorage` to Supabase tables with row-level security: creators, orders, messages, deliveries, payments, ledger, reviews, breaks, discovered. Keep the `DB` method names; swap their bodies for queries/RPCs. Today **each browser has its own data**, so a teammate can't see an order you created.
 - [ ] Move uploaded cuts from IndexedDB to Supabase Storage (or Mux / Cloudflare Stream) with signed, expiring URLs.
-- [ ] Realtime chat (Supabase Realtime) instead of re-rendering on local changes.
+- [x] Chats in Supabase with Realtime (`chat.js`, `market.sql` Part 3). Left: run it against the live project with two accounts; an admin view of chats waiting on creators who haven't joined; email notice for a new message.
+- [x] Order forms inside the chat (`market.sql` Part 4): name, kind, price, payment method; accept, decline, change, withdraw, state kept by the database. The + next to the message box opens a tray of tools. Left: paying an accepted form (wallet, card, PayPal), and deliveries for database chats.
+- [x] Rolvo Wallet for clients (`market.sql` Part 5, `Wallet` in `pay.js`): the balance is the sum of ledger rows, the database takes the payment for an accepted order form, and an optional add-funds step closes client onboarding. Runs in **demo mode** (pretend funds, labelled everywhere) until payments are connected.
+- [ ] Real money in the wallet. Needs: a Stripe account; `stripePk` (pk_test_… first) and `paymentsUrl` in `config.js`; the payments function deployed with `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, and its webhook URL registered at Stripe for `payment_intent.succeeded`; then `update market_settings set value = 'test' where key = 'wallet_mode';`. The `wallet_topup` action and its webhook branch are written but have never run against Stripe, and refuse live keys. Before `live`: money-transmission / stored-value legal review, refunds and withdrawals of unspent balance, and releasing a paid order to the creator (deliveries for database chats don't exist yet).
+- [ ] PayPal and card payment of an order form outside demo mode (PayPal needs a client id and secret; both need the amount read from the order form on the server).
 - [ ] Admin rights from a server-side role, not `CONFIG.adminEmails` (anyone can read and edit that list in the browser).
 
 **1b. Matching and the creator side of the market**
@@ -346,6 +360,7 @@ Until a secret exists, both Claude jobs skip themselves with a notice, and PRs s
 | `store.js` | Data layer: identities, orders, escrow state machine, ledger, payments, invites |
 | `auth.js` | Google / email / phone sign-in: Google's own button (ID token, verified by Supabase when set), Supabase codes, or demo |
 | `pay.js` | Checkout sheet: Stripe Payment Element or PayPal Buttons, or demo |
+| `chat.js` | Chats in the database: sync, send, Realtime, read receipts; falls back to the browser when the tables aren't there |
 | `ui.js` | Shared UI: `h()`, router, header and footer, sheets, covers, video player, chat and order card, watermarked preview |
 | `merchant.js` · `creator.js` · `admin.js` | The three sites |
 | `voice.js` | "Talk it through" voice answers for onboarding (Web Speech API) |
