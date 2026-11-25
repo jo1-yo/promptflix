@@ -17,3 +17,4 @@ jobs:
         with:
           node-version: 22
       - run: node --no-warnings scripts/check.mjs
+      - run: node --no-warnings --test   # tests/*.test.mjs: order and escrow rules, payments function (all stubbed, no network)

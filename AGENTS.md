@@ -24,7 +24,7 @@ Rolvo: a marketplace for AI filmmakers. Static site on GitHub Pages, no build st
 - **Top-level `const` is not on `window`.** Use `typeof Auth !== "undefined"`, not `window.Auth`.
 - **Referrer policy.** Every page has `<meta name="referrer" content="no-referrer">` because X's video CDN rejects cross-site referrers. `auth.js` switches it to `strict-origin-when-cross-origin` while the sign-in sheet is open (Google needs the origin) and `closeSheet()` restores it. Don't remove either half.
 - **Data layer.** All reads and writes go through `DB` in `store.js` and end in `DB.save()`, which fires `pfm:change` and re-renders. Every `DB` method will become one Supabase table call or RPC; keep names and record shapes stable. If you change a stored shape, migrate old records in `DB.load()` or bump `KEY`.
-- **Order states.** `negotiating → agreed → in_production → trial_review → revising → final_due → completed`, or `cancelled`. Escrow moves only inside `store.js` (`payDeposit`, `decide`, `payBalance`, `breakContract`). Commission is `COMMISSION` (10%).
+- **Order states.** `negotiating → agreed → in_production → trial_review → revising → final_due → completed`, or `cancelled`. Escrow moves only inside `store.js` (`payDeposit`, `decide`, `payBalance`, `breakContract`). Money rules are the `FEES` object at the top of `store.js` (1% commission); the payments function mirrors them and `tests/` fails if the two drift.
 - **Live vs demo.** `LIVE.auth / google / stripe / paypal` in `config.js` decide each path. Every new integration needs a demo path that runs with empty keys.
 - **Local server caches.** `python3 -m http.server` lets the browser keep old scripts. Hard-reload before you trust a test.
 

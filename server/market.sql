@@ -69,7 +69,7 @@ end $$;
 drop trigger if exists market_new_user on auth.users;
 create trigger market_new_user after insert on auth.users for each row execute function market_new_user();
 
-create or replace function market_touch() returns trigger language plpgsql as $$
+create or replace function market_touch() returns trigger language plpgsql set search_path = public as $$
 begin new.updated_at := now(); return new; end $$;
 drop trigger if exists market_touch on market_profiles;
 create trigger market_touch before update on market_profiles for each row execute function market_touch();
