@@ -64,7 +64,7 @@ const Cloud = {
     }
     if (error) console.warn("Rolvo: account not saved to the database.", error.message); else this.sent[key] = json;
   },
-  signOut(){ const sb = LIVE.auth && Auth.client(); if (sb) sb.auth.signOut(); },
+  signOut(){ const sb = LIVE.auth && Auth.client(); if (sb) sb.auth.signOut({ scope: "local" }); },   // local: the same login may be signed in on the other site or in admin; a global sign-out would end those too
 };
 document.addEventListener("pfm:change", () => Cloud.queue());
 
@@ -88,7 +88,7 @@ const Auth = {
     let account = null;
     if (LIVE.auth && identity.mode === "live"){   // the database decides which side this account is on and records the sign-in
       try { account = await Cloud.enter(identity); }
-      catch (e) { await this.client().auth.signOut(); const m = /wrong_side:(\w+)/.exec(e.message || ""); return toast(m ? wrongSide(m[1]) : "Couldn't open your account. " + (e.message || "")); }
+      catch (e) { await this.client().auth.signOut({ scope: "local" }); const m = /wrong_side:(\w+)/.exec(e.message || ""); return toast(m ? wrongSide(m[1]) : "Couldn't open your account. " + (e.message || "")); }
     }
     const p = this.pending || {}; this.pending = null;
     if (p.onIdentity){ p.onIdentity(identity); return Cloud.attach(account); }
