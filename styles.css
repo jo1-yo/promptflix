@@ -843,3 +843,30 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 .msg .st.link{justify-self:end;color:var(--fg)}
 .msg.failed .bub{opacity:.55}
 .tnote{margin:0;padding:10px 20px 14px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+
+/* ---------- chat tools: + tray and the order form card ---------- */
+.thread{grid-template-rows:auto auto minmax(0,1fr) auto auto}
+.plus{border-radius:50%;transition:transform .18s ease,background .15s,color .15s}
+.plus[aria-expanded="true"]{transform:rotate(45deg);color:var(--fg)}
+.tray{display:grid;grid-template-columns:repeat(4,minmax(0,92px));gap:6px;padding:6px 20px calc(16px + env(safe-area-inset-bottom,0))}
+.tray[hidden]{display:none}
+.ttile{display:grid;justify-items:center;gap:8px;padding:6px 2px;font-size:12px;color:var(--muted);text-align:center;line-height:1.25}
+.ttile .tico{width:56px;height:56px;border-radius:16px;background:var(--raise);display:grid;place-items:center;color:var(--fg);transition:background .15s}
+.ttile:hover .tico{background:var(--raise2)} .ttile:hover{color:var(--fg)}
+.ocard{width:min(320px,76vw);background:var(--frost);-webkit-backdrop-filter:var(--frost-blur);backdrop-filter:var(--frost-blur);border-radius:16px;padding:16px 18px;display:grid;gap:14px;text-align:left;font-size:14px}
+.msg.me .ocard{justify-self:end}
+.ocard .otop{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted)}
+.ocard .ost{color:var(--fg);font-weight:500}
+.ocard.accepted .ost{color:var(--ok)}
+.ocard.declined .ost,.ocard.withdrawn .ost,.ocard.superseded .ost{color:var(--dim);font-weight:400}
+.ocard .obody{display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+.ocard .obody b{display:block;font-weight:500;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.ocard .obody span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.ocard .oprice{font-size:26px;letter-spacing:-.03em;line-height:1;white-space:nowrap}
+.ocard .opay{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding-top:12px;border-top:1px solid var(--line)}
+.ocard .opay span:first-child{color:var(--muted)}
+.ocard .oact{display:flex;gap:8px;flex-wrap:wrap}
+.ocard .oact .btn.primary{flex:1}
+.ocard.declined,.ocard.withdrawn,.ocard.superseded{opacity:.55}
+.ocard.declined .oprice,.ocard.withdrawn .oprice,.ocard.superseded .oprice{text-decoration:line-through;text-decoration-thickness:1px}
+@media(max-width:800px){.tray{padding-left:12px;padding-right:12px;grid-template-columns:repeat(4,minmax(0,1fr))}}

@@ -131,16 +131,19 @@ const Chat = {
   listen(){
     const sb = Auth.client();
     this.channel = sb.channel("rolvo-chat-" + APP + "-" + this.uid.slice(0, 8))
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "market_messages" }, p => this.onMessage(p.new))
+      .on("postgres_changes", { event: "*", schema: "public", table: "market_messages" }, p => this.onMessage(p.new, p.eventType))
       .on("postgres_changes", { event: "*", schema: "public", table: "market_chats" }, p => this.onChat(p.new))
       .subscribe(st => { const was = this.rt; this.rt = st; if (st === "SUBSCRIBED" && was !== "off") this.syncSoon(); });
     let n = 0; this.pollT = setInterval(() => { n++; if (document.hidden) return; if (this.rt !== "SUBSCRIBED" || n % 3 === 0 || (this.view && this.watching(this.view.id))) this.sync(); }, 20000);
   },
-  onMessage(m){
+  onMessage(m, ev){
     if (!m || !m.chat_id) return; const r = this.row(m.chat_id); if (!r) return this.syncSoon();
     const list = this.msgs[m.chat_id];
+    const known = list ? list.findIndex(x => x.id === m.id) : -1;
+    if (known >= 0){ list[known] = m; this.paint(); return this.relist(); }   // an order form changed state
+    if (ev === "UPDATE") return;
     if (this.busy[m.chat_id]) this.stale[m.chat_id] = true;
-    else if (list && !list.some(x => x.id === m.id)){
+    else if (list){
       const i = m.side === this.side() ? list.findIndex(x => x.pending && x.body === m.body) : -1;   // my own message echoed back before the send call returned
       if (i >= 0) list[i] = m; else { const at = list.findIndex(x => x.pending || x.failed); at < 0 ? list.push(m) : list.splice(at, 0, m); }
     }
@@ -162,12 +165,18 @@ const Chat = {
   },
   relist(){ const el = $(".tlist"); if (!el || !this.relistWith) return; const top = el.scrollTop; const n = this.relistWith(); el.replaceWith(n); n.scrollTop = top; },
   paint(stick){ const v = this.view; if (!v || !v.stream.isConnected) return; const s = v.stream, near = s.scrollHeight - s.scrollTop - s.clientHeight < 80;
-    s.replaceChildren(...this.bubbles(v.o, v.u)); if (stick || near) s.scrollTop = s.scrollHeight; },
+    s.replaceChildren(...this.bubbles(v.o, v.u)); v.pin.replaceChildren(...this.pinned(v.o)); if (stick || near) s.scrollTop = s.scrollHeight; },
   bubbles(o, u){
     const list = this.msgs[o.id]; if (!list) return [h("div", { class: "msg sys" }, h("div", { class: "bub" }, "Loading messages…"))];
     const side = this.side(), r = this.row(o.id) || {}, theirRead = side === "client" ? r.creator_read_at : r.client_read_at;
     const lastMine = list.filter(m => m.side === side).pop();
+    const other = first(otherOf(o, u.id).name);
     return list.map(m => {
+      if (m.kind === "offer" && m.data){ const d = m.data, mine = m.side === side, open = d.status === "pending";
+        const act = (label, ans, cls) => h("button", { class: "btn small " + (cls || ""), onclick: e => { e.currentTarget.disabled = true; this.answer(m, ans); } }, label);
+        const change = h("button", { class: "btn small", onclick: () => this.form(o, d) }, "Change");
+        return offerCard(d, { status: d.status, mine, who: DB.nameOf(m.side === "client" ? o.clientId : o.creatorId), at: m.created_at, other,
+          btns: !open ? [] : mine ? [change, act("Withdraw", "withdraw", "quiet")] : [act("Accept", "accept", "primary"), change, act("Decline", "decline", "quiet")] }); }
       if (m.side === "system") return h("div", { class: "msg sys" }, h("div", { class: "bub" }, m.body));
       const mine = m.side === side, who = DB.nameOf(m.side === "client" ? o.clientId : o.creatorId);
       const st = !mine ? null : m.failed ? h("button", { class: "st link", type: "button", onclick: () => this.deliver(o.id, m) }, m.failed + " · Retry")
@@ -178,21 +187,41 @@ const Chat = {
   },
   thread(o, u){
     const other = otherOf(o, u.id), side = this.side();
-    const stream = h("div", { class: "stream" });
+    const stream = h("div", { class: "stream" }), pin = h("div", { class: "pinned" }, ...this.pinned(o));
     const input = h("input", { class: "i", placeholder: "Message " + first(other.name), autocomplete: "off", maxlength: "4000", "aria-label": "Message" });
+    const tools = plusTray([["form", "Order form", () => this.form(o)], ["info", "Details", () => this.details(o)]]);
     const form = h("form", { class: "composer", onsubmit: e => { e.preventDefault(); const t = input.value.trim(); if (!t) return; input.value = ""; this.send(o.id, t); input.focus(); } },
-      input, h("button", { class: "btn primary", type: "submit" }, "Send"));
+      tools.btn, input, h("button", { class: "btn primary", type: "submit" }, "Send"));
     const sub = side === "creator" ? [other.verified ? "Verified company" : null, other.profile && other.profile.website].filter(Boolean).join(" · ") : other.where ? other.where + (other.tz ? " · " + other.tz : "") : "";
     const t = h("section", { class: "thread" },
       h("div", { class: "thead" }, h("a", { class: "btn quiet small back", href: "#/chats" }, "← Back"), avatar(other), h("div", { class: "who" }, h("b", null, other.name + (other.org ? " · " + other.org : "")), sub ? h("span", null, sub) : null),
         h("div", { style: { marginLeft: "auto" }, class: "row" }, h("button", { class: "btn small", onclick: () => this.details(o) }, "Details"))),
-      h("div", { class: "pinned" },
-        h("div", { class: "ptop" }, h("div", { class: "ptitle" }, o.title), o.price ? h("div", { class: "pprice" }, money(o.price)) : null),
-        h("div", { class: "pfacts" }, o.price ? h("span", null, side === "client" ? "Your opening offer" : "Client's opening offer") : null, h("span", null, "Opened " + when(o.createdAt)))),
-      stream, form);
-    this.view = { id: o.id, o, u, stream }; stream.replaceChildren(...this.bubbles(o, u));
+      pin, stream, form, tools.tray);
+    this.view = { id: o.id, o, u, stream, pin }; stream.replaceChildren(...this.bubbles(o, u));
     setTimeout(() => { stream.scrollTop = stream.scrollHeight; this.msgs[o.id] ? this.seen(o.id) : this.load(o.id); }, 0);
     return t;
+  },
+  /* The strip on top of a chat: the order as it stands. The newest open or accepted order form wins over the opening offer. */
+  pinned(o){
+    const side = this.side(), f = (this.msgs[o.id] || []).filter(m => m.kind === "offer" && m.data && ["pending", "accepted"].includes(m.data.status)).pop(), d = f && f.data;
+    const price = d ? d.price : o.price;
+    const fact = !d ? (o.price ? (side === "client" ? "Your opening offer" : "Client's opening offer") : "No price yet")
+      : d.status === "accepted" ? "Agreed · pay with " + payMethodName(d.method) : f.side === side ? "Order form sent" : "Order form needs your answer";
+    return [h("div", { class: "ptop" }, h("div", { class: "ptitle" }, d ? d.title : o.title), price ? h("div", { class: "pprice" }, money(price)) : null),
+      h("div", { class: "pfacts" }, h("span", { class: d && d.status === "accepted" ? "ok" : null }, fact), h("span", null, "Opened " + when(o.createdAt)))];
+  },
+  /* Order forms: a message whose state (pending, accepted, declined…) is kept by the database, so both sides always agree on it. */
+  form(o, cur){
+    const last = cur || ((this.msgs[o.id] || []).filter(m => m.kind === "offer").pop() || {}).data || {};
+    orderFormSheet({ title: last.title || o.title, kind: last.kind || (o.cat && TAXONOMY[o.cat] ? TAXONOMY[o.cat].name : ""), price: last.price || o.price, method: last.method }, "with " + otherOf(o, DB.me().id).name, async f => {
+      const { data, error } = await Auth.client().rpc("market_offer_send", { p_chat: o.id, p_side: this.side(), p_title: f.title, p_kind: f.kind, p_price: f.price, p_method: f.method });
+      if (error) throw new Error(chatSchemaMissing(error) ? "Order forms aren't switched on in the database yet." : error.message);
+      this.onMessage(data); this.load(o.id, true); });   // reload: the form it replaced changed state too
+  },
+  async answer(m, ans){
+    const { data, error } = await Auth.client().rpc("market_offer_answer", { p_msg: m.id, p_side: this.side(), p_answer: ans });
+    if (error){ toast(error.message); return this.load(m.chat_id, true); }
+    this.onMessage(data);
   },
   details(o){
     openSheet([phead(o.title, DB.nameOf(o.clientId) + "  ↔  " + DB.nameOf(o.creatorId) + "  ·  opened " + when(o.createdAt)),

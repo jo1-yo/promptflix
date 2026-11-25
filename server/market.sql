@@ -372,3 +372,65 @@ do $$ begin
     end if;
   end if;
 end $$;
+
+-- ───────────────────── Part 4 · Order forms in chat ─────────────────────
+-- An order form is a message (kind 'offer') either side can send: what is being made, its kind, the agreed price, and how the
+-- client will pay (wallet | card | paypal). Its state lives in the message's data: pending → accepted | declined | withdrawn,
+-- or superseded when a newer form replaces it. Only the other side can accept or decline; only the sender can withdraw.
+create or replace function market_offer_send(p_chat uuid, p_side text, p_title text, p_kind text, p_price integer, p_method text)
+returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; t text := trim(coalesce(p_title, ''));
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if p_side not in ('client','creator') then raise exception 'unknown side'; end if;
+  if not exists (select 1 from public.market_chats where id = p_chat and ((p_side = 'client' and client_id = me) or (p_side = 'creator' and creator_id = me))) then
+    raise exception 'not your chat';
+  end if;
+  if length(t) not between 2 and 80 then raise exception 'the order needs a name'; end if;
+  if p_price is null or p_price < 1 or p_price > 1000000 then raise exception 'the price is 1 to 1,000,000 dollars'; end if;
+  if p_method not in ('wallet','card','paypal') then raise exception 'unknown payment method'; end if;
+  if exists (select 1 from public.market_messages where chat_id = p_chat and kind = 'offer' and data->>'status' = 'accepted' and data->>'paid_at' is null) then
+    raise exception 'an order form is already accepted in this chat';
+  end if;
+  update public.market_messages set data = data || '{"status":"superseded"}'::jsonb
+   where chat_id = p_chat and kind = 'offer' and data->>'status' = 'pending';
+  insert into public.market_messages (chat_id, side, sender, kind, body, data)
+    values (p_chat, p_side, me, 'offer', 'Order form · ' || t || ' · $' || p_price,
+            jsonb_build_object('title', t, 'kind', left(coalesce(p_kind, ''), 60), 'price', p_price, 'method', p_method, 'status', 'pending'))
+    returning * into m;
+  update public.market_chats
+     set last_text = m.body, last_side = p_side, last_at = m.created_at,
+         client_read_at = case when p_side = 'client' then m.created_at else client_read_at end,
+         creator_read_at = case when p_side = 'creator' then m.created_at else creator_read_at end
+   where id = p_chat;
+  return m;
+end $$;
+
+-- p_answer: 'accept' or 'decline' (the side that received it), 'withdraw' (the side that sent it).
+create or replace function market_offer_answer(p_msg uuid, p_side text, p_answer text) returns market_messages
+language plpgsql security definer set search_path = public as $$
+declare me uuid := auth.uid(); m public.market_messages; st text; who text;
+begin
+  if me is null then raise exception 'not signed in'; end if;
+  if p_side not in ('client','creator') then raise exception 'unknown side'; end if;
+  select * into m from public.market_messages where id = p_msg and kind = 'offer' for update;
+  if m.id is null then raise exception 'no such order form'; end if;
+  if not exists (select 1 from public.market_chats where id = m.chat_id and ((p_side = 'client' and client_id = me) or (p_side = 'creator' and creator_id = me))) then
+    raise exception 'not your chat';
+  end if;
+  if m.data->>'status' <> 'pending' then raise exception 'this order form is no longer open'; end if;
+  if p_answer in ('accept','decline') and m.side = p_side then raise exception 'the other side answers an order form'; end if;
+  if p_answer = 'withdraw' and m.side <> p_side then raise exception 'only the sender can withdraw'; end if;
+  st := case p_answer when 'accept' then 'accepted' when 'decline' then 'declined' when 'withdraw' then 'withdrawn' else null end;
+  if st is null then raise exception 'unknown answer'; end if;
+  update public.market_messages set data = data || jsonb_build_object('status', st, 'answered_at', clock_timestamp()) where id = p_msg returning * into m;
+  who := case p_side when 'client' then 'The client' else 'The creator' end;
+  insert into public.market_messages (chat_id, side, kind, body)
+    values (m.chat_id, 'system', 'system', who || ' ' || st || ' the order form: ' || (m.data->>'title') || ' · $' || (m.data->>'price') || '.');
+  update public.market_chats set last_text = 'Order form ' || st, last_side = p_side, last_at = clock_timestamp() where id = m.chat_id;
+  return m;
+end $$;
+
+revoke all on function market_offer_send(uuid, text, text, text, integer, text), market_offer_answer(uuid, text, text) from public, anon;
+grant execute on function market_offer_send(uuid, text, text, text, integer, text), market_offer_answer(uuid, text, text) to authenticated;

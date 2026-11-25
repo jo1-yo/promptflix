@@ -187,12 +187,13 @@ function thread(o, u){
   const localOnly = LIVE.auth && APP !== "admin" ? h("div", { class: "msg sys" }, h("div", { class: "bub" }, "This conversation is saved on this device only. The other side can't see it.")) : null;
   const stream = h("div", { class: "stream" }, localOnly, ...items.map(it => it.m ? msgEl(it.m, o, u) : deliveryCard(o, it.d, u)));
   const input = h("input", { class: "i", placeholder: isParty ? "Message " + first(other.name) : "Admins can read but not write", disabled: !isParty, autocomplete: "off" });
+  const tools = plusTray(plusItems(o, u));
   const form = h("form", { class: "composer", onsubmit: e => { e.preventDefault(); if (!input.value.trim()) return; DB.send(o.id, u.id, input.value.trim()); input.value = ""; render(); setTimeout(() => { const i = $(".composer input"); i && i.focus(); }, 0); } },
-    h("button", { class: "plus", type: "button", "aria-label": "More", onclick: () => plusMenu(o, u) }, "+"), input, h("button", { class: "btn primary", type: "submit", disabled: !isParty }, "Send"));
+    tools.btn, input, h("button", { class: "btn primary", type: "submit", disabled: !isParty }, "Send"));
   const t = h("section", { class: "thread" },
     h("div", { class: "thead" }, h("a", { class: "btn quiet small back", href: "#/chats" }, "← Back"), avatar(other), h("div", { class: "who" }, h("b", null, APP === "admin" ? DB.nameOf(o.clientId) + " ↔ " + other.name : other.name + (other.org ? " · " + other.org : "")), h("span", null, other.where ? other.where + (other.tz ? " · " + other.tz : "") : (other.profile && other.profile.website) || other.email || "")),
       h("div", { style: { marginLeft: "auto" }, class: "row" }, h("span", { class: "badge " + o.status }, STATUS[o.status][0]), h("button", { class: "btn small", onclick: () => openSheet(detailsSheet(o, u)) }, "Details"))),
-    pinnedCard(o, u), stream, form);
+    pinnedCard(o, u), stream, form, tools.tray);
   setTimeout(() => { stream.scrollTop = stream.scrollHeight; }, 0);
   return t;
 }
@@ -205,13 +206,12 @@ function pinnedCard(o, u){
 }
 function actionsFor(o, u){
   const isC = u.id === o.clientId, isK = u.id === o.creatorId; if (!isC && !isK) return { text: STATUS[o.status][1], btns: [] };
-  const d = DB.latest(o); const end = { label: "End contract", cls: "quiet danger", onclick: () => endContract(o, u) };
-  const active = !["completed", "cancelled"].includes(o.status);
+  const d = DB.latest(o);
   let r;
   switch (o.status){
     case "negotiating": { const ok = o.terms.accepted[u.id]; const other = first(DB.nameOf(isC ? o.creatorId : o.clientId));
-      r = ok ? { text: `Waiting for ${other} to accept the terms.`, btns: [{ label: "Counter-propose", onclick: () => proposeTerms(o, u) }] }
-             : { text: `${first(DB.nameOf(o.terms.proposedBy))} proposed terms. Accept, or counter.`, btns: [{ label: "Accept terms", cls: "primary", onclick: () => { DB.acceptTerms(o.id, u.id); toast(DB.order(o.id).status === "agreed" ? "Contract generated." : "Accepted. Waiting for the other side."); render(); } }, { label: "Counter-propose", onclick: () => proposeTerms(o, u) }] }; break; }
+      r = ok ? { text: `Waiting for ${other} to accept.`, btns: [] }
+             : { text: `${first(DB.nameOf(o.terms.proposedBy))} sent an order form.`, btns: [{ label: "Accept", cls: "primary", onclick: () => { DB.acceptTerms(o.id, u.id); toast(DB.order(o.id).status === "agreed" ? "Contract generated." : "Accepted. Waiting for the other side."); render(); } }] }; break; }
     case "agreed": r = isC ? { text: "Contract signed. Pay the deposit to open the order; it's held by Rolvo.", btns: [{ label: "Pay " + money(DB.deposit(o)), cls: "primary", onclick: () => pay(o, DB.deposit(o), "Deposit", pm => DB.payDeposit(o.id, pm)) }] } : { text: "Contract signed. Waiting for the client's deposit.", btns: [] }; break;
     case "in_production": r = isK ? { text: `Deposit held. First cut due ${when(new Date(new Date(o.contractAt).getTime() + o.terms.trialDays * 864e5).toISOString())}.`, btns: [{ label: "Upload first cut", cls: "primary", onclick: () => uploadCut(o, "First cut") }] } : { text: `Deposit held. ${first(DB.nameOf(o.creatorId))} is making the first cut.`, btns: [] }; break;
     case "trial_review": r = isC ? { text: "First cut is in. Pass releases the deposit; fail refunds it.", btns: [{ label: "Review v1", cls: "primary", onclick: () => reviewSheet(o, u) }] } : { text: "Client is pre-reviewing v1.", btns: [] }; break;
@@ -222,16 +222,16 @@ function actionsFor(o, u){
     case "completed": r = o.review[u.id] ? { text: "Done." + (isC ? " The clean master is in the thread." : ""), btns: [] } : { text: "Delivered and paid.", btns: [{ label: "Leave a review", cls: "primary", onclick: () => openSheet([phead("Rate " + DB.nameOf(isC ? o.creatorId : o.clientId)), reviewBox(o, u)]) }] }; break;
     default: r = { text: "Contract ended" + (o.endReason ? ": " + o.endReason : "."), btns: [] };
   }
-  if (active) r.btns.push(end);
   return r;
 }
 function msgEl(mg, o, u){
   if (mg.kind === "system") return h("div", { class: "msg sys" }, h("div", { class: "bub" }, mg.text));
   const mine = mg.from === u.id; const isParty = u.id === o.clientId || u.id === o.creatorId;
-  if (mg.kind === "terms"){ const t = mg.terms; const current = JSON.stringify({ ...o.terms, accepted: 0 }) === JSON.stringify({ ...t, accepted: 0 });
-    return h("div", { class: "msg" + (mine ? " me" : "") }, h("span", { class: "who" }, DB.nameOf(mg.from) + " · proposed terms · " + ago(mg.at)),
-      h("div", { class: "bub terms" }, h("div", { class: "tl" }, h("span", null, "price ", h("b", null, money(t.price))), h("span", null, "deposit ", h("b", null, t.depositPct + "%")), h("span", null, "revisions ", h("b", null, t.revisions)), h("span", null, "duration ", h("b", null, t.durationDays + "d")), h("span", null, "first cut ", h("b", null, t.trialDays + "d"))),
-        current && o.status === "negotiating" && !o.terms.accepted[u.id] && isParty ? h("div", null, h("button", { class: "btn primary small", onclick: () => { DB.acceptTerms(o.id, u.id); render(); } }, "Accept these terms")) : current && o.status !== "negotiating" ? h("span", { class: "xs ok" }, "Accepted by both") : !current ? h("span", { class: "xs dim" }, "Superseded") : h("span", { class: "xs dim" }, "You accepted · waiting"))); }
+  if (mg.kind === "terms"){ const t = mg.terms; const current = JSON.stringify({ ...o.terms, accepted: 0 }) === JSON.stringify({ ...t, accepted: 0 }); const open = current && o.status === "negotiating";
+    const change = h("button", { class: "btn small", onclick: () => proposeTerms(o, u) }, "Change");
+    return offerCard({ title: t.title || o.title, kind: t.kind || (o.cat ? TAXONOMY[o.cat].name : ""), price: t.price, method: t.method || "card" },
+      { status: open ? "pending" : current ? "accepted" : "superseded", mine, who: DB.nameOf(mg.from), at: mg.at, other: first(DB.nameOf(mine ? (u.id === o.clientId ? o.creatorId : o.clientId) : mg.from)),
+        btns: !open || !isParty ? [] : o.terms.accepted[u.id] ? [change] : [h("button", { class: "btn primary small", onclick: () => { DB.acceptTerms(o.id, u.id); render(); } }, "Accept"), change] }); }
   return h("div", { class: "msg" + (mine ? " me" : "") }, h("span", { class: "who" }, DB.nameOf(mg.from) + " · " + ago(mg.at)), h("div", { class: "bub" }, mg.text));
 }
 function deliveryCard(o, d, u){
@@ -241,14 +241,59 @@ function deliveryCard(o, d, u){
     h("div", { class: "dcard" }, h("div", { class: "dtop" }, h("b", null, (d.kind === "trial" ? "First cut" : "Revision") + " · v" + d.v), h("span", null, st)), d.note ? h("p", null, d.note) : null, d.feedback ? h("p", { style: { borderLeft: "1px solid var(--line2)", paddingLeft: "10px" } }, "“" + d.feedback + "”") : null,
       h("div", { class: "row" }, h("button", { class: "btn small", onclick: () => showPreview(o, d, clean) }, clean ? "Open clean master" : "View preview"))));
 }
-function plusMenu(o, u){
+function plusItems(o, u){
   const isC = u.id === o.clientId, isK = u.id === o.creatorId; const items = [];
-  if (o.status === "negotiating" && (isC || isK)) items.push(["Propose terms", "Price, deposit %, revisions, dates", () => { closeSheet(); proposeTerms(o, u); }]);
-  if (isK && o.status === "in_production") items.push(["Deliver first cut", "Watermarked for the client", () => { closeSheet(); uploadCut(o, "First cut"); }]);
-  if (isK && o.status === "revising" && DB.latest(o).status === "revise") items.push(["Deliver revision", "v" + (o.deliveries.length + 1), () => { closeSheet(); uploadCut(o, "Revision v" + (o.deliveries.length + 1)); }]);
-  items.push(["Order details", "Terms, escrow, brief, deliveries", () => { closeSheet(); openSheet(detailsSheet(o, u)); }]);
-  if (!["completed", "cancelled"].includes(o.status) && (isC || isK)) items.push(["End contract", DB.breaksLeft(u.id) + " breaks left this month", () => { closeSheet(); endContract(o, u); }]);
-  openSheet([phead(o.title), h("div", { class: "menu" }, ...items.map(([l, s, f]) => h("button", { onclick: f }, l, h("span", null, s))))]);
+  if (o.status === "negotiating" && (isC || isK)) items.push(["form", "Order form", () => proposeTerms(o, u)]);
+  if (isK && o.status === "in_production") items.push(["film", "Deliver cut", () => uploadCut(o, "First cut")]);
+  if (isK && o.status === "revising" && DB.latest(o).status === "revise") items.push(["film", "Deliver revision", () => uploadCut(o, "Revision v" + (o.deliveries.length + 1))]);
+  items.push(["info", "Details", () => openSheet(detailsSheet(o, u))]);
+  if (!["completed", "cancelled"].includes(o.status) && (isC || isK)) items.push(["end", "End contract", () => endContract(o, u)]);
+  return items;
+}
+/* ---------- chat tools: the + tray, the order form and its card (shared by browser chats and database chats) ---------- */
+const CHAT_ICONS = {
+  form: '<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20V3.5Z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/>',
+  film: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="m10.5 9.5 4 2.5-4 2.5v-5Z"/>',
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/>',
+  end: '<circle cx="12" cy="12" r="8.5"/><path d="m9 9 6 6M15 9l-6 6"/>',
+  wallet: '<rect x="3.5" y="6" width="17" height="12.5" rx="2.5"/><path d="M3.5 10h17M16 14.5h1.5"/>',
+};
+function chatIcon(k){ const e = h("span", { class: "tico", "aria-hidden": "true" }); e.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + CHAT_ICONS[k] + "</svg>"; return e; }
+/* The + next to the message box opens a row of tools under it, the way a phone's messaging app does. items: [icon, label, run] */
+function plusTray(items){
+  const tray = h("div", { class: "tray", hidden: true });
+  const btn = h("button", { class: "plus", type: "button", "aria-label": "More", "aria-expanded": "false", onclick: () => set(tray.hidden) }, "+");
+  const set = on => { tray.hidden = !on; btn.setAttribute("aria-expanded", String(on)); };
+  tray.append(...items.map(([k, l, f]) => h("button", { class: "ttile", type: "button", onclick: () => { set(false); f(); } }, chatIcon(k), h("span", null, l))));
+  return { btn, tray };
+}
+const PAY_METHODS = [["wallet", "Rolvo Wallet"], ["card", "Card"], ["paypal", "PayPal"]];
+const payMethodName = k => (PAY_METHODS.find(x => x[0] === k) || PAY_METHODS[1])[1];
+/* cur = { title, kind, price, method } to start from; send(form) may return a promise that rejects with the reason it wasn't sent */
+function orderFormSheet(cur, sub, send){
+  let method = cur.method || "wallet";
+  const seg = h("div", { class: "seg", role: "tablist", "aria-label": "Pay with" }, ...PAY_METHODS.map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(method === k), onclick: e => { method = k; for (const b of seg.children) b.setAttribute("aria-selected", String(b === e.currentTarget)); } }, l)));
+  const kinds = Object.values(TAXONOMY).map(t => t.name);
+  const f = h("form", { class: "form", onsubmit: async e => { e.preventDefault(); const fd = new FormData(f), btn = f.querySelector("[type=submit]"); btn.disabled = true;
+      try { await send({ title: fd.get("title").trim(), kind: fd.get("kind"), price: Math.round(+fd.get("price")), method }); closeSheet(); }
+      catch (err) { btn.disabled = false; toast(err.message || "Couldn't send the order form."); } } },
+    field("What's being made", h("input", { class: "i", name: "title", required: true, minlength: "2", maxlength: "80", value: cur.title || "" })),
+    h("div", { class: "row2" },
+      field("Kind", h("select", { class: "i", name: "kind" }, ...kinds.map(k => h("option", { value: k, selected: cur.kind === k }, k)))),
+      field("Price (USD)", h("input", { class: "i", name: "price", type: "number", min: "1", step: "1", required: true, inputmode: "numeric", value: cur.price || "" }))),
+    field("Pay with", seg),
+    h("button", { class: "btn primary big", type: "submit" }, "Send order form"));
+  openSheet([phead("Order form", sub), f]);
+}
+/* f = { title, kind, price, method }; status: pending | accepted | declined | withdrawn | superseded */
+function offerCard(f, { status, mine, who, at, other, btns, foot }){
+  const st = { pending: mine ? "Waiting for " + other : "Needs your answer", accepted: "Accepted", declined: "Declined", withdrawn: "Withdrawn", superseded: "Replaced" }[status];
+  return h("div", { class: "msg" + (mine ? " me" : "") }, h("span", { class: "who" }, who + " · " + ago(at)),
+    h("div", { class: "ocard " + status },
+      h("div", { class: "otop" }, h("span", null, "Order form"), h("span", { class: "ost" }, st)),
+      h("div", { class: "obody" }, h("div", null, h("b", null, f.title), f.kind ? h("span", null, f.kind) : null), h("div", { class: "oprice" }, money(f.price))),
+      h("div", { class: "opay" }, h("span", null, "Pay with"), h("span", null, payMethodName(f.method))),
+      btns && btns.length ? h("div", { class: "oact" }, ...btns) : null, foot || null));
 }
 const FLOW = ["negotiating", "agreed", "in_production", "trial_review", "revising", "final_due"];
 function detailsSheet(o, u){
@@ -288,13 +333,8 @@ function endContract(o, u){
 }
 function proposeTerms(o, u){
   const t = o.terms;
-  const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
-    DB.proposeTerms(o.id, u.id, { price: +fd.get("price"), depositPct: +fd.get("dep"), revisions: +fd.get("rev"), durationDays: +fd.get("dur"), trialDays: +fd.get("trial") }); closeSheet(); render(); } },
-    h("div", { class: "row2" }, field("Price (USD)", h("input", { class: "i", name: "price", type: "number", min: "50", step: "50", value: t.price, required: true })), field("Deposit %", h("input", { class: "i", name: "dep", type: "number", min: "10", max: "100", step: "5", value: t.depositPct, required: true }))),
-    h("div", { class: "row3" }, field("Revisions", h("input", { class: "i", name: "rev", type: "number", min: "0", max: "10", value: t.revisions, required: true }), "0 for large commercial jobs"), field("Duration (days)", h("input", { class: "i", name: "dur", type: "number", min: "1", value: t.durationDays, required: true })), field("First cut in (days)", h("input", { class: "i", name: "trial", type: "number", min: "1", value: t.trialDays, required: true }))),
-    h("p", { class: "hint" }, "A new proposal resets acceptance; the other side has to accept this version."),
-    h("button", { class: "btn primary", type: "submit" }, "Send proposal"));
-  openSheet([phead("Propose terms", "Both sides must accept the same version."), f]);
+  orderFormSheet({ title: t.title || o.title, kind: t.kind || (o.cat ? TAXONOMY[o.cat].name : ""), price: t.price, method: t.method }, "with " + DB.nameOf(u.id === o.clientId ? o.creatorId : o.clientId),
+    f => { DB.proposeTerms(o.id, u.id, { price: f.price, depositPct: t.depositPct, revisions: t.revisions, durationDays: t.durationDays, trialDays: t.trialDays, title: f.title, kind: f.kind, method: f.method }); render(); });
 }
 function uploadCut(o, label){
   let file = null; const url = h("input", { class: "i", type: "url", placeholder: "https://…/cut.mp4" });

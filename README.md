@@ -284,7 +284,7 @@ In rough priority order. Each item says where the work goes.
 - [ ] Move `store.js` from `localStorage` to Supabase tables with row-level security: creators, orders, messages, deliveries, payments, ledger, reviews, breaks, discovered. Keep the `DB` method names; swap their bodies for queries/RPCs. Today **each browser has its own data**, so a teammate can't see an order you created.
 - [ ] Move uploaded cuts from IndexedDB to Supabase Storage (or Mux / Cloudflare Stream) with signed, expiring URLs.
 - [x] Chats in Supabase with Realtime (`chat.js`, `market.sql` Part 3). Left: run it against the live project with two accounts; an admin view of chats waiting on creators who haven't joined; email notice for a new message.
-- [ ] Order forms inside the chat (name, kind, price, payment method) with their state in the database, replacing the browser-only terms card for database chats.
+- [x] Order forms inside the chat (`market.sql` Part 4): name, kind, price, payment method; accept, decline, change, withdraw, state kept by the database. The + next to the message box opens a tray of tools. Left: paying an accepted form (wallet, card, PayPal), and deliveries for database chats.
 - [ ] Rolvo Wallet for clients: a ledger in the database, top-ups, paying an order form from the balance on the server.
 - [ ] Admin rights from a server-side role, not `CONFIG.adminEmails` (anyone can read and edit that list in the browser).
 
