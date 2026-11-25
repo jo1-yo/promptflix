@@ -84,7 +84,7 @@ function footer(){
       h("div", { class: "fbrand" }, h("img", { src: b + "media/rolvo-logo.png", alt: "Rolvo", width: "72", height: "22" }), h("p", null, "Find the filmmaker behind the best AI video.")),
       col("Clients", ["Find your match", b + "#/"], ["Creators", b + "#/creators"]),
       col("Creators", ["Join Rolvo", b + "creator/#/apply"], ["Claim your profile", b + "creator/#/claim"], ["Rolvo Select", b + "select/"]),
-      col("Company", ["API", b + "#/api"], ["Contact", "mailto:" + CONFIG.supportEmail], ["Privacy", b + "privacy/"], ["Terms", b + "terms/"], ["Admin", b + "admin/"])),
+      col("Company", ["Connect to your AI", b + "#/connect"], ["Contact", "mailto:" + CONFIG.supportEmail], ["Privacy", b + "privacy/"], ["Terms", b + "terms/"], ["Admin", b + "admin/"])),
     h("div", { class: "fbase" }, h("span", { class: "credit" }, "All films shown are the work of their creators and are embedded from their public posts. Rolvo claims no ownership of them."),
       h("span", null, "© " + new Date().getFullYear() + " Rolvo")));
 }

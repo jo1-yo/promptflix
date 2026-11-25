@@ -837,3 +837,37 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 }
 .slidesound{position:absolute;z-index:2;bottom:10px;right:calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) + 10px);width:36px;height:36px;border-radius:50%;background:rgba(247,247,244,.9);color:var(--fg);display:grid;place-items:center;transition:background .15s}
 .slidesound:hover{background:#fff} .slidesound[hidden]{display:none}
+
+/* ── Connect to your AI: home entry (aihome) and the page (aipage) ── */
+.aihome{padding-block:0 8px}
+.aicard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:40px;align-items:center;padding:32px 36px;border-radius:16px;background:var(--frost);-webkit-backdrop-filter:var(--frost-blur);backdrop-filter:var(--frost-blur);transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.aicard:hover{transform:translateY(-2px)}
+.aicopy{display:grid;gap:14px;justify-items:start}
+.aicopy h2{font-size:clamp(24px,2.6vw,34px);max-width:16ch}
+.aicopy .btn{margin-top:6px}
+.aidemo{display:grid;gap:14px;min-width:0}
+.aiask{justify-self:end;max-width:100%;min-height:42px;padding:10px 14px;border-radius:14px 14px 4px 14px;background:var(--fg);color:var(--bg);font-size:14px;line-height:1.5}
+.aitype::after{content:"";display:inline-block;width:1px;height:1.05em;margin-left:2px;vertical-align:-.15em;background:currentColor;animation:aiblink 1s steps(2) infinite}
+@keyframes aiblink{50%{opacity:0}}
+.aians{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.aihit{display:grid;gap:6px;font-size:13px;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s cubic-bezier(.16,1,.3,1)}
+.aians.on .aihit{opacity:1;transform:none} .aians.on .aihit:nth-child(2){transition-delay:.12s} .aians.on .aihit:nth-child(3){transition-delay:.24s}
+.aihit img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;background:var(--raise)}
+.aihit b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .aihit span{color:var(--muted)}
+.ailine{display:flex;align-items:center;gap:14px;padding:14px 20px;border-radius:14px;background:var(--frost);-webkit-backdrop-filter:var(--frost-blur);backdrop-filter:var(--frost-blur);font-size:15px}
+.aidot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--fg)}
+.aisay{flex:1;min-width:0;color:var(--muted);min-height:1.5em}
+.aigo{flex:none;font-weight:500} .aigo i{font-style:normal;display:inline-block;transition:transform .2s} .ailine:hover .aigo i{transform:translateX(3px)}
+.aipage{max-width:860px} .aipage h2{margin:48px 0 14px;font-size:22px}
+.aiaddr{gap:10px;padding:24px} .aiaddr b{font-weight:500}
+.aiurl{display:flex;align-items:center;gap:12px;min-width:0} .aiurl code{flex:1;min-width:0;font:13px/1.5 var(--mono);overflow-wrap:anywhere;user-select:all}
+.aipage .use{grid-template-columns:minmax(0,1fr) minmax(0,2fr);width:100%;text-align:left}
+.aiasks .use,.aican .use{grid-template-columns:minmax(0,1fr) auto} .aiasks .use span,.aican .use span{color:var(--fg)} .aipage .use i{font-size:13px}
+.aiasks .use:hover i{color:var(--fg)} .aican .soon span{color:var(--dim)}
+.aiapi{margin-top:36px}
+@media(max-width:760px){
+  .aicard{grid-template-columns:1fr;gap:24px;padding:24px 20px}
+  .aiask{justify-self:stretch}
+  .ailine{flex-wrap:wrap;gap:6px 12px;padding:14px 16px} .aisay{flex-basis:calc(100% - 24px)} .aigo{margin-left:19px}
+  .aipage .aihow .use{grid-template-columns:1fr;gap:4px} .aiurl{flex-direction:column;align-items:flex-start}
+}

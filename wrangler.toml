@@ -1,0 +1,12 @@
+# Cloudflare Worker for "Connect to your AI" (server/mcp/worker.js). The site itself is GitHub Pages; only this Worker
+# runs on Cloudflare. The Worker "promptflix" is connected to this repo, so a merge to main deploys it.
+name = "promptflix"
+main = "server/mcp/worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[vars]
+SITE = "https://rolvo.market"
+SUPABASE_URL = "https://wjohvxtwjuqihhmuqily.supabase.co"
+# publishable key, the same one as in config.js. Not a secret.
+SUPABASE_KEY = "sb_publishable_yDSnbcBAtqkt7CT9JD2ADQ_2aOKB6xq"

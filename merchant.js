@@ -14,7 +14,7 @@ const hireCTA = c => h("button", { class: "btn primary", onclick: () => { closeS
 const SEARCH_ICON = () => { const e = document.createElementNS("http://www.w3.org/2000/svg", "svg"); e.setAttribute("viewBox", "0 0 16 16"); e.setAttribute("width", "15"); e.setAttribute("height", "15"); e.setAttribute("aria-hidden", "true"); e.innerHTML = '<circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'; return e; };
 function header(){
   const u = me(); const n = pendingCount(u && u.id);
-  const links = [[null, "Use cases"], [null, "Pricing"], [null, "Connect to your AI"], ["#/creators", "Creators"]];
+  const links = [[null, "Use cases"], [null, "Pricing"], ["#/connect", "Connect to your AI"], ["#/creators", "Creators"]];
   if (u) links.push(["#/chats", "Dashboard", n]);   // the client's projects: each one a chat with its order pinned on top
   const search = cls => h("button", { class: cls, type: "button", onclick: openSearch, "aria-label": "Search" }, SEARCH_ICON(), h("span", null, "Describe the video you want"));
   const right = u ? [search("navbtn searchicon"), h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))]
@@ -43,7 +43,8 @@ function render(){
   else if (v === "recommended") return go("#/");
   else if (v === "search") vSearch(m, r.q);
   else if (v === "match") vMatch(m, r.q || {});
-  else if (v === "api") vApi(m);
+  else if (v === "connect") vConnect(m);
+  else if (v === "api") return go("#/connect");
   else if (OPEN_SECTIONS.includes(v) && v === "use-cases") vUseCases(m);
   else if (OPEN_SECTIONS.includes(v) && v === "pricing") vPricing(m);
   else if (v === "onboarding") vOnboarding(m);
@@ -178,7 +179,7 @@ function filmWall(items){
   return [gallery(items, FREE_FILMS), h("div", { class: "moregate" }, h("div", { class: "blurred", "aria-hidden": "true", inert: true }, gallery(items.slice(FREE_FILMS), 8)), ...[1, 2, 3, 4].map(i => h("i", { class: "pb pb" + i, "aria-hidden": "true" })),
     h("button", { class: "btn primary big", onclick: () => openSignIn(() => render(), { title: "Sign in to keep watching", sub: "The first twelve films are open. The rest, and the people who made them, are for signed-in clients." }) }, "Sign in to see more"))];
 }
-/* Use cases, Pricing and Connect to your AI are named in the header but not open yet. Add an id here to open its page. */
+/* Use cases and Pricing are named in the header but not open yet. Add an id here to open its page. */
 const OPEN_SECTIONS = [];
 const USE_CASES = [["biz", "Launch films and brand ads", "Product launches, campaign spots and brand films that look shot, not generated."], ["demo", "Product demo videos", "Screen-led walkthroughs where the product does the talking."], ["reels", "Reels and UGC", "Vertical films built for the feed, in volume, on a weekly rhythm."], ["film", "Short films and spec work", "Narrative shorts, festival pieces and proof-of-concept scenes."], ["duanju", "Short drama", "Vertical micro-drama in one to three minute episodes."], ["interactive", "Interactive games", "Branching stories, playable ads and cutscenes."], ["mv", "Music videos", "Full tracks, visualizers and lyric films cut to the song."], ["anim", "Animation and characters", "Mascots, 2D and 3D worlds, character-led stories."]];
 /* home tags, in this order. "demo" is a style inside Business & Brand, shown as its own tag. */
@@ -195,6 +196,7 @@ function vHome(m, q){
     h("div", { class: "row cta" }, h("button", { class: "btn primary big", onclick: () => TASTE.get() ? openRecommended() : openTaste() }, "Hire a filmmaker"),
       h("button", { class: "btn big", onclick: () => $("#films").scrollIntoView({ block: "start", behavior: canPreview() ? "smooth" : "auto" }) }, "Browse works"),
       h("a", { class: "btn big", href: "#/match" }, "Match a reference"))));
+  m.append(aiHome(q.ai));
   const tabBtn = (id, label, onclick) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick }, label);
   const films = tab && tab !== "rec" ? tabFilms(tab) : null;
   m.append(h("section", { class: "wrap section tight", id: "films" },
@@ -264,12 +266,6 @@ function vSearch(m, q){
     makers.length ? cgrid(makers) : h("div", { class: "empty" }, h("b", null, "No one matches that yet."), h("span", null, "Try the kind of film, a style or a mood."))));
   if (films.length) m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Similar films")), gallery(films)));
 }
-function vApi(m){
-  m.append(h("section", { class: "wrap section" }, h("div", { class: "stack", style: { gap: "16px", maxWidth: "56ch" } }, h("h1", { class: "pname" }, "API"),
-    h("p", { class: "lead" }, "There is no public API yet. Tell us what you want to build and we will write back when access opens."),
-    h("div", null, h("a", { class: "btn primary big", href: "mailto:" + CONFIG.supportEmail + "?subject=Rolvo%20API" }, "Email us")))));
-}
-
 /* creators: cover cards + filter drawer */
 const SORTS = [["", "Best match"], ["price", "Price: low to high"], ["-price", "Price: high to low"], ["films", "Most films"]];
 const F = { parse(q){ return { sort: q.sort || "", q: q.q || "", min: +q.min || 0, max: +q.max || 0, region: q.region || "", cats: (q.cats || "").split(",").filter(Boolean), styles: (q.styles || "").split(",").filter(Boolean), days: +q.days || 0, joined: +q.joined || 0 }; },
