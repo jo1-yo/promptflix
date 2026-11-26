@@ -11,6 +11,9 @@ const CONFIG = {
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
   mcpUrl: "",               // https://mcp.rolvo.market/mcp — Connect to your AI (server/mcp/worker.js). Empty = the page says "Opening soon"
+  posthogKey: "",           // phc_… — PostHog project API key (public). Empty = no analytics: nothing is loaded or sent (analytics.js)
+  posthogHost: "https://us.i.posthog.com",   // or https://eu.i.posthog.com for an EU project
+  posthogReplay: false,     // true = also record sessions (turn it on in the PostHog project too)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
   adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com", "kh3443@barnard.edu"],   // live, also set role = 'admin' in market_profiles (see market.sql)
   // Featured creators, by handle from creators.js. They are listed first: home film wall, Creators page (Best match)

@@ -19,7 +19,7 @@ Rolvo: a marketplace for AI filmmakers. Static site on GitHub Pages, no build st
 
 ## How the code fits together (the traps)
 
-- **One global scope.** Each page loads classic `<script>`s in a fixed order: `seed.js → creators.js → filmmeta.js → config.js → store.js → ui.js → auth.js → pay.js → voice.js → <site>.js`. A top-level `const`/`let`/`function` name used in two files breaks the whole page with "Identifier has already been declared". Pick distinctive names. The check script catches this.
+- **One global scope.** Each page loads classic `<script>`s in a fixed order: `seed.js → creators.js → filmmeta.js → config.js → analytics.js → store.js → ui.js → auth.js → pay.js → voice.js → <site>.js`. A top-level `const`/`let`/`function` name used in two files breaks the whole page with "Identifier has already been declared". Pick distinctive names. The check script catches this.
 - **`APP` is defined last**, in the site script (`merchant.js`, `creator.js`, `admin.js`). Shared files must not read `APP` at load time, only inside functions that run later.
 - **Top-level `const` is not on `window`.** Use `typeof Auth !== "undefined"`, not `window.Auth`.
 - **Referrer policy.** Every page has `<meta name="referrer" content="no-referrer">` because X's video CDN rejects cross-site referrers. `auth.js` switches it to `strict-origin-when-cross-origin` while the sign-in sheet is open (Google needs the origin) and `closeSheet()` restores it. Don't remove either half.

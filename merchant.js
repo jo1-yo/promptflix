@@ -91,7 +91,7 @@ const HEART = on => { const e = document.createElementNS("http://www.w3.org/2000
 function favBtn(key, cls){
   const btn = h("button", { class: "btn favbtn" + (cls ? " " + cls : ""), type: "button" });
   const draw = () => { const u = me(); const on = !!u && DB.isFav(u.id, key); btn.replaceChildren(HEART(on), on ? "Saved" : "Save"); btn.setAttribute("aria-pressed", String(on)); };
-  btn.onclick = () => requireAuth(u => { toast(DB.toggleFav(u.id, key) ? "Saved to Favourites." : "Removed from Favourites."); draw(); });
+  btn.onclick = () => requireAuth(u => { const on = DB.toggleFav(u.id, key); track("favourite_toggled", { saved: on, kind: key[0] === "c" ? "creator" : "film" }); toast(on ? "Saved to Favourites." : "Removed from Favourites."); draw(); });
   draw(); return btn;
 }
 const filmCTA = (w, c) => [favBtn("f:" + c.id + ":" + c.works.indexOf(w)), hireCTA(c)];
@@ -161,6 +161,7 @@ function tasteFace(test, used){
   if (x) used.add(x.c.id); return x || null;
 }
 function openTaste(){
+  track("questions_opened");
   TASTE.markSeen(); TQ = { step: 0, cat: null, opt: null, picks: [], shown: [], round: null }; tasteStep();
 }
 function tasteStep(){
@@ -171,17 +172,17 @@ function tasteStep(){
   if (TQ.step === 0){
     count = "1/2"; head("What are you making?");
     const cats = CATS.filter(id => DB.roster().some(c => c.cats.includes(id))); const used = new Set();
-    body.append(h("div", { class: "qgrid" }, ...cats.map(id => answer(TAXONOMY[id].name, tasteFace(x => x.w[1] === id, used), () => { TQ.cat = id; TQ.step = 1; tasteStep(); }))));
+    body.append(h("div", { class: "qgrid" }, ...cats.map(id => answer(TAXONOMY[id].name, tasteFace(x => x.w[1] === id, used), () => { track("question_answered", { step: 1, answer: id }); TQ.cat = id; TQ.step = 1; tasteStep(); }))));
   } else if (TQ.step === 1){
     const c = TAXONOMY[TQ.cat]; count = "2/2"; head(c.ask); const used = new Set();
     extra = h("button", { class: "link", onclick: () => { TQ.step = 0; tasteStep(); } }, "Back");
     const face = o => tasteFace(x => x.w[1] === TQ.cat && x.w[2] === o.styles[0], used) || tasteFace(x => x.w[1] === TQ.cat && o.styles.includes(x.w[2]), used) || tasteFace(x => x.w[1] === TQ.cat, used) || tasteFace(x => o.styles.includes(x.w[2]), used);
-    body.append(h("div", { class: "qgrid" }, ...c.options.map(o => answer(o.name, face(o), () => { TQ.opt = o.id; TQ.step = 2; tasteStep(); }))));
+    body.append(h("div", { class: "qgrid" }, ...c.options.map(o => answer(o.name, face(o), () => { track("question_answered", { step: 2, answer: o.id }); TQ.opt = o.id; TQ.step = 2; tasteStep(); }))));
   } else {
     if (!TQ.round){ TQ.round = tasteRound(); TQ.shown.push(...TQ.round.map(tasteKey)); TQ.focus = TQ.round.length > 1 ? 1 : 0; }
     const R = TQ.round; const nR = R.length; count = (TQ.picks.length + 1) + "/3";
     head("Pick the closest film.");
-    const pick = x => { TQ.picks.push({ c: x.c.id, i: x.c.works.indexOf(x.w) }); TQ.round = null; TQ.picks.length === 3 ? tasteDone() : tasteStep(); };
+    const pick = x => { track("film_picked", { round: TQ.picks.length + 1, film: x.w[0], creator: x.c.id }); TQ.picks.push({ c: x.c.id, i: x.c.works.indexOf(x.w) }); TQ.round = null; TQ.picks.length === 3 ? tasteDone() : tasteStep(); };
     if (!nR) body.append(h("p", { class: "hint" }, "That is every film we have for this."));
     else {
       extra = h("button", { class: "link", onclick: () => { TQ.round = null; tasteStep(); } }, "Show 3 others");
@@ -214,6 +215,7 @@ function tasteStep(){
 }
 /* results need an account: the sign-in sheet opens here, not before the questions */
 function tasteDone(){
+  track("questions_done", { category: TQ.cat, answer: TQ.opt });
   TASTE.set({ cat: TQ.cat, opt: TQ.opt, picks: TQ.picks, at: new Date().toISOString() }); TQ = null; closeSheet();
   const show = () => { tasteToProfile(); TOFILMS = true; if (location.hash === "#/?tab=rec") render(); else go("#/?tab=rec"); };
   if (me()) show(); else { render(); openSignIn(show, TASTE_SIGNIN); }
@@ -300,7 +302,7 @@ function mountAssist(){
 }
 
 /* ---------- search: say what you want, optionally attach a reference; we line up similar films ---------- */
-function goSearch(t){ const to = "#/search?q=" + encodeURIComponent(t); if (!me()) return askSignIn(to); if (location.hash === to) render(); else go(to); }
+function goSearch(t){ track("search_submitted", { words: t.trim().split(/\s+/).length }); const to = "#/search?q=" + encodeURIComponent(t); if (!me()) return askSignIn(to); if (location.hash === to) render(); else go(to); }
 function vSearch(m, q){
   const text = (q.q || "").trim(); if (!text) return go("#/");
   const read = DB.readBrief(text); const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
@@ -401,6 +403,7 @@ function startProject(c){
   if (MATCHCUR && route().parts[0] === "match"){ const r = MATCHCUR;   // started from a matched film: the reference and its tags go into the brief
     p.brief = "Reference: " + (r.u || r.file + " (I'll send the file in chat)") + "\n" + (p.brief || p.goal || ""); if (r.cat) p.cat = r.cat; if (r.styles.length) p.styles = r.styles; }
   const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
+    track("project_started", { creator: c.id });
     const o = DB.createOrder({ clientId: u.id, creatorId: c.id, title: fd.get("title").trim(), brief: fd.get("brief").trim(), cat: fd.get("cat") || null, opt: p.opt || null, style: fd.get("style") || null, price: Number(fd.get("price")) || c.ask });
     AFTER.set(null); closeSheet(); go("#/chat/" + o.id); } },
     field("Project name", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "e.g. Lumen cold brew · launch film" })),
@@ -488,7 +491,7 @@ function vMatch(m, q){
   const file = h("input", { type: "file", accept: "video/*", hidden: true, onchange: e => { const f = e.target.files[0]; if (!f) return; dropFile(); MATCHFILE = { name: f.name, url: URL.createObjectURL(f) }; if (location.hash !== "#/match") go("#/match"); else render(); } });
   const form = h("form", { class: "matchin", onsubmit: e => { e.preventDefault(); const v = link.value.trim(); let ok = false; try { ok = /^https?:$/.test(new URL(v).protocol); } catch {}
       if (!ok) return /^https?:|^www\./i.test(v) ? toast("Paste a full link, starting with https://") : v.length < 3 ? toast("Paste a link or describe the video in a few words.") : goSearch(v);   // words go to search
-      dropFile(); if (v === s.u) render(); else tabGo(MATCH.url({ u: v, cat: "", styles: [] })); } },
+      track("reference_submitted", { kind: "link" }); dropFile(); if (v === s.u) render(); else tabGo(MATCH.url({ u: v, cat: "", styles: [] })); } },
     link, h("button", { class: "btn primary", type: "submit" }, has ? "Change" : "Find"), h("button", { class: "btn", type: "button", onclick: () => file.click() }, "Upload a file"), file);
   const refW = film ? ["Your reference", s.cat || CATS[0], s.styles[0] || Object.keys(STYLES)[0], null, null, { ...film, by: "You" }] : null;
   const ref = !has ? null : MATCHFILE ? h("video", { class: "matchvid", src: MATCHFILE.url, controls: true, muted: true, playsinline: true, preload: "metadata" })

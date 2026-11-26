@@ -142,6 +142,7 @@ function hoverPlay(el, w){
 }
 function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick, style: { "--ar": filmRatio(w[5]) } }, cover(w), !w[5] ? h("span", { class: "tag" }, STYLES[w[2]].name) : !(w[5].yt || w[5].vm || w[5].mp4 || w[5].cover) && w[5].on ? h("span", { class: "tag" }, w[5].on) : null, w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
 async function playWork(w, c, cta){
+  track("film_opened", { film: w[0], creator: c.id, category: w[1] });
   const m = w[5] || {};
   let player;
   if (m.yt) player = h("iframe", { src: `https://www.youtube-nocookie.com/embed/${m.yt}?autoplay=1&rel=0&playsinline=1`, allow: "autoplay; encrypted-media; picture-in-picture; fullscreen", allowfullscreen: true, referrerpolicy: "strict-origin-when-cross-origin", title: w[0] });

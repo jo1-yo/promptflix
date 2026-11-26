@@ -101,6 +101,7 @@ const Auth = {
      Laid out like the big marketplaces: one field (email, or phone when it looks like a number) → Continue, then "or" Google,
      and a Log in / Sign up switch at the bottom. Both run the same passwordless step: a new address gets an account. */
   open(then, copy, opts = {}){
+    track("sign_in_opened", { reason: (copy && copy.title) || null });
     this.pending = { then, onIdentity: opts.onIdentity };
     // Live, a method shows only once it's switched on in config.js: email codes need Supabase's code template and our own SMTP,
     // phone codes need an SMS provider. Google needs nothing more.
