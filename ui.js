@@ -32,11 +32,22 @@ function face(c){   // creator card face: lead film, else the cover image from t
   if (c.works && c.works.length) return cover(c.works[0]); if (!c.cover) return monogram(c);
   const img = h("img", { src: c.cover, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" }); const box = h("div", { class: "art cover vig" }, img);
   img.onerror = () => box.replaceWith(monogram(c)); return box; }   // card face for a creator with no film to show
+/* filmmeta.js (tools/filmmeta.py) names each film's real shape and, for YouTube, the frame that makes the best cover.
+   Vimeo's stored covers are 295 px wide; the same image is asked for at 1280. */
+const filmMeta = m => (typeof FILM_META !== "undefined" && m && FILM_META[m.yt || m.vm || m.mp4 || m.link]) || null;
+function coverSrc(m){ const fm = filmMeta(m);
+  if (m.yt && fm && fm[1]) return "https://i.ytimg.com/vi/" + m.yt + "/" + fm[1] + ".jpg";
+  return m.vm ? m.cover.replace(/-d_\d+x\d+/, "-d_1280") : m.cover; }
 function cover(w, extra){
   const m = w && w[5]; if (!m || !m.cover) return art(w ? w[2] : null, extra);
-  const img = h("img", { src: m.cover, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
-  img.onerror = () => { if (m.yt && !img.dataset.fb){ img.dataset.fb = 1; img.src = "https://i.ytimg.com/vi/" + m.yt + "/hqdefault.jpg"; } else img.replaceWith(art(w[2])); };
-  return h("div", { class: "art cover vig" + (m.lb ? " lb" : "") + (extra ? " " + extra : "") }, img);
+  const src = coverSrc(m); const own = src === m.cover;   // "lb" describes the stored cover only
+  const img = h("img", { src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+  const box = h("div", { class: "art cover vig" + (m.lb && own ? " lb" : "") + (extra ? " " + extra : "") }, img);
+  img.onerror = () => { const n = +img.dataset.fb || 0; img.dataset.fb = n + 1;
+    if (n === 0 && !own){ box.classList.toggle("lb", !!m.lb); img.src = m.cover; }
+    else if (n <= 1 && m.yt){ img.dataset.fb = 2; box.classList.add("lb"); img.src = "https://i.ytimg.com/vi/" + m.yt + "/hqdefault.jpg"; }
+    else img.replaceWith(art(w[2])); };
+  return box;
 }
 function avatar(u){ if (u.avatar) return h("div", { class: "avatar" }, h("img", { src: u.avatar, alt: "", referrerpolicy: "no-referrer" })); const [hue] = hueOf((u.styles || [])[0]); return h("div", { class: "avatar", style: { background: `hsl(${hue} 42% 82%)` } }, initials(u.name || u.org || u.email || u.phone || "?")); }
 const styleChip = (id, on) => h("span", { class: "chip sw" + (on ? " on" : "") }, h("i", { class: "dot", style: { background: `hsl(${hueOf(id)[0]} ${hueOf(id)[1]}% 60%)` } }), STYLES[id].name);
@@ -84,7 +95,7 @@ function footer(){
       h("div", { class: "fbrand" }, h("img", { src: b + "media/rolvo-logo.png", alt: "Rolvo", width: "72", height: "22" }), h("p", null, "Find the filmmaker behind the best AI video.")),
       col("Clients", ["Find your match", b + "#/"], ["Creators", b + "#/creators"]),
       col("Creators", ["Join Rolvo", b + "creator/#/apply"], ["Claim your profile", b + "creator/#/claim"], ["Rolvo Select", b + "select/"]),
-      col("Company", ["Connect to your AI", b + "#/connect"], ["Contact", "mailto:" + CONFIG.supportEmail], ["Privacy", b + "privacy/"], ["Terms", b + "terms/"], ["Admin", b + "admin/"])),
+      col("Company", CONFIG.mcpUrl ? ["Connect to your AI", b + "#/connect"] : null, ["Contact", "mailto:" + CONFIG.supportEmail], ["Privacy", b + "privacy/"], ["Terms", b + "terms/"], ["Admin", b + "admin/"])),
     h("div", { class: "fbase" }, h("span", { class: "credit" }, "All films shown are the work of their creators and are embedded from their public posts. Rolvo claims no ownership of them."),
       h("span", null, "© " + new Date().getFullYear() + " Rolvo")));
 }
@@ -92,8 +103,9 @@ const legalBase = () => APP === "merchant" ? "" : "../";
 
 /* work tiles + player */
 for (const o of ["https://www.youtube-nocookie.com", "https://i.ytimg.com", "https://player.vimeo.com", "https://video.twimg.com"]) document.head.append(Object.assign(document.createElement("link"), { rel: "preconnect", href: o }));
-/* Muted in-place preview of a film. It shows the moment the player reports it is playing; YouTube's own title and logo may
-   be visible for the first seconds. A film that refuses to embed reports an error and the cover simply stays.
+/* Muted in-place preview of a film. It shows the moment the player reports it is playing. YouTube draws its pause button
+   (and previous / next) over the picture for the first seconds of every play and no setting turns that off; waiting them out
+   was tried and felt slower than it was worth. A film that refuses to embed reports an error and the cover simply stays.
    The frame is three times the box height, which keeps YouTube's top and bottom bars outside the visible third. */
 const YT_PLAYERS = new WeakMap(); let ytBound = false;
 function previewNode(m, fit){
@@ -118,7 +130,7 @@ function previewNode(m, fit){
 }
 /* a film's shape as width / height. X's mp4 URLs carry it; an embed can't tell us, so it counts as 16:9. Kept within 1:2 and 2.4:1 so one odd file can't break a layout. */
 const fitRatio = r => Math.min(2.4, Math.max(.5, r || 16 / 9));
-function filmRatio(m){ const d = m && m.mp4 && /\/(\d{3,4})x(\d{3,4})\//.exec(m.mp4); return fitRatio(d ? d[1] / d[2] : 0); }
+function filmRatio(m){ const fm = filmMeta(m); if (fm) return fitRatio(fm[0]); const d = m && m.mp4 && /\/(\d{3,4})x(\d{3,4})\//.exec(m.mp4); return fitRatio(d ? d[1] / d[2] : 0); }
 const canPreview = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* hover preview: while the pointer is on a card the film plays in place of its cover; leaving puts the cover back */
 function hoverPlay(el, w){
@@ -128,7 +140,7 @@ function hoverPlay(el, w){
   el.addEventListener("mouseleave", () => { clearTimeout(t); if (node){ node.remove(); node = null; } });
   return el;
 }
-function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick }, cover(w), !w[5] ? h("span", { class: "tag" }, STYLES[w[2]].name) : !(w[5].yt || w[5].vm || w[5].mp4 || w[5].cover) && w[5].on ? h("span", { class: "tag" }, w[5].on) : null, w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
+function tile(w, c, onclick){ return hoverPlay(h("button", { class: "tile", "aria-label": w[0] + " by " + c.name, onclick, style: { "--ar": filmRatio(w[5]) } }, cover(w), !w[5] ? h("span", { class: "tag" }, STYLES[w[2]].name) : !(w[5].yt || w[5].vm || w[5].mp4 || w[5].cover) && w[5].on ? h("span", { class: "tag" }, w[5].on) : null, w[3] ? h("span", { class: "len" }, w[3] + "s") : null, h("span", { class: "cap" }, h("b", null, w[0]), h("span", null, c.name + " · " + TAXONOMY[w[1]].name))), w); }
 async function playWork(w, c, cta){
   const m = w[5] || {};
   let player;
@@ -140,7 +152,7 @@ async function playWork(w, c, cta){
   const credit = m.link ? h("a", { class: "link small", href: m.link, target: "_blank", rel: "noopener" }, "Watch on " + m.on + (m.by && m.by !== c.name && m.by !== "@" + c.handle ? " · uploaded by " + m.by : "") + " ↗") : (w[4] ? null : h("span", { class: "small dim" }, "Demo uses a stock clip"));
   openSheet([h("div", { class: "row between" }, h("div", null, h("h2", { style: { fontSize: "24px" } }, w[0]), h("div", { class: "muted small" }, meta)), h("button", { class: "close", onclick: closeSheet, "aria-label": "Close" }, "×")),
     h("div", { class: "stage" + (m.yt || m.vm ? " embed" : "") }, player),
-    h("div", { class: "row between", style: { flexWrap: "wrap", gap: "12px" } }, credit, cta ? h("div", { class: "row", style: { gap: "14px" } }, h("a", { class: "link", href: "#/creator/" + c.id, onclick: closeSheet }, "All of " + (c.real ? c.name : first(c.name)) + "'s work →"), cta) : null)], true);
+    h("div", { class: "row between", style: { flexWrap: "wrap", gap: "12px" } }, credit, cta ? h("div", { class: "row", style: { gap: "14px" } }, h("a", { class: "btn", href: "#/creator/" + c.id, onclick: closeSheet }, "All of " + (c.real ? c.name : first(c.name)) + "'s work"), cta) : null)], true);
 }
 
 /* ---------- chats: the order lives inside the conversation (Xianyu-style) ---------- */
@@ -170,7 +182,7 @@ function vChats(root, id){
   root.append(h("div", { class: "chats" + (o ? " open" : "") }, threadList(list, o, u), o ? thread(o, u) : h("div", { class: "thread none" }, h("div", { class: "chat-empty" }, list.length ? h("span", null, "Pick a conversation.") : [h("b", { style: { color: "var(--fg)", fontWeight: 500 } }, APP === "creator" ? "No projects yet." : "No conversations yet."), h("span", null, APP === "creator" ? "When a client starts a project with you, the chat opens here." : "Start a project with a creator and the chat opens here."), APP === "merchant" ? h("a", { class: "btn", href: "#/work" }, "Browse creators") : null]))));
 }
 function threadList(list, cur, u){
-  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : APP === "merchant" ? "Projects" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null),
+  return h("aside", { class: "tlist" }, h("div", { class: "th" }, h("h2", null, APP === "creator" ? "Inbox" : "Messages"), APP === "creator" ? h("span", { class: "xs dim" }, DB.breaksLeft(u.id) + " breaks left") : null),
     ...list.map(o => { const other = APP === "admin" ? DB.user(o.creatorId) : otherOf(o, u.id); const need = actionNeeded(o, u.id);
       return h("a", { class: "trow", href: "#/chat/" + o.id, "aria-current": String(cur && cur.id === o.id) }, avatar(other),
         h("div", { style: { minWidth: 0 } }, h("div", { class: "n" }, need ? h("i", { class: "dot" }) : null, APP === "admin" ? DB.nameOf(o.clientId) + " ↔ " + other.name : (other.org || other.name)), h("div", { class: "t" }, o.title + " · " + lastMsg(o))),

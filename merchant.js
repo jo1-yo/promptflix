@@ -14,20 +14,21 @@ const hireCTA = c => h("button", { class: "btn primary", onclick: () => { closeS
 const SEARCH_ICON = () => { const e = document.createElementNS("http://www.w3.org/2000/svg", "svg"); e.setAttribute("viewBox", "0 0 16 16"); e.setAttribute("width", "15"); e.setAttribute("height", "15"); e.setAttribute("aria-hidden", "true"); e.innerHTML = '<circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'; return e; };
 function header(){
   const u = me(); const n = pendingCount(u && u.id);
-  const links = [[null, "Use cases"], [null, "Pricing"], ["#/connect", "Connect to your AI"], ["#/creators", "Creators"]];
-  if (u) links.push(["#/chats", "Dashboard", n]);   // the client's projects: each one a chat with its order pinned on top
-  const search = cls => h("button", { class: cls, type: "button", onclick: openSearch, "aria-label": "Search" }, SEARCH_ICON(), h("span", null, "Describe the video you want"));
-  const right = u ? [search("navbtn searchicon"), h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))]
-    : [search("navbtn searchicon"), h("button", { class: "btn primary small", onclick: () => openSignIn() }, "Sign in")];
-  mountHeader({ brand: "Rolvo", links, right, home: "#/", pre: [search("searchbox")], tabs: [["#/", "Home"], ["#/creators", "Creators"], ...(u ? [["#/chats", "Dashboard", n]] : [])] });
+  // Discover is the home page. Messages is every conversation with a creator; Orders is the same projects as a list; Favourites is what the client saved.
+  // A link with no address is a section that is not open yet (Connect to your AI opens when mcpUrl is set in config.js).
+  const mine = u ? [["#/chats", "Messages", n], ["#/orders", "Orders"], ["#/favourites", "Favourites"]] : [];   // what an account adds; a visitor never sees these
+  const links = [["#/", "Discover"], ["#/creators", "Creators"], ...mine, [null, "Use cases"], [null, "Pricing"], [aiOpen() ? "#/connect" : null, "Connect to your AI"]];
+  const right = u ? [h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))] : [h("button", { class: "btn primary small", onclick: () => openSignIn() }, "Sign in")];
+  mountHeader({ brand: "Rolvo", links, right, home: "#/", tabs: [["#/", "Discover"], ["#/creators", "Creators"], ...mine] });
   if (route().parts[0] === "chat") for (const a of document.querySelectorAll('.navbtn[href="#/chats"]')) a.setAttribute("aria-current", "true");
 }
 /* Creators, messages and search results are for signed-in clients. */
+const MATCH_SIGNIN = { title: "Sign in to search", sub: "Show us a video you like, or describe one, and we find the people who make it." };
 const CREATORS_SIGNIN = { title: "Sign in to see creators", sub: "Profiles, rates and messages are for signed-in clients." };
-const GATED = ["creators", "creator", "search", "chats", "chat", "account", "onboarding"];
+const GATED = ["creators", "creator", "search", "match", "chats", "chat", "orders", "favourites", "account", "onboarding"];
 let LASTOK = "#/";
 const gatedHash = hash => GATED.includes((hash || "").replace(/^#\/?/, "").split(/[/?]/)[0]);
-function askSignIn(target){ const v = target.replace(/^#\/?/, "").split(/[/?]/)[0]; openSignIn(() => { if (location.hash === target) render(); else go(target); }, ["creators", "creator", "search"].includes(v) ? CREATORS_SIGNIN : null); }
+function askSignIn(target){ const v = target.replace(/^#\/?/, "").split(/[/?]/)[0]; openSignIn(() => { if (location.hash === target) render(); else go(target); }, ["creators", "creator", "search"].includes(v) ? CREATORS_SIGNIN : v === "match" ? MATCH_SIGNIN : null); }
 // links to those pages open the sign-in window in place, with no navigation and no scroll jump
 document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[href^='#/']"); if (!a || me() || !gatedHash(a.getAttribute("href"))) return; e.preventDefault(); closeSheet(); askSignIn(a.getAttribute("href")); }, true);
 function render(){
@@ -43,26 +44,84 @@ function render(){
   else if (v === "recommended") return go("#/");
   else if (v === "search") vSearch(m, r.q);
   else if (v === "match") vMatch(m, r.q || {});
-  else if (v === "connect") vConnect(m);
+  else if (v === "connect"){ if (!aiOpen()) return go("#/"); vConnect(m); }
   else if (v === "api") return go("#/connect");
   else if (OPEN_SECTIONS.includes(v) && v === "use-cases") vUseCases(m);
   else if (OPEN_SECTIONS.includes(v) && v === "pricing") vPricing(m);
   else if (v === "onboarding") vOnboarding(m);
   else if (v === "chats") vChats(m, null);
   else if (v === "chat") vChats(m, r.parts[1]);
-  else if (v === "orders") return go("#/chats");
+  else if (v === "orders") vOrders(m);
+  else if (v === "favourites") vFavs(m, r.q);
   else if (v === "order") return go("#/chat/" + r.parts[1]);
   else if (v === "account") vAccount(m);
   else return go("#/");
   if (!["onboarding", "chats", "chat"].includes(v)) m.append(footer());
   const as = $("#assist"); if (as) as.hidden = ["onboarding", "chats", "chat"].includes(v);
+  const nb = $(".newsbar"); if (nb) nb.hidden = ["chats", "chat"].includes(v);   // the conversation takes the whole screen height
   if (assistDraw) assistDraw();
   if (KEEPY != null){ const y = KEEPY; KEEPY = null; scrollTo(0, y); }
   else if (TOFILMS){ TOFILMS = false; const el = $("#films"); if (el) el.scrollIntoView({ block: "start" }); }
 }
 
 /* ---------- public ---------- */
-const gallery = (items, limit) => h("div", { class: "gallery" }, ...items.slice(0, limit || items.length).map(({ w, c }) => tile(w, c, () => playWork(w, c, hireCTA(c)))));
+/* The wall. Every film keeps its own shape and is dealt into columns, each time to the shortest one, so the order still
+   reads left to right and top to bottom. Dealt again when the column count changes with the window. */
+const WALL_CAP = .17;   // a caption's height as a share of the column width
+const wallCols = () => innerWidth <= 720 ? 2 : innerWidth <= 1100 ? 3 : 4;
+function gallery(items, limit){
+  const tiles = items.slice(0, limit || items.length).map(({ w, c }) => { const t = tile(w, c, () => playWork(w, c, filmCTA(w, c))); const r = filmRatio(w[5]); t.wallH = 1 / r + WALL_CAP; return t; });
+  const box = h("div", { class: "gallery wall" }); let n = 0, live = false;
+  const deal = () => { const k = wallCols(); if (k === n) return; n = k; const cols = Array.from({ length: k }, () => ({ el: h("div", { class: "wallcol" }), y: 0 }));
+    for (const t of tiles){ const c = cols.reduce((a, b) => b.y < a.y - .001 ? b : a); c.el.append(t); c.y += t.wallH; }
+    box.replaceChildren(...cols.map(c => c.el)); };
+  const again = () => { if (box.isConnected){ live = true; deal(); } else if (live) removeEventListener("resize", again); };
+  deal(); addEventListener("resize", again); return box;
+}
+/* Four films in five are 16:9. The others are spread through the list so every screen of the wall has a few shapes. */
+function stagger(items){
+  const odd = [], std = []; for (const x of items) (Math.abs(filmRatio(x.w[5]) - 16 / 9) > .15 ? odd : std).push(x);
+  const every = Math.min(5, Math.max(3, Math.round(items.length / (odd.length || 1)))); const out = [];
+  while (odd.length || std.length) out.push((out.length % every === 1 && odd.length) || !std.length ? odd.shift() : std.shift());
+  return out;
+}
+/* ---------- favourites: save a film (in its player) or a creator (on their page); both land on the Favourites page ---------- */
+const HEART = on => { const e = document.createElementNS("http://www.w3.org/2000/svg", "svg"); e.setAttribute("viewBox", "0 0 20 20"); e.setAttribute("width", "16"); e.setAttribute("height", "16"); e.setAttribute("aria-hidden", "true");
+  e.innerHTML = '<path d="M10 16.6 3.9 10.7a3.9 3.9 0 0 1 5.5-5.5l.6.6.6-.6a3.9 3.9 0 0 1 5.5 5.5z" fill="' + (on ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>'; return e; };
+function favBtn(key, cls){
+  const btn = h("button", { class: "btn favbtn" + (cls ? " " + cls : ""), type: "button" });
+  const draw = () => { const u = me(); const on = !!u && DB.isFav(u.id, key); btn.replaceChildren(HEART(on), on ? "Saved" : "Save"); btn.setAttribute("aria-pressed", String(on)); };
+  btn.onclick = () => requireAuth(u => { toast(DB.toggleFav(u.id, key) ? "Saved to Favourites." : "Removed from Favourites."); draw(); });
+  draw(); return btn;
+}
+const filmCTA = (w, c) => [favBtn("f:" + c.id + ":" + c.works.indexOf(w)), hireCTA(c)];
+function vFavs(m, q){
+  const keys = DB.favs(me().id); const films = [], makers = [];
+  for (const k of keys){ const [kind, id, i] = k.split(":"); const c = DB.creator(id); if (!c || !c.live) continue;
+    if (kind === "c") makers.push({ c, why: [] }); else if (c.works[+i]) films.push({ w: c.works[+i], c }); }
+  // one thing at a time: films, or creators, switched with the same tags the home page uses
+  const tab = q.tab === "creators" || (!films.length && makers.length && q.tab !== "films") ? "creators" : "films";
+  const tabBtn = (id, label, n) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick: () => tabGo("#/favourites?tab=" + id) }, label, h("span", { class: "n" }, n));
+  m.append(h("section", { class: "wrap section upage" },
+    h("div", { class: "uhead" }, h("h1", null, "Favourites"), h("div", { class: "filters", role: "tablist", "aria-label": "Favourites" }, tabBtn("films", "Films", films.length), tabBtn("creators", "Creators", makers.length))),
+    tab === "films" ? (films.length ? gallery(films) : h("p", { class: "soonnote" }, "No films saved yet. Open a film and press Save."))
+      : (makers.length ? cgrid(makers) : h("p", { class: "soonnote" }, "No creators saved yet. Open a creator and press Save."))));
+}
+/* ---------- orders: the same projects as Messages, as a list: what it is, where it stands, what happens next ---------- */
+function vOrders(m){
+  const u = me(); const list = DB.ordersFor(u.id); const done = o => ["completed", "cancelled"].includes(o.status);
+  const row = o => { const c = DB.creator(o.creatorId); const next = actionsFor(o, u);
+    return h("a", { class: "ordrow", href: "#/chat/" + o.id },
+      h("span", { class: "othumb" }, c && c.works[0] ? cover(c.works[0]) : c ? monogram(c) : null),
+      h("span", { class: "n" }, h("b", null, o.title), h("span", null, otherOf(o, u.id).name)),
+      h("span", { class: "s" }, h("span", { class: "badge " + o.status }, STATUS[o.status][0]), next && !done(o) ? h("span", null, next.text) : null),
+      h("span", { class: "d" }, o.deadline && !done(o) ? "Due " + when(o.deadline) : ago(o.updatedAt) === "just now" ? "Just now" : ago(o.updatedAt) + " ago"),
+      h("b", { class: "p" }, money(o.terms.price))); };
+  const group = (title, items) => items.length ? [h("h2", { class: "ogroup" }, title), h("div", { class: "ordlist" }, ...items.map(row))] : null;
+  m.append(h("section", { class: "wrap section upage" }, h("div", { class: "uhead" }, h("h1", null, "Orders")),
+    list.length ? [group("In progress", list.filter(o => !done(o))), group("Finished", list.filter(done))]
+      : h("p", { class: "soonnote" }, "No orders yet. Start a project with a creator and it shows here.")));
+}
 function ccard(c, why){
   const est = DB.priceRange(c).est;
   return hoverPlay(h("a", { class: "ccard", href: "#/creator/" + c.id }, face(c),
@@ -95,23 +154,33 @@ function tasteRound(){
     if (seenC.has(x.c.id)) continue; seenC.add(x.c.id); out.push(x); if (out.length === 3) break; }
   return out;
 }
+/* the film that stands for an answer: the first match that is wide, has a sharp still and has not been used on this screen */
+function tasteFace(test, used){
+  const pool = tastePool().filter(x => test(x) && x.w[5] && x.w[5].cover && !used.has(x.c.id));
+  const x = pool.find(x => filmRatio(x.w[5]) > 1.3 && (x.w[5].vm || (filmMeta(x.w[5]) || [])[1])) || pool.find(x => filmRatio(x.w[5]) > 1.3) || pool[0];
+  if (x) used.add(x.c.id); return x || null;
+}
 function openTaste(){
   TASTE.markSeen(); TQ = { step: 0, cat: null, opt: null, picks: [], shown: [], round: null }; tasteStep();
 }
 function tasteStep(){
   const body = h("div", { class: "win-body" }); let count, extra = null;
-  const head = (t, lead) => body.append(h("div", null, h("h2", null, t), lead ? h("p", { class: "lead" }, lead) : null));
+  const head = t => body.append(h("h2", null, t));
+  // an answer is a picture and a name: one film stands for each
+  const answer = (name, x, onclick) => h("button", { class: "catcard qcard", type: "button", onclick }, x ? cover(x.w) : art(null), h("span", { class: "cap" }, h("b", null, name)));
   if (TQ.step === 0){
     count = "1/2"; head("What are you making?");
-    const cats = CATS.filter(id => DB.roster().some(c => c.cats.includes(id)));
-    body.append(h("div", { class: "opts" }, ...cats.map(id => h("button", { class: "opt", onclick: () => { TQ.cat = id; TQ.step = 1; tasteStep(); } }, h("b", null, TAXONOMY[id].name), h("p", null, TAXONOMY[id].blurb)))));
+    const cats = CATS.filter(id => DB.roster().some(c => c.cats.includes(id))); const used = new Set();
+    body.append(h("div", { class: "qgrid" }, ...cats.map(id => answer(TAXONOMY[id].name, tasteFace(x => x.w[1] === id, used), () => { TQ.cat = id; TQ.step = 1; tasteStep(); }))));
   } else if (TQ.step === 1){
-    const c = TAXONOMY[TQ.cat]; count = "2/2"; head(c.ask);
-    body.append(h("div", { class: "opts" }, ...c.options.map(o => h("button", { class: "opt", onclick: () => { TQ.opt = o.id; TQ.step = 2; tasteStep(); } }, h("b", null, o.name), h("p", null, o.styles.map(st => STYLES[st].name).join(" · "))))));
+    const c = TAXONOMY[TQ.cat]; count = "2/2"; head(c.ask); const used = new Set();
+    extra = h("button", { class: "link", onclick: () => { TQ.step = 0; tasteStep(); } }, "Back");
+    const face = o => tasteFace(x => x.w[1] === TQ.cat && x.w[2] === o.styles[0], used) || tasteFace(x => x.w[1] === TQ.cat && o.styles.includes(x.w[2]), used) || tasteFace(x => x.w[1] === TQ.cat, used) || tasteFace(x => o.styles.includes(x.w[2]), used);
+    body.append(h("div", { class: "qgrid" }, ...c.options.map(o => answer(o.name, face(o), () => { TQ.opt = o.id; TQ.step = 2; tasteStep(); }))));
   } else {
     if (!TQ.round){ TQ.round = tasteRound(); TQ.shown.push(...TQ.round.map(tasteKey)); TQ.focus = TQ.round.length > 1 ? 1 : 0; }
     const R = TQ.round; const nR = R.length; count = (TQ.picks.length + 1) + "/3";
-    head("Pick the film closest to what you want.", "Each pick helps us find better creators for you.");
+    head("Pick the closest film.");
     const pick = x => { TQ.picks.push({ c: x.c.id, i: x.c.works.indexOf(x.w) }); TQ.round = null; TQ.picks.length === 3 ? tasteDone() : tasteStep(); };
     if (!nR) body.append(h("p", { class: "hint" }, "That is every film we have for this."));
     else {
@@ -141,7 +210,7 @@ function tasteStep(){
     }
   }
   openSheet([h("div", { class: "wintop" }, h("span", { class: "count" }, count), extra), body], true);
-  $("#panel").classList.add("winp"); $("#panel").classList.toggle("slidesp", TQ.step === 2); $("#panel").setAttribute("aria-label", "Find your match");
+  $("#panel").classList.add("winp"); $("#panel").classList.toggle("slidesp", TQ.step === 2); $("#panel").classList.toggle("gridp", TQ.step < 2); $("#panel").setAttribute("aria-label", "Find your match");
 }
 /* results need an account: the sign-in sheet opens here, not before the questions */
 function tasteDone(){
@@ -151,7 +220,6 @@ function tasteDone(){
 }
 function tasteToProfile(){ const u = me(); const t = TASTE.get(); if (u && t) DB.saveClientProfile(u.id, { cat: t.cat, opt: t.opt, styles: TASTE.styles(t).slice(0, 2) }); }
 /* ---------- home: one row of tags, Recommended first, then a tag per category ---------- */
-const firstFilms = n => DB.filmed().map(c => ({ w: c.works[0], c })).slice(0, n);
 /* Recommended needs three picks and an account. Without the picks the questions open; without the account the sign-in window does. */
 function openRecommended(){
   const u = me(); const p = (u && u.profile) || {};
@@ -177,7 +245,7 @@ const FREE_FILMS = 12;
 function filmWall(items){
   if (me() || items.length <= FREE_FILMS) return [gallery(items, 36)];
   return [gallery(items, FREE_FILMS), h("div", { class: "moregate" }, h("div", { class: "blurred", "aria-hidden": "true", inert: true }, gallery(items.slice(FREE_FILMS), 8)), ...[1, 2, 3, 4].map(i => h("i", { class: "pb pb" + i, "aria-hidden": "true" })),
-    h("button", { class: "btn primary big", onclick: () => openSignIn(() => render(), { title: "Sign in to keep watching", sub: "The first twelve films are open. The rest, and the people who made them, are for signed-in clients." }) }, "Sign in to see more"))];
+    h("button", { class: "btn big", onclick: () => openSignIn(() => render(), { title: "Sign in to keep watching", sub: "The first twelve films are open. The rest, and the people who made them, are for signed-in clients." }) }, "Sign in to see more"))];
 }
 /* Use cases and Pricing are named in the header but not open yet. Add an id here to open its page. */
 const OPEN_SECTIONS = [];
@@ -189,19 +257,18 @@ function vHome(m, q){
   const u = me(); const canRec = !!u && !!(TASTE.get() || (u.profile || {}).cat);
   if (q.tab === "rec" && !canRec) return location.replace("#/");
   const tab = q.tab === "rec" ? "rec" : HOME_TABS.some(([id]) => id === q.tab) ? q.tab : "";
-  m.append(h("section", { class: "wrap hero" },
+  if (!u) m.append(h("section", { class: "wrap hero" },
     h("div", { class: "stack", style: { gap: "16px" } },
       h("h1", null, "The best AI video talent, all in one place."),
       h("p", { class: "lead" }, "Explore outstanding work, hire proven creators, and bring your next project to life.")),
-    h("div", { class: "row cta" }, h("button", { class: "btn primary big", onclick: () => TASTE.get() ? openRecommended() : openTaste() }, "Hire a filmmaker"),
-      h("button", { class: "btn big", onclick: () => $("#films").scrollIntoView({ block: "start", behavior: canPreview() ? "smooth" : "auto" }) }, "Browse works"),
-      h("a", { class: "btn big", href: "#/match" }, "Match a reference"))));
-  m.append(aiHome());
+    h("div", { class: "row cta" }, h("button", { class: "btn primary big", onclick: () => TASTE.get() ? openRecommended() : openTaste() }, "Hire a filmmaker"))));
+  // the one search on the site: a bar that floats under the header while the wall scrolls and opens the reference page
+  m.prepend(h("div", { class: "findbar" }, h("a", { href: "#/match" }, SEARCH_ICON(), h("span", null, "Start from a video you like"))));
   const tabBtn = (id, label, onclick) => h("button", { role: "tab", "aria-pressed": String(tab === id), onclick }, label);
   const films = tab && tab !== "rec" ? tabFilms(tab) : null;
   m.append(h("section", { class: "wrap section tight", id: "films" },
-    h("div", { class: "filters", role: "tablist", "aria-label": "Films" }, tabBtn("", "All", () => tabGo("#/")), tabBtn("rec", "Recommended", openRecommended), ...HOME_TABS.map(([id, label]) => tabBtn(id, label, () => tabGo("#/?tab=" + id)))),
-    ...(tab === "rec" ? recommendedTab() : films && !films.length ? [h("p", { class: "soonnote" }, "Coming soon")] : filmWall(films || firstFilms(36)))));
+    h("div", { class: "filters", role: "tablist", "aria-label": "Films" }, tabBtn("", "Discover", () => tabGo("#/")), tabBtn("rec", "For you", openRecommended), ...HOME_TABS.map(([id, label]) => tabBtn(id, label, () => tabGo("#/?tab=" + id)))),
+    ...(tab === "rec" ? recommendedTab() : films && !films.length ? [h("p", { class: "soonnote" }, "Coming soon")] : filmWall(films || stagger(DB.filmed().map(c => ({ w: c.works[0], c }))).slice(0, 36)))));
   // first visit: the questions open on their own. Closing them is remembered; Recommended brings them back.
   if (!TASTE.get() && !TASTE.seen()) setTimeout(() => { if (!route().parts.length && $("#sheet").hidden) openTaste(); }, 500);
 }
@@ -233,24 +300,7 @@ function mountAssist(){
 }
 
 /* ---------- search: say what you want, optionally attach a reference; we line up similar films ---------- */
-let SEARCHREF = null;
 function goSearch(t){ const to = "#/search?q=" + encodeURIComponent(t); if (!me()) return askSignIn(to); if (location.hash === to) render(); else go(to); }
-function openSearch(){
-  const ta = h("textarea", { class: "askta", rows: "4", maxlength: "600", "aria-label": "Describe the video you want to make", placeholder: "Describe the video you want to make in 2-3 sentences." });
-  const file = h("input", { type: "file", accept: "image/*,video/*", hidden: true, onchange: e => attach(e.target.files[0]) });
-  const chip = h("span", { class: "refchip", hidden: true });
-  const link = h("input", { class: "i", type: "url", hidden: true, "aria-label": "Reference link", placeholder: "https://… a film close to what you want" });
-  SEARCHREF = {};
-  function attach(f){ if (!f) return; Object.assign(SEARCHREF, { url: URL.createObjectURL(f), video: f.type.startsWith("video"), name: f.name });
-    chip.hidden = false; chip.replaceChildren(SEARCHREF.video ? h("video", { src: SEARCHREF.url, muted: true }) : h("img", { src: SEARCHREF.url, alt: "" }), h("span", null, f.name), h("button", { type: "button", "aria-label": "Remove reference", onclick: () => { delete SEARCHREF.url; chip.hidden = true; file.value = ""; } }, "×")); }
-  const submit = () => { const t = ta.value.trim(); SEARCHREF.link = link.value.trim();
-    if (t.length < 3) return toast(SEARCHREF.url || SEARCHREF.link ? "Add a few words too. We match on your words for now." : "Describe the video in a few words.");
-    closeSheet(); goSearch(t); };
-  ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); submit(); } });
-  openSheet([h("form", { class: "win-body", onsubmit: e => { e.preventDefault(); submit(); } }, ta, link,
-    h("div", { class: "row between" }, h("div", { class: "row" }, file, h("button", { class: "btn small", type: "button", onclick: () => file.click() }, "Add image or video"), h("button", { class: "btn small", type: "button", onclick: () => { link.hidden = !link.hidden; if (!link.hidden) link.focus(); } }, "Add link"), chip), h("button", { class: "btn primary", type: "submit" }, "Find creators")))], true);
-  $("#panel").classList.add("winp", "searchp"); $("#panel").classList.remove("slidesp"); $("#panel").setAttribute("aria-label", "Search"); setTimeout(() => ta.focus(), 50);
-}
 function vSearch(m, q){
   const text = (q.q || "").trim(); if (!text) return go("#/");
   const read = DB.readBrief(text); const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
@@ -258,11 +308,9 @@ function vSearch(m, q){
     return (read.cat === x.w[1] ? 4 : 0) + (read.styles.includes(x.w[2]) ? 4 : 0) + words.filter(w => hay.includes(w)).length * 2; };
   const films = tastePool().map(x => ({ x, s: score(x) })).filter(y => y.s > 0).sort((a, b) => b.s - a.s).slice(0, 12).map(y => y.x);
   const makers = DB.match({ cat: read.cat, styles: read.styles, text, strict: true }).filter(x => hasFace(x.c)).slice(0, 12);
-  const ref = SEARCHREF || {}; const kind = ref.url ? (ref.video ? "video" : "image") : ref.link ? "link" : null;
   m.append(h("section", { class: "wrap section" },
-    h("div", { class: "recs-head" }, h("div", null, h("h1", { class: "pname" }, "Creators for this"), h("p", { class: "q" }, "“" + text + "”"),
-        kind ? h("div", { class: "refnote" }, ref.url ? (ref.video ? h("video", { src: ref.url, muted: true }) : h("img", { src: ref.url, alt: "Your reference" })) : null, h("span", null, "We matched on your words. Matching from the " + kind + " itself is not connected yet.")) : null),
-      h("button", { class: "btn", onclick: openSearch }, "New search")),
+    h("div", { class: "recs-head" }, h("div", null, h("h1", { class: "pname" }, "Creators for this"), h("p", { class: "q" }, "“" + text + "”")),
+      h("a", { class: "btn", href: "#/match" }, "New search")),
     makers.length ? cgrid(makers) : h("div", { class: "empty" }, h("b", null, "No one matches that yet."), h("span", null, "Try the kind of film, a style or a mood."))));
   if (films.length) m.append(h("section", { class: "wrap section" }, h("div", { class: "sec-head" }, h("h2", null, "Similar films")), gallery(films)));
 }
@@ -322,7 +370,7 @@ function vCreator(m, id){
       h("div", { class: "stack", style: { gap: "14px" } }, h("span", { class: "eyebrow" }, ["@" + c.handle, c.where, c.tz].filter(Boolean).join(" · ")), h("h1", { class: "pname" }, c.name), h("p", { class: "muted", style: { fontSize: "17px", maxWidth: "56ch" } }, c.bg),
         h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t))),
         c.real && !c.claimed ? h("div", { class: "unclaimed" }, h("span", null, h("b", null, "Not on Rolvo yet. "), `This profile was built from ${c.name}'s public work. Start a project and we'll send them your brief with an invite; the chat goes live when they claim the profile. `, h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, (c.source === "Portfolio" ? "Their site" : "Their " + c.source) + " ↗"))) : null),
-      c.works.length ? h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c, hireCTA(c)))))
+      c.works.length ? h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c, filmCTA(w, c)))))
         : h("div", { class: "nofilm" }, h("span", null, "No films linked here yet."), h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, "See " + first(c.name) + "'s work on " + (c.source === "Portfolio" ? "their site" : c.source) + " ↗")),
       h("div", null, h("span", { class: "eyebrow" }, "Reviews · " + reviews.length), reviews.length ? reviews.map(rv => h("div", { class: "rev" }, h("span", { class: "s" }, "★".repeat(rv.stars) + "☆".repeat(5 - rv.stars)), h("span", null, rv.text), h("span", { class: "small dim" }, DB.nameOf(rv.from) + " · " + when(rv.at)))) : h("p", { class: "hint", style: { marginTop: "10px" } }, "No platform reviews yet."))),
     h("aside", { class: "side" },
@@ -330,6 +378,7 @@ function vCreator(m, id){
         h("div", { class: "stats" }, h("div", { class: "stat" }, h("b", null, rangeText(c)), h("span", null, DB.priceRange(c).est ? "estimate" : "typical")), h("div", { class: "stat" }, h("b", null, daysText(c.days)), h("span", null, "delivery")), c.rating ? h("div", { class: "stat" }, h("b", null, "★ " + c.rating.toFixed(1)), h("span", null, c.done + " done")) : h("div", { class: "stat" }, h("b", null, c.works.length), h("span", null, "public films"))),
         h("p", { class: "hint" }, DB.priceRange(c).est ? `What ${TAXONOMY[c.cats[0]].name.toLowerCase()} work like this usually closes for. ${c.name} hasn't set rates; you agree the real price in chat.` : `From ${first(c.name)}'s starting price (${money(c.ask)})` + (c.closes.length ? ` and ${c.closes.length} closed order${c.closes.length > 1 ? "s" : ""}` : "") + "."),
         h("button", { class: "btn primary big", style: { width: "100%" }, onclick: () => gate({ type: "hire", creatorId: c.id }, () => startProject(c)) }, "Start a project"),
+        favBtn("c:" + c.id, "big wide"),
         !me() ? h("p", { class: "hint" }, "Sign in and a few questions about you and the job come first. Then the chat opens.") : null))));
 }
 let whoSkipped = false;
@@ -354,8 +403,8 @@ function startProject(c){
   const f = h("form", { class: "form", onsubmit: e => { e.preventDefault(); const fd = new FormData(f);
     const o = DB.createOrder({ clientId: u.id, creatorId: c.id, title: fd.get("title").trim(), brief: fd.get("brief").trim(), cat: fd.get("cat") || null, opt: p.opt || null, style: fd.get("style") || null, price: Number(fd.get("price")) || c.ask });
     AFTER.set(null); closeSheet(); go("#/chat/" + o.id); } },
-    field("Project name", h("input", { class: "i", name: "title", required: true, minlength: "3", maxlength: "60", placeholder: "e.g. Lumen cold brew · launch film" })),
-    field("The job", h("textarea", { class: "i", name: "brief", required: true, minlength: "10", placeholder: "Deliverables, length, ratios, where it runs, deadline, references", value: p.brief || p.goal || "" })),
+    field("Project name", h("input", { class: "i", name: "title", required: true, maxlength: "60", placeholder: "e.g. Lumen cold brew · launch film" })),
+    field("The job", h("textarea", { class: "i", name: "brief", required: true, placeholder: "Deliverables, length, ratios, where it runs, deadline, references", value: p.brief || p.goal || "" })),
     h("div", { class: "row3" },
       field("Category", h("select", { class: "i", name: "cat" }, h("option", { value: "" }, "—"), ...CATS.map(id => h("option", { value: id, selected: p.cat === id }, TAXONOMY[id].name)))),
       field("Style", h("select", { class: "i", name: "style" }, h("option", { value: "" }, "—"), ...Object.entries(STYLES).map(([id, s]) => h("option", { value: id, selected: (p.styles || [])[0] === id }, s.name)))),
@@ -435,11 +484,12 @@ function vMatch(m, q){
   MATCHCUR = has ? { ...s, file: MATCHFILE && MATCHFILE.name } : null;
   const set = patch => tabGo(MATCH.url({ ...s, ...patch }));
   const dropFile = () => { if (MATCHFILE){ URL.revokeObjectURL(MATCHFILE.url); MATCHFILE = null; } };
-  const link = h("input", { class: "i", type: "url", name: "u", "aria-label": "Link to a video", placeholder: "https://www.youtube.com/watch?v=…", value: s.u });
+  const link = h("input", { class: "i", type: "text", name: "u", "aria-label": "A link to a video, or a description of it", placeholder: "Paste a link, or describe the video", value: s.u, autocomplete: "off" });
   const file = h("input", { type: "file", accept: "video/*", hidden: true, onchange: e => { const f = e.target.files[0]; if (!f) return; dropFile(); MATCHFILE = { name: f.name, url: URL.createObjectURL(f) }; if (location.hash !== "#/match") go("#/match"); else render(); } });
   const form = h("form", { class: "matchin", onsubmit: e => { e.preventDefault(); const v = link.value.trim(); let ok = false; try { ok = /^https?:$/.test(new URL(v).protocol); } catch {}
-      if (!ok) return toast("Paste a full link, starting with https://"); dropFile(); if (v === s.u) render(); else tabGo(MATCH.url({ u: v, cat: "", styles: [] })); } },
-    link, h("button", { class: "btn primary", type: "submit" }, has ? "Change" : "Continue"), h("button", { class: "btn", type: "button", onclick: () => file.click() }, "Upload a file"), file);
+      if (!ok) return /^https?:|^www\./i.test(v) ? toast("Paste a full link, starting with https://") : v.length < 3 ? toast("Paste a link or describe the video in a few words.") : goSearch(v);   // words go to search
+      dropFile(); if (v === s.u) render(); else tabGo(MATCH.url({ u: v, cat: "", styles: [] })); } },
+    link, h("button", { class: "btn primary", type: "submit" }, has ? "Change" : "Find"), h("button", { class: "btn", type: "button", onclick: () => file.click() }, "Upload a file"), file);
   const refW = film ? ["Your reference", s.cat || CATS[0], s.styles[0] || Object.keys(STYLES)[0], null, null, { ...film, by: "You" }] : null;
   const ref = !has ? null : MATCHFILE ? h("video", { class: "matchvid", src: MATCHFILE.url, controls: true, muted: true, playsinline: true, preload: "metadata" })
     : film ? tile(refW, { name: film.on, id: "ref" }, () => playWork(refW, { name: "Your reference", id: "ref" }))
@@ -459,19 +509,20 @@ function vMatch(m, q){
   const toggle = id => set({ styles: s.styles.includes(id) ? s.styles.filter(x => x !== id) : [...s.styles, id].slice(-2) });
   const films = has && !busy && (read || s.cat || s.styles.length) ? MATCH.rank(s, read ? rd.vec : null, film && film.yt) : [];
   const makers = films.length && me() ? [...new Map(films.map(x => [x.c.id, { c: x.c, why: [] }])).values()].filter(x => hasFace(x.c)).slice(0, 8) : [];
-  m.append(h("section", { class: "wrap section" },
-    h("div", { class: "stack", style: { gap: "12px", marginBottom: "32px" } }, h("h1", { class: "pname" }, "Match a reference"), h("p", { class: "lead" }, "Show us a video you like. We find films that look like it, and the people who made them.")),
-    h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, "1 · Your reference"), form, has ? null : h("p", { class: "hint" }, "A file from your computer, or a YouTube link. It is read in your browser and never uploaded."), ref ? h("div", { class: "matchref" }, ref) : null, busy ? status : null),
-    has && !busy ? h("div", { class: "mstep" }, h("span", { class: "eyebrow" }, read ? "2 · We read it as" : "2 · What is it?"),
-      read ? null : h("p", { class: "hint" }, rd.state === "failed" ? "We couldn't read this one here. Tell us what it is." : "This site doesn't let a browser read its video. Tell us what it is, or upload the file."),
-      h("div", { class: "chips" }, ...CATS.filter(id => DB.roster().some(c => c.cats.includes(id))).map(id => chip(s.cat === id, TAXONOMY[id].name, () => set({ cat: s.cat === id ? "" : id, styles: [] })))),
-      h("div", { class: "chips" }, ...looks.map(id => chip(s.styles.includes(id), STYLES[id].name, () => toggle(id)))),
-      read ? h("p", { class: "hint" }, "Change these if we got it wrong.") : null) : null,
-    films.length || (has && !busy && (s.cat || s.styles.length)) ? h("div", { class: "mstep", id: "matched" }, h("span", { class: "eyebrow" }, "3 · Films like it"),
-      films.length ? gallery(films) : h("div", { class: "empty" }, h("b", null, "Nothing close yet."), h("span", null, "Try another look.")),
-      films.length ? h("p", { class: "hint" }, (read ? "Ordered by how close each film looks to yours. " : "") + "Open a film to start a project with the person who made it. Your reference goes into the brief.") : null) : null,
-    makers.length ? h("div", { class: "mstep" }, h("div", { class: "sec-head", style: { marginBottom: "0" } }, h("h2", null, "Who made them")), cgrid(makers))
-      : films.length && !me() ? h("div", null, h("button", { class: "btn", onclick: () => openSignIn(() => render(), CREATORS_SIGNIN) }, "Sign in to see who made them")) : null));
+  // one screen: the reference on the left, what we read it as on the right, the films under both
+  const reads = has && !busy ? h("div", { class: "mreads" },
+    h("span", { class: "eyebrow" }, read ? "We read it as" : rd.state === "failed" ? "We couldn't read this one. What is it?" : "This site hides its video from us. What is it?"),
+    h("div", { class: "chips" }, ...CATS.filter(id => DB.roster().some(c => c.cats.includes(id))).map(id => chip(s.cat === id, TAXONOMY[id].name, () => set({ cat: s.cat === id ? "" : id, styles: [] })))),
+    h("div", { class: "chips" }, ...looks.map(id => chip(s.styles.includes(id), STYLES[id].name, () => toggle(id))))) : null;
+  const shown = films.length || (has && !busy && (s.cat || s.styles.length));
+  m.append(h("section", { class: "wrap section mpage" },
+    h("div", { class: "mhead" }, h("h1", null, "Start from a video you like"), has ? null : h("p", { class: "lead" }, "Paste a link, upload a file or describe it. We find the films like it and the people who made them.")),
+    has ? h("div", { class: "mref" }, h("div", { class: "matchref" }, ref), h("div", { class: "mside" }, form, busy ? status : null, reads))
+      : h("div", { class: "mstart" }, form, h("p", { class: "hint" }, "Read in your browser. Never uploaded.")),
+    shown ? h("div", { class: "mfilms", id: "matched" },
+      h("div", { class: "sec-head" }, h("h2", null, "Films like it"), films.length && !me() ? h("button", { class: "btn", onclick: () => openSignIn(() => render(), CREATORS_SIGNIN) }, "Sign in to see who made them") : null),
+      films.length ? gallery(films) : h("p", { class: "soonnote" }, "Nothing close yet. Try another look.")) : null,
+    makers.length ? h("div", { class: "mfilms" }, h("div", { class: "sec-head" }, h("h2", null, "Who made them")), cgrid(makers)) : null));
 }
 /* ---------- onboarding ---------- */
 const VQ1 = { name: "What's your name?", role: "What's your role there?", company: "Which company is this for?", website: "What's the company website?", type: "What kind of company is it?", size: "Roughly how big is the team?" };
@@ -525,7 +576,7 @@ function vOnboarding(m){
       out.replaceChildren(h("span", { class: "eyebrow" }, "We read this as"), h("div", { class: "row" }, cat ? h("b", { style: { fontWeight: 500 } }, cat.name) : h("span", { class: "muted" }, "Category unclear"), opt ? ["›", h("b", { style: { fontWeight: 500 } }, opt.name)] : null),
         h("div", { class: "chips" }, ...Object.keys(STYLES).filter(s => !opt || opt.styles.includes(s) || read.styles.includes(s)).map(s => { const c = styleChip(s, read.styles.includes(s)); c.style.cursor = "pointer"; c.onclick = () => { read.styles = read.styles.includes(s) ? read.styles.filter(x => x !== s) : [...read.styles, s].slice(-2); show(); }; return c; })),
         h("div", { class: "row" }, cat ? h("button", { class: "btn primary", onclick: () => { W.cat = read.cat; W.opt = read.opt; W.styles = read.styles; W.text = ta.value; W.step = 4; render(); } }, "Continue") : null, h("button", { class: "btn", onclick: () => { W.describe = false; W.text = ta.value; render(); } }, "Pick the category myself"))); }
-    page.append(dz, field("The job", ta), h("div", { class: "row" }, h("button", { class: "btn primary", onclick: () => { if (ta.value.trim().length < 8) return toast("Say a little more about the job."); show(); } }, "Read my brief"), h("button", { class: "link", onclick: () => { W.describe = false; render(); } }, "Back to categories")), out);
+    page.append(dz, field("The job", ta), h("div", { class: "row" }, h("button", { class: "btn primary", onclick: () => { if (!ta.value.trim()) return toast("Describe the job first."); show(); } }, "Read my brief"), h("button", { class: "link", onclick: () => { W.describe = false; render(); } }, "Back to categories")), out);
     return;
   }
   if (W.step === 2){
@@ -568,5 +619,8 @@ function vAccount(m){
     h("div", { class: "row acct-actions" }, h("button", { class: "btn", onclick: () => { W = { step: 0 }; go("#/onboarding"); } }, "Edit details"), h("a", { class: "btn", href: "#/chats" }, "Dashboard"), h("button", { class: "btn quiet", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out"))));
 }
 
+/* one line above everything: the beta is open. It scrolls away with the page. */
+$("#app").prepend(h("div", { class: "newsbar" }, h("b", null, "Rolvo beta is live"), h("span", null, "No transaction fees for clients"),
+  h("button", { class: "btn small", type: "button", onclick: () => TASTE.get() ? openRecommended() : openTaste() }, "Get started")));
 bootShared();
 mountAssist();

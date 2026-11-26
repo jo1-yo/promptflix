@@ -125,6 +125,11 @@ const DB = {
 
   /* orders */
   order(id){ return this.state.orders.find(o => o.id === id); },
+  /* favourites: the films and creators a client saved, newest first. A key is "c:<creatorId>" or "f:<creatorId>:<index in works>".
+     Kept in this browser for now; one table later. */
+  favs(uid){ return (this.state.favs && this.state.favs[uid]) || []; },
+  isFav(uid, key){ return this.favs(uid).includes(key); },
+  toggleFav(uid, key){ const all = this.state.favs || (this.state.favs = {}); const l = all[uid] || (all[uid] = []); const i = l.indexOf(key); if (i < 0) l.unshift(key); else l.splice(i, 1); this.save(); return i < 0; },
   ordersFor(uid){ return this.state.orders.filter(o => o.clientId === uid || o.creatorId === uid).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); },
   createOrder({clientId, creatorId, title, brief, cat, opt, style, price}){
     const c = this.creator(creatorId);

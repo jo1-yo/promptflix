@@ -184,7 +184,7 @@ const Auth = {
         google.accounts.id.initialize({ client_id: CONFIG.googleClientId, nonce: hashed, ux_mode: "popup", auto_select: false, itp_support: true,
           callback: r => this.fromGoogle(r.credential, raw, hashed) });
         if (!slot.isConnected) return;
-        google.accounts.id.renderButton(slot, { type: "standard", theme: "filled_black", size: "large", shape: "pill", text: "continue_with", logo_alignment: "center", width: Math.max(220, Math.min(400, slot.clientWidth || 360)) });
+        google.accounts.id.renderButton(slot, { type: "standard", theme: "outline", size: "large", shape: "pill", text: "continue_with", logo_alignment: "center", width: Math.max(220, Math.min(400, slot.clientWidth || 360)) });
       } catch (e) {
         slot.replaceWith(h("button", { class: "btn big gbtn", type: "button", onclick: () => this.google(box, back) }, googleIcon(), "Continue with Google"));
       }
