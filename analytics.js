@@ -3,7 +3,8 @@
    - Pageviews are sent by hand, once on load and once per route: the sites route on the hash, which PostHog does not watch.
    - A visitor is anonymous until they sign in with a real account; then events carry the account id (never the email or name).
      Demo accounts are never identified: their ids are the same in every browser.
-   - The id is kept in local storage, not a cookie. Session recording stays off unless CONFIG.posthogReplay is true.
+   - The id is kept in local storage, not a cookie. Session recording runs only when CONFIG.posthogReplay is true; typed
+     text is masked by PostHog, and anything inside .ph-no-capture (the conversations) is left out of a replay altogether.
    The stub below is PostHog's own install snippet with the library pinned to 1.455.2; bump the version on purpose, not silently. */
 const TRACKING = !!CONFIG.posthogKey;
 let trackedUser = null;
