@@ -16,11 +16,14 @@ function header(){
   const u = me(); const n = pendingCount(u && u.id);
   // Discover is the home page. Messages is every conversation with a creator; Orders is the same projects as a list; Favourites is what the client saved.
   // A link with no address is a section that is not open yet (Connect to your AI opens when mcpUrl is set in config.js).
-  const mine = u ? [["#/chats", "Messages", n], ["#/orders", "Orders"], ["#/favourites", "Favourites"]] : [];   // what an account adds; a visitor never sees these
-  const links = [["#/", "Discover"], ["#/creators", "Creators"], ...mine, [null, "Use cases"], [null, "Pricing"], [aiOpen() ? "#/connect" : null, "Connect to your AI"]];
+  // During beta the chat is closed, so Messages would only repeat Orders: it comes back when CONFIG.beta is off.
+  const mine = u ? [...(CONFIG.beta ? [] : [["#/chats", "Messages", n]]), ["#/orders", "Orders"], ["#/favourites", "Favourites"]] : [];   // what an account adds; a visitor never sees these
+  // Only what opens something is in the header. Use cases, Pricing and Connect to your AI appear the day their page does.
+  const soon = [["use-cases", "Use cases"], ["pricing", "Pricing"]].filter(([id]) => OPEN_SECTIONS.includes(id)).map(([id, label]) => ["#/" + id, label]);
+  const links = [["#/", "Discover"], ["#/creators", "Creators"], ...mine, ...soon, ...(aiOpen() ? [["#/connect", "Connect to your AI"]] : [])];
   const right = u ? [h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))] : [h("button", { class: "btn primary small", onclick: () => openSignIn() }, "Sign in")];
   mountHeader({ brand: "Rolvo", links, right, home: "#/", tabs: [["#/", "Discover"], ["#/creators", "Creators"], ...mine] });
-  if (route().parts[0] === "chat") for (const a of document.querySelectorAll('.navbtn[href="#/chats"]')) a.setAttribute("aria-current", "true");
+  if (route().parts[0] === "chat") for (const a of document.querySelectorAll('.navbtn[href="' + (CONFIG.beta ? "#/orders" : "#/chats") + '"]')) a.setAttribute("aria-current", "true");
 }
 /* Creators, messages and search results are for signed-in clients. */
 const MATCH_SIGNIN = { title: "Sign in to search", sub: "Show us a video you like, or describe one, and we find the people who make it." };
@@ -58,7 +61,7 @@ function render(){
   else return go("#/");
   if (!["onboarding", "chats", "chat"].includes(v)) m.append(footer());
   const as = $("#assist"); if (as) as.hidden = ["onboarding", "chats", "chat"].includes(v);
-  const nb = $(".newsbar"); if (nb) nb.hidden = ["chats", "chat"].includes(v);   // the conversation takes the whole screen height
+  const nb = $(".newsbar"); if (nb) nb.hidden = !!me() || ["chats", "chat"].includes(v);   // a pitch to visitors: with an account it has nothing left to say. And a conversation takes the whole screen height
   if (assistDraw) assistDraw();
   if (KEEPY != null){ const y = KEEPY; KEEPY = null; scrollTo(0, y); }
   else if (TOFILMS){ TOFILMS = false; const el = $("#films"); if (el) el.scrollIntoView({ block: "start" }); }
@@ -619,7 +622,7 @@ function vAccount(m){
     ["Budget", budget ? money(budget[0]) + "–" + (budget[1] > 500000 ? "∞" : money(budget[1])) : ""], ["Verification", u.verified ? "Verified" : u.onboarded ? "In review" : ""]].filter(r => r[1]);
   m.append(h("section", { class: "wrap section narrow" }, h("h1", { class: "pname" }, "Account"),
     h("dl", { class: "acct" }, ...rows.map(([k, v, note]) => h("div", null, h("dt", null, k), h("dd", null, v, note ? h("small", null, note) : null)))),
-    h("div", { class: "row acct-actions" }, h("button", { class: "btn", onclick: () => { W = { step: 0 }; go("#/onboarding"); } }, "Edit details"), h("a", { class: "btn", href: "#/chats" }, "Dashboard"), h("button", { class: "btn quiet", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out"))));
+    h("div", { class: "row acct-actions" }, h("button", { class: "btn", onclick: () => { W = { step: 0 }; go("#/onboarding"); } }, "Edit details"), h("a", { class: "btn", href: "#/orders" }, "Orders"), h("button", { class: "btn quiet", onclick: () => { DB.signOut(); go("#/"); } }, "Sign out"))));
 }
 
 /* one line above everything: the beta is open. It scrolls away with the page. */

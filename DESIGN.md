@@ -88,15 +88,15 @@ Everything a visitor can press speaks the same language as the buttons.
 
 ## Navigation
 
-- Header: logo, then Discover (the home page) and Creators; with an account, Messages, Orders and Favourites; then Use cases, Pricing and Connect to your AI.
+- Header: logo, then Discover (the home page) and Creators; with an account, Orders and Favourites (and Messages once the beta ends and chat opens). Nothing else: a link is in the header only if it opens something.
 - What an account adds (Messages, Orders, Favourites) does not exist for a visitor: not in the header, not greyed out.
 - **Favourites.** A white Save button with a heart sits in a film's player and on a creator's page; saved, the heart fills red (the one place colour marks state). Both land on the Favourites page: films as a wall, creators under them.
 - **Account pages** (Messages, Orders, Favourites) share one head: a 38px title on the left, tags on the right when the page has more than one view. They keep the header's left and right edges.
 - **Orders** is a list in two groups, In progress and Finished. A row is the creator's cover, the project and creator, the status with what happens next, the date and the price. Hovering lifts the row to a white surface; it opens the conversation.
 - **Favourites** shows one thing at a time, Films or Creators, switched with tags that carry a count.
 - **Messages** is two columns inside the page edges: the list (the open row is a white surface) and the conversation as one frosted pane. The order sits at the top of that pane behind a hairline, not in a box. Their messages are white bubbles, yours are ink. The news line is hidden here so the conversation gets the full height.
-- A news line sits above the header on the client site (`.newsbar`): one bold statement, one muted fact, one small white button. It scrolls away with the page.
-- Sections that are not open yet (Use cases, Pricing, Connect to your AI) stay in the header with no page behind them. Signed out they open sign-in; signed in they show a notice: "Pricing is coming soon."
+- A news line sits above the header on the client site (`.newsbar`), for visitors only: one bold statement, one muted fact, one small white button that opens the questions. It scrolls away with the page. With an account it is gone.
+- Sections that are not open yet (Use cases, Pricing, Connect to your AI) are not in the header. Each appears the day its page opens.
 - **Notices** (`#toast`) are white pills with the ring and shadow, bottom centre. Never a dark slab.
 - The hero is for visitors. Once signed in, the home page starts at the search bar and the wall.
 - **Search is one floating bar** under the header on the home page: "Start from a video you like". It stays in place while the wall scrolls and opens the reference page, where a link, a file or a sentence all work. It needs an account.
