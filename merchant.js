@@ -341,7 +341,7 @@ function filterForm(f, inline){
     h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Time zone"), radio("region", [["", "Anywhere"], ...REGIONS], f.region)),
     h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Category"), cb("cats", CATS.map(id => [id, TAXONOMY[id].name]), f.cats)),
     h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Style"), cb("styles", Object.entries(STYLES).map(([id, s]) => [id, s.name]), f.styles)),
-    h("div", { class: "row2" }, h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Typical turnaround"), radio("days", [["", "Any"], [7, "≤ 7 days"], [14, "≤ 14 days"]], f.days || "")), h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Availability"), radio("joined", [["", "Everyone"], [1, "On Rolvo now"]], f.joined || ""))),
+    h("div", { class: "row2" }, h("div", { class: "fgroup" }, h("span", { class: "eyebrow" }, "Typical turnaround"), radio("days", [["", "Any"], [7, "≤ 7 days"], [14, "≤ 14 days"]], f.days || ""))),
     inline ? null : h("div", { class: "row between" }, h("button", { class: "btn quiet", type: "button", onclick: () => { go(F.url({ q: f.q, sort: f.sort, min: 0, max: 0, region: "", cats: [], styles: [], days: 0, joined: 0 })); closeSheet(); } }, "Clear all"), h("button", { class: "btn primary", type: "submit" }, "Show creators")));
   return form;
 }
@@ -368,15 +368,17 @@ function vCreators(m, q){
       sorted.length ? cgrid(sorted.map(x => ({ c: x.c, why: f.q ? x.why : [] }))) : h("div", { class: "empty" }, h("b", null, "No one matches all of that."), h("span", null, "Loosen a filter; our crawler is inviting creators who make it."), h("a", { class: "btn", href: "#/creators" }, "Clear filters")))));
 }
 function vCreator(m, id){
+  // A creator with no film of their own here still shows films, on Rolvo: the closest ones by other people, said to be so.
+  // Nothing on this page sends a client to another platform, and it does not say who has joined: that record is in admin (Creators).
+  const alikeOf = c => tastePool().filter(x => x.c.id !== c.id && c.cats.includes(x.w[1])).map(x => ({ x, s: (c.styles.includes(x.w[2]) ? 2 : 0) + (x.w[1] === c.cats[0] ? 1 : 0) })).sort((a, b) => b.s - a.s).map(y => y.x).filter((x, i, l) => l.findIndex(y => y.c.id === x.c.id) === i).slice(0, 8);
   const c = DB.creator(id); if (!c || !c.live) return m.append(h("div", { class: "wrap section" }, h("div", { class: "empty" }, "Creator not found.")));
-  const reviews = DB.reviewsFor(c.id);
+  const reviews = DB.reviewsFor(c.id); const alike = c.works.length ? [] : alikeOf(c);
   m.append(h("section", { class: "wrap section profile" },
     h("div", { class: "stack", style: { gap: "36px" } },
       h("div", { class: "stack", style: { gap: "14px" } }, h("span", { class: "eyebrow" }, ["@" + c.handle, c.where, c.tz].filter(Boolean).join(" · ")), h("h1", { class: "pname" }, c.name), h("p", { class: "muted", style: { fontSize: "17px", maxWidth: "56ch" } }, c.bg),
-        h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t))),
-        c.real && !c.claimed ? h("div", { class: "unclaimed" }, h("span", null, h("b", null, "Not on Rolvo yet. "), `This profile was built from ${c.name}'s public work. Start a project and we'll send them your brief with an invite; the chat goes live when they claim the profile. `, h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, (c.source === "Portfolio" ? "Their site" : "Their " + c.source) + " ↗"))) : null),
+        h("div", { class: "chips" }, ...c.cats.map(x => h("span", { class: "chip on" }, TAXONOMY[x].name)), ...c.styles.map(s => styleChip(s)), ...c.tools.map(t => h("span", { class: "chip" }, t)))),
       c.works.length ? h("div", { class: "works" }, ...c.works.map(w => tile(w, c, () => playWork(w, c, filmCTA(w, c)))))
-        : h("div", { class: "nofilm" }, h("span", null, "No films linked here yet."), h("a", { class: "link", href: c.social, target: "_blank", rel: "noopener" }, "See " + first(c.name) + "'s work on " + (c.source === "Portfolio" ? "their site" : c.source) + " ↗")),
+        : alike.length ? h("div", null, h("span", { class: "eyebrow" }, "Similar films on Rolvo"), h("div", { style: { marginTop: "14px" } }, gallery(alike))) : null,
       h("div", null, h("span", { class: "eyebrow" }, "Reviews · " + reviews.length), reviews.length ? reviews.map(rv => h("div", { class: "rev" }, h("span", { class: "s" }, "★".repeat(rv.stars) + "☆".repeat(5 - rv.stars)), h("span", null, rv.text), h("span", { class: "small dim" }, DB.nameOf(rv.from) + " · " + when(rv.at)))) : h("p", { class: "hint", style: { marginTop: "10px" } }, "No platform reviews yet."))),
     h("aside", { class: "side" },
       h("div", { class: "card" },
