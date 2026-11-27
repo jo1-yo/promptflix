@@ -838,22 +838,7 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 .slidesound{position:absolute;z-index:2;bottom:10px;right:calc(50% - min(var(--slf) * 50%,var(--slh) * var(--far) / 2) + 10px);width:36px;height:36px;border-radius:50%;background:rgba(247,247,244,.9);color:var(--fg);display:grid;place-items:center;transition:background .15s}
 .slidesound:hover{background:#fff} .slidesound[hidden]{display:none}
 
-/* ── Connect to your AI: home entry (aihome) and the page (aipage) ── */
-.aihome{padding-block:0 8px}
-.aicard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:40px;align-items:center;padding:32px 36px;border-radius:16px;background:var(--frost);-webkit-backdrop-filter:var(--frost-blur);backdrop-filter:var(--frost-blur);transition:transform .35s cubic-bezier(.16,1,.3,1)}
-.aicard:hover{transform:translateY(-2px)}
-.aicopy{display:grid;gap:14px;justify-items:start}
-.aicopy h2{font-size:clamp(24px,2.6vw,34px);max-width:16ch}
-.aicopy .btn{margin-top:6px}
-.aidemo{display:grid;gap:14px;min-width:0}
-.aiask{justify-self:end;max-width:100%;min-height:42px;padding:10px 14px;border-radius:14px 14px 4px 14px;background:var(--fg);color:var(--bg);font-size:14px;line-height:1.5}
-.aitype::after{content:"";display:inline-block;width:1px;height:1.05em;margin-left:2px;vertical-align:-.15em;background:currentColor;animation:aiblink 1s steps(2) infinite}
-@keyframes aiblink{50%{opacity:0}}
-.aians{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.aihit{display:grid;gap:6px;font-size:13px;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s cubic-bezier(.16,1,.3,1)}
-.aians.on .aihit{opacity:1;transform:none} .aians.on .aihit:nth-child(2){transition-delay:.12s} .aians.on .aihit:nth-child(3){transition-delay:.24s}
-.aihit img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;background:var(--raise)}
-.aihit b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .aihit span{color:var(--muted)}
+/* ── Connect to your AI: the page (aipage). The home entry is the nav link. ── */
 .aipage{max-width:860px} .aipage h2{margin:48px 0 14px;font-size:22px}
 .aiaddr{gap:10px;padding:24px} .aiaddr b{font-weight:500}
 .aiurl{display:flex;align-items:center;gap:12px;min-width:0} .aiurl code{flex:1;min-width:0;font:13px/1.5 var(--mono);overflow-wrap:anywhere;user-select:all}
@@ -862,7 +847,141 @@ footer.wrap{border-top:1px solid var(--line);margin-top:72px;padding-block:56px 
 .aiasks .use:hover i{color:var(--fg)} .aican .soon span{color:var(--dim)}
 .aiapi{margin-top:36px}
 @media(max-width:760px){
-  .aicard{grid-template-columns:1fr;gap:24px;padding:24px 20px}
-  .aiask{justify-self:stretch}
   .aipage .aihow .use{grid-template-columns:1fr;gap:4px} .aiurl{flex-direction:column;align-items:flex-start}
 }
+
+/* v20 · the wall, the questions as pictures, the search bar, the reference page */
+/* wall: films at their own shape, in columns (merchant.js gallery()). --ar is width / height. */
+.gallery.wall{display:flex;align-items:flex-start;gap:16px}
+.wallcol{flex:1 1 0;min-width:0;display:grid;gap:26px}
+.wall .tile .art{aspect-ratio:var(--ar,1.7778)}
+@media(max-width:720px){.gallery.wall{gap:10px}.wallcol{gap:18px}}
+.moregate .blurred .wall{max-height:460px;overflow:hidden}
+/* questions: each answer is a film and a name */
+@media(min-width:760px){.panel.winp.gridp{max-width:980px}}
+.qgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 14px}
+.qcard{text-align:left;width:100%}
+.qcard .art{aspect-ratio:4/3;border:0}
+.qcard .cap b{font-size:15px;white-space:normal}
+.panel.winp.gridp .win-body{gap:22px;padding-bottom:32px}
+@media(max-width:760px){.qgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px}}
+/* the search bar: floats under the header and stays while the wall scrolls; it opens the reference page */
+.findbar{position:sticky;top:76px;z-index:6;height:0;display:flex;justify-content:center;align-items:flex-start;pointer-events:none}
+.findbar>a{pointer-events:auto;display:flex;align-items:center;gap:10px;width:min(440px,calc(100vw - 24px));height:44px;padding:0 20px;border-radius:999px;background:var(--frost);-webkit-backdrop-filter:var(--frost-blur);backdrop-filter:var(--frost-blur);box-shadow:0 6px 22px rgba(38,37,30,.12);font-size:15px;color:var(--muted);transition:box-shadow .25s,color .15s,transform .35s cubic-bezier(.16,1,.3,1)}
+.findbar>a:hover{color:var(--fg);box-shadow:0 10px 28px rgba(38,37,30,.18);transform:translateY(-1px)}
+.findbar + .hero{padding-top:112px}
+@media(max-width:700px){.findbar{top:68px}.findbar + .hero{padding-top:92px}}
+/* reference page: the video on the left, what we read on the right, the films under both */
+.mpage{display:grid;gap:40px}
+.mhead{display:grid;gap:12px} .mhead h1{font-size:clamp(30px,3.4vw,46px)} .mhead .lead{color:var(--muted);font-size:18px;max-width:52ch}
+.mstart{display:grid;gap:12px}
+.mref{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:36px;align-items:start}
+.mref .matchref{max-width:none} .mref .tile .cap{display:none}
+.mside{display:grid;gap:22px;min-width:0} .mreads{display:grid;gap:12px}
+.mfilms .sec-head{align-items:center}
+.mpage .soonnote{padding:48px 0}
+@media(max-width:800px){.mref{grid-template-columns:1fr;gap:22px}.mpage{gap:30px}}
+
+/* v21 · buttons are pills (DESIGN.md → Buttons). Primary: ink, white label. Secondary: white, a hairline and a faint lift. */
+.btn{height:40px;padding:0 18px;border-radius:999px;background:#fff;border:1px solid rgba(38,37,30,.1);box-shadow:0 1px 2px rgba(38,37,30,.05);font-size:15px;letter-spacing:-.005em;transition:background .15s,border-color .15s,color .15s,opacity .15s,box-shadow .2s}
+.btn:hover:not(:disabled){background:#fafaf8;border-color:rgba(38,37,30,.18);box-shadow:0 2px 6px rgba(38,37,30,.08)}
+.btn.primary{background:var(--fg);border-color:var(--fg);color:#fff;box-shadow:none}
+.btn.primary:hover:not(:disabled){background:#000;border-color:#000;box-shadow:none}
+.btn.quiet{background:transparent;border-color:transparent;box-shadow:none}
+.btn.quiet:hover:not(:disabled){background:rgba(38,37,30,.06);border-color:transparent;box-shadow:none}
+.btn.danger{background:#fff;box-shadow:none}
+.btn.danger:hover:not(:disabled){background:#fff;box-shadow:none}
+.btn.small{height:34px;padding:0 14px;font-size:14px;border-radius:999px}
+.btn.big{height:52px;padding:0 24px;font-size:17px;border-radius:999px}
+.assist-act{border-radius:999px;padding:0 9px 0 22px} .assist-act i{border-radius:50%}
+.assist-card{border-radius:28px}
+
+/* v22 · buttons, closer: a lighter label; the white button is a real object (ring + soft shadow) and carries most actions */
+.btn{font-weight:400;border-color:transparent;box-shadow:0 0 0 1px rgba(38,37,30,.08),0 1px 2px rgba(38,37,30,.06),0 3px 6px -2px rgba(38,37,30,.06)}
+.btn:hover:not(:disabled){background:#fff;border-color:transparent;box-shadow:0 0 0 1px rgba(38,37,30,.12),0 2px 4px rgba(38,37,30,.08),0 6px 14px -4px rgba(38,37,30,.12)}
+.btn.primary,.btn.primary:hover:not(:disabled),.btn.quiet,.btn.quiet:hover:not(:disabled){box-shadow:none}
+.btn.danger{box-shadow:0 0 0 1px rgba(179,55,47,.3)} .btn.danger:hover:not(:disabled){box-shadow:0 0 0 1px var(--bad)}
+.assist-act{background:#fff;color:var(--fg);font-weight:400;box-shadow:0 0 0 1px rgba(38,37,30,.08),0 1px 2px rgba(38,37,30,.06),0 3px 6px -2px rgba(38,37,30,.06)}
+.assist-act:hover{background:#fff;box-shadow:0 0 0 1px rgba(38,37,30,.12),0 2px 4px rgba(38,37,30,.08),0 6px 14px -4px rgba(38,37,30,.12)}
+.assist-act i{background:var(--fg);color:#fff}
+/* the line above everything */
+.newsbar{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:48px;padding:8px 16px;font-size:14px;text-align:center;background:linear-gradient(100deg,#efeeea,#f3f1ee 55%,#e9edf5)}
+.newsbar b{font-weight:500} .newsbar span{color:var(--muted);padding-left:14px;border-left:1px solid var(--line2)}
+@media(max-width:560px){.newsbar{gap:8px 12px;font-size:13px}.newsbar .btn{display:none}}
+
+/* v23 · the same button language on every control (DESIGN.md → Buttons, Controls) */
+:root{--ring:0 0 0 1px rgba(38,37,30,.08),0 1px 2px rgba(38,37,30,.06),0 3px 6px -2px rgba(38,37,30,.06);--ring2:0 0 0 1px rgba(38,37,30,.12),0 2px 4px rgba(38,37,30,.08),0 6px 14px -4px rgba(38,37,30,.12)}
+/* sign-in: one column 400 wide, so our Continue and Google's own button (white, 40 tall, 400 at most) are the same size */
+@media(min-width:760px){.panel:has(.auth){max-width:456px}}
+.auth .btn.big{height:40px;font-size:15px;padding:0 18px}
+.auth .gbtn{box-shadow:var(--ring)}
+/* round controls: close, add, arrows, sound */
+.close,.plus,.slidearrow,.slidesound{border-radius:50%;background:#fff;color:var(--fg);box-shadow:var(--ring);transition:box-shadow .2s}
+.close:hover,.plus:hover,.slidearrow:hover,.slidesound:hover{background:#fff;box-shadow:var(--ring2)}
+.assist-head .close{background:transparent;box-shadow:none} .assist-head .close:hover{background:rgba(38,37,30,.06);box-shadow:none}
+/* pills: nav items, tags, chips */
+.navbtn,.filters button,.chip{border-radius:999px;font-weight:400}
+.navbtn,.filters button{padding:8px 14px}
+.chip{height:30px;padding:0 12px;border-color:transparent;background:#fff;box-shadow:var(--ring);color:var(--fg)}
+button.chip:hover,label.chip:hover{box-shadow:var(--ring2)}
+.chip.on{background:var(--fg);color:#fff;border-color:transparent;box-shadow:none}
+.tabbar .navbtn{border-radius:0;padding:14px 0}
+/* fields */
+.i{border-radius:12px;padding:10px 14px}
+.composer .i,.matchin .i{border-radius:999px;padding-inline:18px}
+
+/* v24 · notices are white pills like everything else; a signed-in home starts at the wall */
+#toast{left:0;right:0;margin-inline:auto;width:fit-content;transform:none;bottom:32px;background:#fff;color:var(--fg);padding:11px 20px;border-radius:999px;font-size:15px;font-weight:400;box-shadow:var(--ring2)}
+@media(max-width:900px){#toast{bottom:84px}}
+.findbar + #films{padding-top:104px}
+@media(max-width:700px){.findbar + #films{padding-top:88px}}
+
+/* v25 · favourites and orders */
+.favbtn svg{flex:none} .favbtn[aria-pressed="true"] svg{color:var(--bad)}
+.btn.wide{width:100%}
+@media(max-width:1180px) and (min-width:901px){.nav .navbtn{padding:8px 9px;font-size:13px}}
+
+/* v26 · the account pages: Messages, Orders, Favourites. Same edges as the header, same pills, same white surfaces. */
+.upage{padding-top:44px}
+.uhead{display:flex;align-items:center;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;margin-bottom:28px}
+.uhead h1{font-size:clamp(28px,3vw,38px)} .uhead .filters{margin:0}
+.filters button .n{margin-left:7px;color:var(--dim);font-variant-numeric:tabular-nums}
+/* orders */
+.ogroup{font-size:14px;font-weight:500;letter-spacing:0;color:var(--muted);margin:28px 0 6px} .ogroup:first-of-type{margin-top:0}
+.ordlist{display:grid}
+.ordrow{display:grid;grid-template-columns:112px minmax(0,1.1fr) minmax(0,1.4fr) 110px 100px;gap:20px;align-items:center;padding:14px 12px;margin-inline:-12px;border-radius:16px;transition:background .15s}
+.ordrow + .ordrow{box-shadow:0 -1px 0 var(--line)} .ordrow:hover{background:#fff;box-shadow:var(--ring)} .ordrow:hover + .ordrow{box-shadow:none}
+.othumb{display:block;width:112px;aspect-ratio:16/10;border-radius:10px;overflow:hidden;position:relative}
+.othumb .art{position:absolute;inset:0;width:100%;height:100%} .othumb .art.mono i{font-size:28px}
+.ordrow .n,.ordrow .s{display:grid;gap:3px;min-width:0}
+.ordrow .n b{font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ordrow .n span,.ordrow .s>span:not(.badge),.ordrow .d{color:var(--muted);font-size:14px}
+.ordrow .s>span:not(.badge){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ordrow .p{font-weight:500;font-size:16px;text-align:right}
+@media(max-width:860px){.ordrow{grid-template-columns:84px minmax(0,1fr) auto;gap:4px 14px}.othumb{width:84px;grid-row:1 / span 2}.ordrow .s{grid-column:2 / span 2}.ordrow .s>span:not(.badge){display:none}.ordrow .d{display:none}.ordrow .p{grid-row:1;grid-column:3}}
+/* messages: the list and the conversation sit inside the page edges; the conversation is one frosted pane */
+.msg .bub{background:#fff;box-shadow:var(--ring);border-radius:18px;padding:10px 16px;font-size:15px}
+.msg.me .bub{background:var(--fg);color:#fff;box-shadow:none}
+.msg.sys .bub{background:none;box-shadow:none;font-size:13px}
+.msg .bub.terms{background:#fff;border:0}
+.msg{max-width:min(72%,560px)} .msg.sys{max-width:520px}
+.thread .pinned{background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;margin:0;padding:16px 24px;border-bottom:1px solid var(--line)}
+.thread .composer{border-top:0}
+.trow{border-top:0}
+.trow .n{font-size:15px} .trow .t{font-size:13px}
+@media(min-width:801px){
+  .chats{grid-template-columns:340px minmax(0,1fr);gap:0 20px;border-top:0;padding:8px calc(var(--edge) - 12px) 20px}
+  .tlist{border-right:0}
+  .tlist .th{padding:18px 12px 14px} .tlist .th h2{font-size:clamp(28px,3vw,38px)}
+  .trow{border-radius:16px;padding:12px}
+  .trow:hover{background:rgba(38,37,30,.04)} .trow[aria-current="true"]{background:#fff;box-shadow:var(--ring)}
+  .thread{background:var(--frost);border-radius:20px;overflow:hidden;margin-top:12px}
+  .thread.none{background:none}
+  .thead{padding:16px 24px} .stream{padding:20px 24px} .thread .composer{padding:14px 20px 18px}
+}
+/* the unread count sits after the label, never on top of it */
+.navbtn .n,.tabbar .navbtn .n{position:static;display:inline-grid;margin-left:6px;vertical-align:1px}
+
+/* v23 · beta testing: a conversation shows a notice where the chat will be (ui.js thread()) */
+.thread.beta{grid-template-rows:auto minmax(0,1fr)}
+.betanote{align-self:center;color:var(--muted)} .betanote b{color:var(--fg);font-weight:500;font-size:17px} .betanote span{max-width:44ch}
