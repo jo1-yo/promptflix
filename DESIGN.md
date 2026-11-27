@@ -90,6 +90,7 @@ Everything a visitor can press speaks the same language as the buttons.
 
 - Header: logo, then Discover (the home page) and Creators; with an account, Orders and Favourites (and Messages once the beta ends and chat opens). Nothing else: a link is in the header only if it opens something.
 - What an account adds (Messages, Orders, Favourites) does not exist for a visitor: not in the header, not greyed out.
+- **Two sites, two accounts.** Clients sign in on the client site, filmmakers on the creator site, and each has its own onboarding. A visitor's header ends with "For creators"; the sign-in window on each site closes with one line to the other ("Are you a filmmaker? Join as a creator" / "Looking to hire? Rolvo for clients").
 - **Favourites.** A white Save button with a heart sits in a film's player and on a creator's page; saved, the heart fills red (the one place colour marks state). Both land on the Favourites page: films as a wall, creators under them.
 - **Account pages** (Messages, Orders, Favourites) share one head: a 38px title on the left, tags on the right when the page has more than one view. They keep the header's left and right edges.
 - **Orders** is a list in two groups, In progress and Finished. A row is the creator's cover, the project and creator, the status with what happens next, the date and the price. Hovering lifts the row to a white surface; it opens the conversation.

@@ -141,12 +141,16 @@ const Auth = {
         field(label, row), h("button", { class: "btn primary big", type: "submit" }, "Continue"));
       const toggle = custom ? null : h("p", { class: "switch" }, signup ? "Already have an account? " : "Don't have a Rolvo account? ",
         h("button", { class: "link", type: "button", onclick: () => { signup = !signup; draw(); } }, signup ? "Log in" : "Sign up"));
+      // Two sites, two kinds of account: say which one this is, and give the way to the other. A filmmaker who signs in here becomes a client.
+      const side = APP === "merchant" ? h("p", { class: "switch" }, "Are you a filmmaker? ", h("a", { class: "link", href: assetBase() + "creator/#/apply" }, "Join as a creator"))
+        : APP === "creator" ? h("p", { class: "switch" }, "Looking to hire? ", h("a", { class: "link", href: assetBase() }, "Rolvo for clients")) : null;
       box.replaceChildren(...[   // filter: replaceChildren would print "null" for the parts left out
         codes ? f : null,
         methods.includes("google") && codes ? h("div", { class: "or" }, h("span", null, "or")) : null,
         methods.includes("google") ? (CONFIG.googleClientId ? this.gsiButton(box, draw) : h("button", { class: "btn big gbtn", type: "button", onclick: () => this.google(box, draw) }, googleIcon(), "Continue with Google")) : null,
         opts.hint ? h("p", { class: "hint" }, opts.hint) : null,
         toggle,
+        side,
         h("p", { class: "hint legal" }, "By continuing you agree to the ", h("a", { href: legalBase() + "terms/", target: "_blank", class: "link" }, "Terms"), " and ", h("a", { href: legalBase() + "privacy/", target: "_blank", class: "link" }, "Privacy Policy"), "."),
         this.mode() === "demo" ? h("p", { class: "hint demo" }, "Demo mode: no email or SMS is sent" + (LIVE.google ? "" : " and Google isn't connected") + ". Codes appear on screen.") : null].filter(Boolean));
       if (codes) setTimeout(() => who.focus(), 30);

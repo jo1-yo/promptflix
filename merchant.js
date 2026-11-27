@@ -21,7 +21,7 @@ function header(){
   // Only what opens something is in the header. Use cases, Pricing and Connect to your AI appear the day their page does.
   const soon = [["use-cases", "Use cases"], ["pricing", "Pricing"]].filter(([id]) => OPEN_SECTIONS.includes(id)).map(([id, label]) => ["#/" + id, label]);
   const links = [["#/", "Discover"], ["#/creators", "Creators"], ...mine, ...soon, ...(aiOpen() ? [["#/connect", "Connect to your AI"]] : [])];
-  const right = u ? [h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))] : [h("button", { class: "btn primary small", onclick: () => openSignIn() }, "Sign in")];
+  const right = u ? [h("a", { href: "#/account", "aria-label": "Account" }, avatar(u))] : [h("a", { class: "navbtn forcreators", href: assetBase() + "creator/" }, "For creators"), h("button", { class: "btn primary small", onclick: () => openSignIn() }, "Sign in")];
   mountHeader({ brand: "Rolvo", links, right, home: "#/", tabs: [["#/", "Discover"], ["#/creators", "Creators"], ...mine] });
   if (route().parts[0] === "chat") for (const a of document.querySelectorAll('.navbtn[href="' + (CONFIG.beta ? "#/orders" : "#/chats") + '"]')) a.setAttribute("aria-current", "true");
 }
