@@ -198,10 +198,11 @@ function thread(o, u){
   const input = h("input", { class: "i", placeholder: isParty ? "Message " + first(other.name) : "Admins can read but not write", disabled: !isParty, autocomplete: "off" });
   const form = h("form", { class: "composer", onsubmit: e => { e.preventDefault(); if (!input.value.trim()) return; DB.send(o.id, u.id, input.value.trim()); input.value = ""; render(); setTimeout(() => { const i = $(".composer input"); i && i.focus(); }, 0); } },
     h("button", { class: "plus", type: "button", "aria-label": "More", onclick: () => plusMenu(o, u) }, "+"), input, h("button", { class: "btn primary", type: "submit", disabled: !isParty }, "Send"));
-  const t = h("section", { class: "thread" },
+  const beta = CONFIG.beta && APP !== "admin";   // beta testing: the project is saved, the conversation is not open yet
+  const t = h("section", { class: "thread" + (beta ? " beta" : "") },
     h("div", { class: "thead" }, h("a", { class: "btn quiet small back", href: "#/chats" }, "← Back"), avatar(other), h("div", { class: "who" }, h("b", null, APP === "admin" ? DB.nameOf(o.clientId) + " ↔ " + other.name : other.name + (other.org ? " · " + other.org : "")), h("span", null, other.where ? other.where + (other.tz ? " · " + other.tz : "") : (other.profile && other.profile.website) || other.email || "")),
-      h("div", { style: { marginLeft: "auto" }, class: "row" }, h("span", { class: "badge " + o.status }, STATUS[o.status][0]), h("button", { class: "btn small", onclick: () => openSheet(detailsSheet(o, u)) }, "Details"))),
-    pinnedCard(o, u), stream, form);
+      beta ? null : h("div", { style: { marginLeft: "auto" }, class: "row" }, h("span", { class: "badge " + o.status }, STATUS[o.status][0]), h("button", { class: "btn small", onclick: () => openSheet(detailsSheet(o, u)) }, "Details"))),
+    ...(beta ? [h("div", { class: "chat-empty betanote" }, h("b", null, "Rolvo is in beta testing."), h("span", null, "Chat is not open yet. Your project with " + first(other.name) + " is saved, and this conversation opens when the beta does."))] : [pinnedCard(o, u), stream, form]));
   setTimeout(() => { stream.scrollTop = stream.scrollHeight; }, 0);
   return t;
 }

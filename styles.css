@@ -981,3 +981,7 @@ button.chip:hover,label.chip:hover{box-shadow:var(--ring2)}
 }
 /* the unread count sits after the label, never on top of it */
 .navbtn .n,.tabbar .navbtn .n{position:static;display:inline-grid;margin-left:6px;vertical-align:1px}
+
+/* v23 · beta testing: a conversation shows a notice where the chat will be (ui.js thread()) */
+.thread.beta{grid-template-rows:auto minmax(0,1fr)}
+.betanote{align-self:center;color:var(--muted)} .betanote b{color:var(--fg);font-weight:500;font-size:17px} .betanote span{max-width:44ch}

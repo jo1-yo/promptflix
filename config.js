@@ -10,10 +10,11 @@ const CONFIG = {
   codeLength: 6,            // digits in the email / SMS code; must match Supabase → Authentication → Email / Phone → OTP length
   stripePk: "",             // pk_test_… — card payments through the Stripe Payment Element
   paypalClientId: "",       // PayPal REST app client id (sandbox first)
+  beta: true,               // beta testing: a project can be started, but its conversation shows a notice in place of the chat (ui.js thread())
   mcpUrl: "",               // https://mcp.rolvo.market/mcp — Connect to your AI (server/mcp/worker.js). Empty = the page says "Opening soon"
   posthogKey: "phc_vKk3XmaiSEiobL6oZVq8WCGnDnjbuXVoYNyzRHpZYYRW",           // phc_… — PostHog project API key (public). Empty = no analytics: nothing is loaded or sent (analytics.js)
   posthogHost: "https://us.i.posthog.com",   // or https://eu.i.posthog.com for an EU project
-  posthogReplay: true,      // also record sessions for replay (it is on in the PostHog project too). Conversations are never recorded: see vChats
+  posthogReplay: false,     // true also records sessions for replay. Off for now: decide on consent first. Admin and conversations are never recorded (analytics.js, vChats)
   paymentsUrl: "",          // https://<ref>.supabase.co/functions/v1/payments — creates PaymentIntents and PayPal orders server-side
   adminEmails: ["team@rolvo.demo", "janezhang555l@gmail.com", "kh3443@barnard.edu"],   // live, also set role = 'admin' in market_profiles (see market.sql)
   // Featured creators, by handle from creators.js. They are listed first: home film wall, Creators page (Best match)
